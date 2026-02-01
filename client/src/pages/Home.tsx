@@ -1,25 +1,185 @@
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { SearchFilters } from "@/components/SearchFilters";
+import { RecyclingCard } from "@/components/RecyclingCard";
+import { Stats } from "@/components/Stats";
+import { useRecyclingData } from "@/hooks/useRecyclingData";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { Loader2, ChevronDown, MapPin, Recycle } from "lucide-react";
+import { motion } from "framer-motion";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const ITEMS_PER_PAGE = 12;
+
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  const {
+    filteredFacilities,
+    states,
+    categories,
+    isLoading,
+    error,
+    searchTerm,
+    setSearchTerm,
+    selectedState,
+    setSelectedState,
+    selectedCategory,
+    setSelectedCategory,
+    clearFilters,
+    facilities,
+  } = useRecyclingData();
+
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+
+  const displayedFacilities = filteredFacilities.slice(0, displayCount);
+  const hasMore = displayCount < filteredFacilities.length;
+
+  const loadMore = () => {
+    setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
+    <div className="min-h-screen flex flex-col bg-topo-pattern">
+      <Header />
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30"
+          style={{ backgroundImage: "url('/images/hero-bg.png')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+        
+        <div className="container relative py-16 md:py-24">
+          <div className="max-w-3xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-label mb-4">
+                <Recycle className="h-4 w-4" />
+                <span>Free National Directory</span>
+              </div>
+              
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 text-balance">
+                Find Recycling Centers{" "}
+                <span className="text-primary">Near You</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground font-body leading-relaxed mb-6">
+                Search our comprehensive directory of over 1,750 recycling facilities across 
+                all 50 states. Find the right place to recycle electronics, plastics, glass, 
+                paper, textiles, and more.
+              </p>
+              
+              <div className="flex items-center gap-4 text-sm font-label text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span>50 States</span>
+                </div>
+                <div className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                <div className="flex items-center gap-1">
+                  <span>9 Categories</span>
+                </div>
+                <div className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                <div className="flex items-center gap-1">
+                  <span>EPA Data</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 w-80"
+          >
+            <img
+              src="/images/recycling-illustration.png"
+              alt="Recycling illustration"
+              className="w-full h-auto drop-shadow-xl"
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="container -mt-8 relative z-10 mb-8">
+        <Stats
+          totalFacilities={facilities.length}
+          totalStates={states.length}
+          totalCategories={categories.length}
+        />
+      </section>
+
+      {/* Search & Results Section */}
+      <section className="container pb-16">
+        <SearchFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedState={selectedState}
+          setSelectedState={setSelectedState}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          states={states}
+          categories={categories}
+          onClear={clearFilters}
+          totalResults={filteredFacilities.length}
+        />
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground font-body">Loading recycling facilities...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-destructive font-body">{error}</p>
+          </div>
+        ) : filteredFacilities.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <MapPin className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-display text-xl font-semibold mb-2">No facilities found</h3>
+            <p className="text-muted-foreground font-body mb-4">
+              Try adjusting your search criteria or clearing filters.
+            </p>
+            <Button onClick={clearFilters} variant="outline" className="font-label">
+              Clear all filters
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-8">
+              {displayedFacilities.map((facility, index) => (
+                <RecyclingCard
+                  key={`${facility.Name}-${facility.Address}-${index}`}
+                  facility={facility}
+                  index={index % ITEMS_PER_PAGE}
+                />
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={loadMore}
+                  variant="outline"
+                  size="lg"
+                  className="font-label"
+                >
+                  <ChevronDown className="h-4 w-4 mr-2" />
+                  Load More ({filteredFacilities.length - displayCount} remaining)
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      <Footer />
     </div>
   );
 }
