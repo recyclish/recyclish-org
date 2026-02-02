@@ -39,6 +39,7 @@ const categoryColors: Record<string, string> = {
   "TextilesRecycling Facilities": "#7a2a7a",
   "WoodRecycling Facilities": "#6a5a2a",
   "WoodSecondary Processors": "#5a4a2a",
+  "Retail Take-Back Program": "#e63946",
 };
 
 export default function MapViewPage() {

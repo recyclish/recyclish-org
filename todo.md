@@ -27,3 +27,10 @@
 - [x] Interactive map view with facility markers
 - [x] Map clustering for better performance
 - [x] Map/list view toggle on homepage
+
+## Data Expansion
+- [x] Research retail take-back programs (Best Buy, Staples, Home Depot, etc.)
+- [x] Find municipal recycling center databases
+- [x] Add local drop-off locations data (60 retail locations added)
+- [x] Merge new facilities into master CSV (1,810 total facilities)
+- [x] Update website categories (added Retail Take-Back Program)
