@@ -99,3 +99,11 @@
 - [x] Create reviews section showing all reviews for a facility
 - [x] Add helpful votes feature
 - [x] Unit tests for review functionality (12 tests)
+
+## Highest Rated Section
+- [x] Create backend API endpoint to get top-rated facilities
+- [x] Build HighestRated component for homepage
+- [x] Display facility cards with ratings and review counts
+- [x] Add link to view all on map
+- [x] Integrate section into homepage layout
+- [x] Unit tests for top-rated functionality (4 tests)

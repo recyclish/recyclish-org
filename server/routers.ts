@@ -32,7 +32,8 @@ import {
   addHelpfulVote,
   removeHelpfulVote,
   getUserHelpfulVotes,
-  hasUserReviewedFacility
+  hasUserReviewedFacility,
+  getTopRatedFacilities
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 
@@ -439,6 +440,14 @@ export const appRouter = router({
           avgCleanliness: stats?.avgCleanliness ? Number(stats.avgCleanliness.toFixed(1)) : null,
           avgConvenience: stats?.avgConvenience ? Number(stats.avgConvenience.toFixed(1)) : null,
         };
+      }),
+
+    // Public endpoint - get top-rated facilities
+    topRated: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).optional() }).optional())
+      .query(async ({ input }) => {
+        const topRated = await getTopRatedFacilities(input?.limit || 6);
+        return topRated;
       }),
 
     // Protected endpoint - check if user has reviewed a facility

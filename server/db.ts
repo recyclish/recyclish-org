@@ -588,3 +588,35 @@ export async function hasUserReviewedFacility(userId: number, facilityId: string
 
   return result.length > 0;
 }
+
+
+// Get top-rated facilities based on reviews
+export async function getTopRatedFacilities(limit: number = 10) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Get facilities with at least one review, ordered by average rating and review count
+  const result = await db.select({
+    facilityId: facilityReviews.facilityId,
+    facilityName: facilityReviews.facilityName,
+    facilityAddress: facilityReviews.facilityAddress,
+    avgRating: sql<number>`ROUND(AVG(rating), 1)`,
+    totalReviews: sql<number>`COUNT(*)`,
+  })
+    .from(facilityReviews)
+    .where(eq(facilityReviews.status, "published"))
+    .groupBy(facilityReviews.facilityId, facilityReviews.facilityName, facilityReviews.facilityAddress)
+    .having(sql`COUNT(*) >= 1`)
+    .orderBy(sql`AVG(rating) DESC`, sql`COUNT(*) DESC`)
+    .limit(limit);
+
+  return result.map(r => ({
+    facilityId: r.facilityId,
+    facilityName: r.facilityName,
+    facilityAddress: r.facilityAddress,
+    avgRating: Number(r.avgRating),
+    totalReviews: Number(r.totalReviews),
+  }));
+}
