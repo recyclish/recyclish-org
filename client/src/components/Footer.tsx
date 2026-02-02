@@ -67,17 +67,23 @@ export function Footer() {
         </div>
         
         <div className="mt-8 pt-8 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-white/70 font-body flex items-center gap-1">
-            Made with <Heart className="h-4 w-4 text-[oklch(0.72_0.12_45)]" /> by{" "}
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-white/70 font-body flex items-center gap-1">
+              Made with <Heart className="h-4 w-4 text-[oklch(0.72_0.12_45)]" /> by
+            </p>
             <a 
               href="https://recyclish.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-white hover:underline"
+              className="hover:opacity-80 transition-opacity"
             >
-              Recyclish LLC
+              <img 
+                src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png" 
+                alt="Recyclish - Turning Knowledge into Action" 
+                className="h-10 w-auto brightness-0 invert"
+              />
             </a>
-          </p>
+          </div>
           <p className="text-xs text-white/50 font-label">
             © {new Date().getFullYear()} National Recycling Directory. All rights reserved.
           </p>

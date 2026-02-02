@@ -79,10 +79,13 @@ export function Header() {
                 href="https://recyclish.com"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="flex items-center hover:opacity-80 transition-opacity"
               >
-                <Button variant="default" size="sm" className="font-label">
-                  Recyclish LLC
-                </Button>
+                <img 
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png" 
+                  alt="Recyclish - Turning Knowledge into Action" 
+                  className="h-10 w-auto"
+                />
               </a>
             </div>
           </nav>
@@ -152,11 +155,13 @@ export function Header() {
                 href="https://recyclish.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2"
+                className="mt-2 flex justify-center hover:opacity-80 transition-opacity"
               >
-                <Button variant="default" className="w-full font-label">
-                  Recyclish LLC
-                </Button>
+                <img 
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png" 
+                  alt="Recyclish - Turning Knowledge into Action" 
+                  className="h-12 w-auto"
+                />
               </a>
             </nav>
           </motion.div>

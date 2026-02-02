@@ -134,3 +134,8 @@
 - [x] Link to nearby facility detail pages
 - [x] Add batchStats API endpoint for efficient rating lookups
 - [x] Unit tests for batchStats endpoint (4 tests)
+
+## Recyclish Branding
+- [x] Upload Recyclish logo to S3
+- [x] Add logo to header with link to recyclish.com
+- [x] Add logo to footer with link to recyclish.com
