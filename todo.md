@@ -107,3 +107,12 @@
 - [x] Add link to view all on map
 - [x] Integrate section into homepage layout
 - [x] Unit tests for top-rated functionality (4 tests)
+
+## Review Moderation
+- [x] Add status field to reviews (pending, approved, rejected)
+- [x] Update backend API with moderation endpoints
+- [x] Add Reviews tab to admin dashboard
+- [x] Display pending reviews for moderation
+- [x] Add approve/reject functionality with notes
+- [x] Filter public reviews to show only approved ones
+- [x] Unit tests for review moderation (8 tests)

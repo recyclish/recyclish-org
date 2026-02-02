@@ -412,7 +412,7 @@ export async function deleteFacilityReview(id: number, userId: number, isAdmin: 
   }
 }
 
-export async function getFacilityReviews(facilityId: string, status: "published" | "pending" | "hidden" = "published") {
+export async function getFacilityReviews(facilityId: string, status: "pending" | "approved" | "rejected" = "approved") {
   const db = await getDb();
   if (!db) {
     throw new Error("Database not available");
@@ -457,13 +457,13 @@ export async function getFacilityRatingStats(facilityId: string) {
     .from(facilityReviews)
     .where(and(
       eq(facilityReviews.facilityId, facilityId),
-      eq(facilityReviews.status, "published")
+      eq(facilityReviews.status, "approved")
     ));
 
   return result[0];
 }
 
-export async function getAllReviewsForAdmin(status?: "published" | "pending" | "hidden") {
+export async function getAllReviewsForAdmin(status?: "pending" | "approved" | "rejected") {
   const db = await getDb();
   if (!db) {
     throw new Error("Database not available");
@@ -483,7 +483,7 @@ export async function getAllReviewsForAdmin(status?: "published" | "pending" | "
 
 export async function updateReviewStatus(
   id: number,
-  status: "published" | "pending" | "hidden",
+  status: "pending" | "approved" | "rejected",
   adminNotes?: string
 ) {
   const db = await getDb();
@@ -606,7 +606,7 @@ export async function getTopRatedFacilities(limit: number = 10) {
     totalReviews: sql<number>`COUNT(*)`,
   })
     .from(facilityReviews)
-    .where(eq(facilityReviews.status, "published"))
+    .where(eq(facilityReviews.status, "approved"))
     .groupBy(facilityReviews.facilityId, facilityReviews.facilityName, facilityReviews.facilityAddress)
     .having(sql`COUNT(*) >= 1`)
     .orderBy(sql`AVG(rating) DESC`, sql`COUNT(*) DESC`)

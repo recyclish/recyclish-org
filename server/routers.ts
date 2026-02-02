@@ -491,7 +491,7 @@ export const appRouter = router({
     // Admin-only endpoint - list all reviews
     adminList: adminProcedure
       .input(z.object({
-        status: z.enum(["published", "pending", "hidden"]).optional(),
+        status: z.enum(["pending", "approved", "rejected"]).optional(),
       }).optional())
       .query(async ({ input }) => {
         const reviews = await getAllReviewsForAdmin(input?.status);
@@ -502,7 +502,7 @@ export const appRouter = router({
     adminUpdateStatus: adminProcedure
       .input(z.object({
         id: z.number(),
-        status: z.enum(["published", "pending", "hidden"]),
+        status: z.enum(["pending", "approved", "rejected"]),
         adminNotes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {

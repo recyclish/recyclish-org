@@ -158,7 +158,7 @@ export const facilityReviews = mysqlTable("facility_reviews", {
   convenienceRating: int("convenienceRating"), // 1-5
   
   // Moderation
-  status: mysqlEnum("status", ["published", "pending", "hidden"]).default("published").notNull(),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
   adminNotes: text("adminNotes"),
   
   // Helpful votes

@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE facility_reviews SET status = 'pending' WHERE status = 'published';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2E2TRrL2zvJsqDD.root --database PqSFDCDpnpBAApbbr8pykZ --execute UPDATE facility_reviews SET status = 'pending' WHERE status = 'published';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 111
+}

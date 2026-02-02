@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
+import { StarRating } from "@/components/StarRating";
 import { 
   CheckCircle, 
   XCircle, 
@@ -23,7 +24,9 @@ import {
   Trash2,
   Eye,
   Flag,
-  AlertTriangle
+  AlertTriangle,
+  Star,
+  MessageSquare
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -31,7 +34,8 @@ import { toast } from "sonner";
 
 type SubmissionStatus = "pending" | "approved" | "rejected";
 type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
-type AdminView = "submissions" | "reports";
+type ReviewStatus = "pending" | "approved" | "rejected";
+type AdminView = "submissions" | "reports" | "reviews";
 
 interface Submission {
   id: number;
@@ -69,6 +73,26 @@ interface Report {
   updatedAt: Date;
 }
 
+interface Review {
+  id: number;
+  userId: number;
+  userName: string | null;
+  facilityId: string;
+  facilityName: string;
+  facilityAddress: string;
+  rating: number;
+  title: string | null;
+  content: string | null;
+  serviceRating: number | null;
+  cleanlinessRating: number | null;
+  convenienceRating: number | null;
+  helpfulCount: number;
+  status: ReviewStatus;
+  adminNotes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const issueTypeLabels: Record<string, string> = {
   permanently_closed: "Permanently Closed",
   temporarily_closed: "Temporarily Closed",
@@ -80,21 +104,58 @@ const issueTypeLabels: Record<string, string> = {
   other: "Other Issue",
 };
 
+function StatusBadge({ status }: { status: SubmissionStatus }) {
+  const variants: Record<SubmissionStatus, { className: string; label: string }> = {
+    pending: { className: "bg-amber-100 text-amber-800 border-amber-200", label: "Pending" },
+    approved: { className: "bg-green-100 text-green-800 border-green-200", label: "Approved" },
+    rejected: { className: "bg-red-100 text-red-800 border-red-200", label: "Rejected" },
+  };
+  const { className, label } = variants[status];
+  return <Badge variant="outline" className={className}>{label}</Badge>;
+}
+
+function ReportStatusBadge({ status }: { status: ReportStatus }) {
+  const variants: Record<ReportStatus, { className: string; label: string }> = {
+    pending: { className: "bg-amber-100 text-amber-800 border-amber-200", label: "Pending" },
+    reviewed: { className: "bg-blue-100 text-blue-800 border-blue-200", label: "Reviewed" },
+    resolved: { className: "bg-green-100 text-green-800 border-green-200", label: "Resolved" },
+    dismissed: { className: "bg-gray-100 text-gray-800 border-gray-200", label: "Dismissed" },
+  };
+  const { className, label } = variants[status];
+  return <Badge variant="outline" className={className}>{label}</Badge>;
+}
+
+function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
+  const variants: Record<ReviewStatus, { className: string; label: string }> = {
+    pending: { className: "bg-amber-100 text-amber-800 border-amber-200", label: "Pending" },
+    approved: { className: "bg-green-100 text-green-800 border-green-200", label: "Approved" },
+    rejected: { className: "bg-red-100 text-red-800 border-red-200", label: "Rejected" },
+  };
+  const { className, label } = variants[status];
+  return <Badge variant="outline" className={className}>{label}</Badge>;
+}
+
 export default function Admin() {
   const { user, loading: authLoading } = useAuth();
   const [adminView, setAdminView] = useState<AdminView>("submissions");
   const [activeTab, setActiveTab] = useState<SubmissionStatus | "all">("pending");
   const [reportTab, setReportTab] = useState<ReportStatus | "all">("pending");
+  const [reviewTab, setReviewTab] = useState<ReviewStatus | "all">("pending");
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
+  const [reviewAdminNotes, setReviewAdminNotes] = useState("");
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [reportActionDialogOpen, setReportActionDialogOpen] = useState(false);
+  const [reviewActionDialogOpen, setReviewActionDialogOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"approve" | "reject" | null>(null);
   const [pendingReportAction, setPendingReportAction] = useState<ReportStatus | null>(null);
+  const [pendingReviewAction, setPendingReviewAction] = useState<"approve" | "reject" | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [reportDetailDialogOpen, setReportDetailDialogOpen] = useState(false);
+  const [reviewDetailDialogOpen, setReviewDetailDialogOpen] = useState(false);
 
   const utils = trpc.useUtils();
 
@@ -113,6 +174,14 @@ export default function Admin() {
 
   // Fetch report stats
   const { data: reportStats } = trpc.reports.stats.useQuery();
+
+  // Fetch reviews
+  const { data: reviews, isLoading: reviewsLoading } = trpc.reviews.adminList.useQuery(
+    reviewTab === "all" ? undefined : { status: reviewTab as ReviewStatus }
+  );
+
+  // Fetch review stats
+  const { data: reviewStats } = trpc.reviews.adminStats.useQuery();
 
   // Update status mutation
   const updateStatusMutation = trpc.facility.updateStatus.useMutation({
@@ -144,6 +213,21 @@ export default function Admin() {
     }
   });
 
+  // Update review status mutation
+  const updateReviewStatusMutation = trpc.reviews.adminUpdateStatus.useMutation({
+    onSuccess: () => {
+      utils.reviews.adminList.invalidate();
+      utils.reviews.adminStats.invalidate();
+      setReviewActionDialogOpen(false);
+      setSelectedReview(null);
+      setReviewAdminNotes("");
+      toast.success(pendingReviewAction === "approve" ? "Review approved!" : "Review rejected");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
   // Delete submission mutation
   const deleteMutation = trpc.facility.delete.useMutation({
     onSuccess: () => {
@@ -162,6 +246,18 @@ export default function Admin() {
       utils.reports.list.invalidate();
       utils.reports.stats.invalidate();
       toast.success("Report deleted");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
+  // Delete review mutation
+  const deleteReviewMutation = trpc.reviews.adminDelete.useMutation({
+    onSuccess: () => {
+      utils.reviews.adminList.invalidate();
+      utils.reviews.adminStats.invalidate();
+      toast.success("Review deleted");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -211,6 +307,13 @@ export default function Admin() {
     setReportActionDialogOpen(true);
   };
 
+  const openReviewActionDialog = (review: Review, action: "approve" | "reject") => {
+    setSelectedReview(review);
+    setPendingReviewAction(action);
+    setReviewAdminNotes("");
+    setReviewActionDialogOpen(true);
+  };
+
   const handleConfirmAction = () => {
     if (!selectedSubmission || !pendingAction) return;
     updateStatusMutation.mutate({
@@ -229,6 +332,15 @@ export default function Admin() {
     });
   };
 
+  const handleConfirmReviewAction = () => {
+    if (!selectedReview || !pendingReviewAction) return;
+    updateReviewStatusMutation.mutate({
+      id: selectedReview.id,
+      status: pendingReviewAction === "approve" ? "approved" : "rejected",
+      adminNotes: reviewAdminNotes || undefined
+    });
+  };
+
   const getStatCount = (status: SubmissionStatus) => {
     const stat = stats?.find(s => s.status === status);
     return stat?.count ?? 0;
@@ -239,7 +351,13 @@ export default function Admin() {
     return stat?.count ?? 0;
   };
 
+  const getReviewStatCount = (status: ReviewStatus) => {
+    const stat = reviewStats?.find(s => s.status === status);
+    return stat?.count ?? 0;
+  };
+
   const getTotalPendingReports = () => getReportStatCount("pending");
+  const getTotalPendingReviews = () => getReviewStatCount("pending");
 
   // Auth loading state
   if (authLoading) {
@@ -309,7 +427,7 @@ export default function Admin() {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-                <p className="text-sm text-muted-foreground">Manage facility submissions and reports</p>
+                <p className="text-sm text-muted-foreground">Manage submissions, reports, and reviews</p>
               </div>
             </div>
             {adminView === "submissions" && (
@@ -324,7 +442,7 @@ export default function Admin() {
 
       <main className="container py-8">
         {/* View Toggle */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           <Button
             variant={adminView === "submissions" ? "default" : "outline"}
             onClick={() => setAdminView("submissions")}
@@ -345,6 +463,17 @@ export default function Admin() {
             Issue Reports
             {getTotalPendingReports() > 0 && (
               <Badge variant="destructive" className="ml-1">{getTotalPendingReports()}</Badge>
+            )}
+          </Button>
+          <Button
+            variant={adminView === "reviews" ? "default" : "outline"}
+            onClick={() => setAdminView("reviews")}
+            className="gap-2"
+          >
+            <Star className="h-4 w-4" />
+            Reviews
+            {getTotalPendingReviews() > 0 && (
+              <Badge variant="secondary" className="ml-1 bg-yellow-100 text-yellow-800">{getTotalPendingReviews()}</Badge>
             )}
           </Button>
         </div>
@@ -538,7 +667,7 @@ export default function Admin() {
               </TabsContent>
             </Tabs>
           </>
-        ) : (
+        ) : adminView === "reports" ? (
           <>
             {/* Report Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -710,26 +839,6 @@ export default function Admin() {
                                   </Button>
                                 </>
                               )}
-                              {report.status === "reviewed" && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
-                                    onClick={() => openReportActionDialog(report, "resolved")}
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Resolve
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => openReportActionDialog(report, "dismissed")}
-                                  >
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    Dismiss
-                                  </Button>
-                                </>
-                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -752,10 +861,200 @@ export default function Admin() {
               </TabsContent>
             </Tabs>
           </>
+        ) : (
+          <>
+            {/* Review Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pending Moderation</p>
+                      <p className="text-3xl font-bold text-amber-600">{getReviewStatCount("pending")}</p>
+                    </div>
+                    <Clock className="h-10 w-10 text-amber-600/20" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Approved</p>
+                      <p className="text-3xl font-bold text-green-600">{getReviewStatCount("approved")}</p>
+                    </div>
+                    <CheckCircle className="h-10 w-10 text-green-600/20" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Rejected</p>
+                      <p className="text-3xl font-bold text-red-600">{getReviewStatCount("rejected")}</p>
+                    </div>
+                    <XCircle className="h-10 w-10 text-red-600/20" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Reviews Tabs */}
+            <Tabs value={reviewTab} onValueChange={(v) => setReviewTab(v as typeof reviewTab)}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="pending" className="gap-2">
+                  <Clock className="h-4 w-4" />
+                  Pending
+                  {getReviewStatCount("pending") > 0 && (
+                    <Badge variant="secondary" className="ml-1">{getReviewStatCount("pending")}</Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="approved" className="gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Approved
+                </TabsTrigger>
+                <TabsTrigger value="rejected" className="gap-2">
+                  <XCircle className="h-4 w-4" />
+                  Rejected
+                </TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value={reviewTab} className="mt-0">
+                {reviewsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : !reviews || reviews.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <p className="text-muted-foreground">No reviews found</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <Card key={review.id} className="overflow-hidden">
+                        <CardContent className="p-0">
+                          <div className="flex flex-col md:flex-row">
+                            {/* Main Info */}
+                            <div className="flex-1 p-6">
+                              <div className="flex items-start justify-between mb-4">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-lg font-semibold">{review.facilityName}</h3>
+                                    <ReviewStatusBadge status={review.status} />
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <span>by {review.userName || 'Anonymous'}</span>
+                                    <span>•</span>
+                                    <StarRating rating={review.rating} size="sm" />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(review.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+
+                              <div className="flex items-start gap-2 text-sm mb-3">
+                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                                <span>{review.facilityAddress}</span>
+                              </div>
+
+                              {review.title && (
+                                <h4 className="font-medium mb-2">{review.title}</h4>
+                              )}
+
+                              {review.content && (
+                                <div className="p-3 bg-muted/50 rounded-lg mb-3">
+                                  <p className="text-sm">{review.content}</p>
+                                </div>
+                              )}
+
+                              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                                {review.serviceRating && (
+                                  <span>Service: {review.serviceRating}/5</span>
+                                )}
+                                {review.cleanlinessRating && (
+                                  <span>Cleanliness: {review.cleanlinessRating}/5</span>
+                                )}
+                                {review.convenienceRating && (
+                                  <span>Convenience: {review.convenienceRating}/5</span>
+                                )}
+                                <span className="flex items-center gap-1">
+                                  <MessageSquare className="h-3 w-3" />
+                                  {review.helpfulCount} helpful
+                                </span>
+                              </div>
+
+                              {review.adminNotes && (
+                                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                  <p className="text-xs font-medium text-amber-800 mb-1">Admin Notes</p>
+                                  <p className="text-sm text-amber-900">{review.adminNotes}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex md:flex-col gap-2 p-4 md:p-6 bg-muted/30 md:border-l justify-end md:justify-start">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedReview(review);
+                                  setReviewDetailDialogOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              {review.status === "pending" && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    className="bg-green-600 hover:bg-green-700"
+                                    onClick={() => openReviewActionDialog(review, "approve")}
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => openReviewActionDialog(review, "reject")}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  if (confirm("Are you sure you want to delete this review?")) {
+                                    deleteReviewMutation.mutate({ id: review.id });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </>
         )}
       </main>
 
-      {/* Submission Action Confirmation Dialog */}
+      {/* Submission Action Dialog */}
       <Dialog open={actionDialogOpen} onOpenChange={setActionDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -764,41 +1063,32 @@ export default function Admin() {
             </DialogTitle>
             <DialogDescription>
               {pendingAction === "approve" 
-                ? "This facility will be marked as approved and can be exported to the main directory."
+                ? "This facility will be marked as approved and can be exported to the directory."
                 : "This facility will be marked as rejected and will not appear in the directory."
               }
             </DialogDescription>
           </DialogHeader>
-          
-          {selectedSubmission && (
-            <div className="py-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">{selectedSubmission.name}</span>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="reviewNotes">Review Notes (optional)</Label>
-                <Textarea
-                  id="reviewNotes"
-                  placeholder="Add any notes about this decision..."
-                  value={reviewNotes}
-                  onChange={(e) => setReviewNotes(e.target.value)}
-                  rows={3}
-                />
-              </div>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reviewNotes">Review Notes (optional)</Label>
+              <Textarea
+                id="reviewNotes"
+                placeholder="Add any notes about this decision..."
+                value={reviewNotes}
+                onChange={(e) => setReviewNotes(e.target.value)}
+                className="mt-2"
+              />
             </div>
-          )}
-
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setActionDialogOpen(false)}>
               Cancel
             </Button>
             <Button
               onClick={handleConfirmAction}
-              disabled={updateStatusMutation.isPending}
               className={pendingAction === "approve" ? "bg-green-600 hover:bg-green-700" : ""}
               variant={pendingAction === "reject" ? "destructive" : "default"}
+              disabled={updateStatusMutation.isPending}
             >
               {updateStatusMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {pendingAction === "approve" ? "Approve" : "Reject"}
@@ -807,45 +1097,29 @@ export default function Admin() {
         </DialogContent>
       </Dialog>
 
-      {/* Report Action Confirmation Dialog */}
+      {/* Report Action Dialog */}
       <Dialog open={reportActionDialogOpen} onOpenChange={setReportActionDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {pendingReportAction === "reviewed" && "Mark as Reviewed"}
-              {pendingReportAction === "resolved" && "Resolve Report"}
-              {pendingReportAction === "dismissed" && "Dismiss Report"}
+              Update Report Status
             </DialogTitle>
             <DialogDescription>
-              {pendingReportAction === "reviewed" && "This report will be marked as reviewed for further action."}
-              {pendingReportAction === "resolved" && "This report will be marked as resolved. The issue has been addressed."}
-              {pendingReportAction === "dismissed" && "This report will be dismissed. No action will be taken."}
+              Change the status of this issue report.
             </DialogDescription>
           </DialogHeader>
-          
-          {selectedReport && (
-            <div className="py-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Flag className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">{selectedReport.facilityName}</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Issue: {issueTypeLabels[selectedReport.issueType] || selectedReport.issueType}
-              </p>
-              
-              <div className="space-y-2">
-                <Label htmlFor="adminNotes">Admin Notes (optional)</Label>
-                <Textarea
-                  id="adminNotes"
-                  placeholder="Add any notes about this action..."
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  rows={3}
-                />
-              </div>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="adminNotes">Admin Notes (optional)</Label>
+              <Textarea
+                id="adminNotes"
+                placeholder="Add any notes about this action..."
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                className="mt-2"
+              />
             </div>
-          )}
-
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportActionDialogOpen(false)}>
               Cancel
@@ -853,8 +1127,6 @@ export default function Admin() {
             <Button
               onClick={handleConfirmReportAction}
               disabled={updateReportStatusMutation.isPending}
-              className={pendingReportAction === "resolved" ? "bg-green-600 hover:bg-green-700" : ""}
-              variant={pendingReportAction === "dismissed" ? "outline" : "default"}
             >
               {updateReportStatusMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm
@@ -863,173 +1135,256 @@ export default function Admin() {
         </DialogContent>
       </Dialog>
 
-      {/* Submission Detail View Dialog */}
+      {/* Review Action Dialog */}
+      <Dialog open={reviewActionDialogOpen} onOpenChange={setReviewActionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {pendingReviewAction === "approve" ? "Approve Review" : "Reject Review"}
+            </DialogTitle>
+            <DialogDescription>
+              {pendingReviewAction === "approve" 
+                ? "This review will be published and visible to all users."
+                : "This review will be rejected and hidden from public view."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reviewAdminNotes">Admin Notes (optional)</Label>
+              <Textarea
+                id="reviewAdminNotes"
+                placeholder="Add any notes about this decision..."
+                value={reviewAdminNotes}
+                onChange={(e) => setReviewAdminNotes(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewActionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmReviewAction}
+              className={pendingReviewAction === "approve" ? "bg-green-600 hover:bg-green-700" : ""}
+              variant={pendingReviewAction === "reject" ? "destructive" : "default"}
+              disabled={updateReviewStatusMutation.isPending}
+            >
+              {updateReviewStatusMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {pendingReviewAction === "approve" ? "Approve" : "Reject"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Submission Detail Dialog */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Submission Details</DialogTitle>
           </DialogHeader>
-          
           {selectedSubmission && (
-            <div className="space-y-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">{selectedSubmission.name}</h3>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{selectedSubmission.category}</Badge>
-                  <StatusBadge status={selectedSubmission.status} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-muted-foreground mb-1">Address</p>
-                  <p>{selectedSubmission.address}</p>
-                  <p>{selectedSubmission.city}, {selectedSubmission.state} {selectedSubmission.zipCode}</p>
+                  <Label className="text-muted-foreground">Facility Name</Label>
+                  <p className="font-medium">{selectedSubmission.name}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-1">Contact</p>
-                  {selectedSubmission.phone && <p>{selectedSubmission.phone}</p>}
-                  {selectedSubmission.email && <p>{selectedSubmission.email}</p>}
-                  {selectedSubmission.website && (
-                    <a href={selectedSubmission.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      {selectedSubmission.website}
-                    </a>
-                  )}
+                  <Label className="text-muted-foreground">Category</Label>
+                  <p className="font-medium">{selectedSubmission.category}</p>
                 </div>
-              </div>
-
-              {selectedSubmission.materialsAccepted && (
-                <div>
-                  <p className="text-muted-foreground mb-1 text-sm">Materials Accepted</p>
-                  <p className="text-sm bg-muted/50 p-3 rounded-lg">{selectedSubmission.materialsAccepted}</p>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Address</Label>
+                  <p className="font-medium">
+                    {selectedSubmission.address}, {selectedSubmission.city}, {selectedSubmission.state} {selectedSubmission.zipCode}
+                  </p>
                 </div>
-              )}
-
-              {selectedSubmission.additionalNotes && (
-                <div>
-                  <p className="text-muted-foreground mb-1 text-sm">Additional Notes</p>
-                  <p className="text-sm bg-muted/50 p-3 rounded-lg">{selectedSubmission.additionalNotes}</p>
-                </div>
-              )}
-
-              <div className="border-t pt-4">
-                <p className="text-muted-foreground mb-2 text-sm">Submitter Information</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                {selectedSubmission.phone && (
                   <div>
-                    <p className="text-muted-foreground">Name</p>
-                    <p>{selectedSubmission.submitterName || "Not provided"}</p>
+                    <Label className="text-muted-foreground">Phone</Label>
+                    <p className="font-medium">{selectedSubmission.phone}</p>
                   </div>
+                )}
+                {selectedSubmission.email && (
                   <div>
-                    <p className="text-muted-foreground">Email</p>
-                    <p>{selectedSubmission.submitterEmail || "Not provided"}</p>
+                    <Label className="text-muted-foreground">Email</Label>
+                    <p className="font-medium">{selectedSubmission.email}</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="text-xs text-muted-foreground">
-                Submitted: {new Date(selectedSubmission.createdAt).toLocaleString()}
+                )}
+                {selectedSubmission.website && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Website</Label>
+                    <p className="font-medium">
+                      <a href={selectedSubmission.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {selectedSubmission.website}
+                      </a>
+                    </p>
+                  </div>
+                )}
+                {selectedSubmission.materialsAccepted && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Materials Accepted</Label>
+                    <p className="font-medium">{selectedSubmission.materialsAccepted}</p>
+                  </div>
+                )}
+                {selectedSubmission.additionalNotes && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Additional Notes</Label>
+                    <p className="font-medium">{selectedSubmission.additionalNotes}</p>
+                  </div>
+                )}
+                {selectedSubmission.submitterName && (
+                  <div>
+                    <Label className="text-muted-foreground">Submitter Name</Label>
+                    <p className="font-medium">{selectedSubmission.submitterName}</p>
+                  </div>
+                )}
+                {selectedSubmission.submitterEmail && (
+                  <div>
+                    <Label className="text-muted-foreground">Submitter Email</Label>
+                    <p className="font-medium">{selectedSubmission.submitterEmail}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDetailDialogOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Report Detail View Dialog */}
+      {/* Report Detail Dialog */}
       <Dialog open={reportDetailDialogOpen} onOpenChange={setReportDetailDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Report Details</DialogTitle>
           </DialogHeader>
-          
           {selectedReport && (
-            <div className="space-y-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">{selectedReport.facilityName}</h3>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    {issueTypeLabels[selectedReport.issueType] || selectedReport.issueType}
-                  </Badge>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Facility</Label>
+                  <p className="font-medium">{selectedReport.facilityName}</p>
+                  <p className="text-sm text-muted-foreground">{selectedReport.facilityAddress}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Issue Type</Label>
+                  <p className="font-medium">{issueTypeLabels[selectedReport.issueType] || selectedReport.issueType}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
                   <ReportStatusBadge status={selectedReport.status} />
                 </div>
-              </div>
-
-              <div>
-                <p className="text-muted-foreground mb-1 text-sm">Facility Address</p>
-                <p className="text-sm">{selectedReport.facilityAddress}</p>
-              </div>
-
-              {selectedReport.description && (
-                <div>
-                  <p className="text-muted-foreground mb-1 text-sm">Issue Description</p>
-                  <p className="text-sm bg-muted/50 p-3 rounded-lg">{selectedReport.description}</p>
-                </div>
-              )}
-
-              {selectedReport.adminNotes && (
-                <div>
-                  <p className="text-muted-foreground mb-1 text-sm">Admin Notes</p>
-                  <p className="text-sm bg-blue-50 border border-blue-200 p-3 rounded-lg">{selectedReport.adminNotes}</p>
-                </div>
-              )}
-
-              <div className="border-t pt-4">
-                <p className="text-muted-foreground mb-2 text-sm">Reporter Information</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Name</p>
-                    <p>{selectedReport.reporterName || "Not provided"}</p>
+                {selectedReport.description && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Description</Label>
+                    <p className="font-medium">{selectedReport.description}</p>
                   </div>
+                )}
+                {selectedReport.reporterName && (
                   <div>
-                    <p className="text-muted-foreground">Email</p>
-                    <p>{selectedReport.reporterEmail || "Not provided"}</p>
+                    <Label className="text-muted-foreground">Reporter Name</Label>
+                    <p className="font-medium">{selectedReport.reporterName}</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="text-xs text-muted-foreground">
-                Reported: {new Date(selectedReport.createdAt).toLocaleString()}
+                )}
+                {selectedReport.reporterEmail && (
+                  <div>
+                    <Label className="text-muted-foreground">Reporter Email</Label>
+                    <p className="font-medium">{selectedReport.reporterEmail}</p>
+                  </div>
+                )}
+                {selectedReport.adminNotes && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Admin Notes</Label>
+                    <p className="font-medium">{selectedReport.adminNotes}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setReportDetailDialogOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
+      {/* Review Detail Dialog */}
+      <Dialog open={reviewDetailDialogOpen} onOpenChange={setReviewDetailDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Review Details</DialogTitle>
+          </DialogHeader>
+          {selectedReview && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Facility</Label>
+                  <p className="font-medium">{selectedReview.facilityName}</p>
+                  <p className="text-sm text-muted-foreground">{selectedReview.facilityAddress}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Reviewer</Label>
+                  <p className="font-medium">{selectedReview.userName || 'Anonymous'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <ReviewStatusBadge status={selectedReview.status} />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Overall Rating</Label>
+                  <div className="flex items-center gap-2">
+                    <StarRating rating={selectedReview.rating} />
+                    <span className="font-medium">{selectedReview.rating}/5</span>
+                  </div>
+                </div>
+                {selectedReview.title && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Title</Label>
+                    <p className="font-medium">{selectedReview.title}</p>
+                  </div>
+                )}
+                {selectedReview.content && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Review Content</Label>
+                    <p className="font-medium">{selectedReview.content}</p>
+                  </div>
+                )}
+                <div className="col-span-2 grid grid-cols-3 gap-4">
+                  {selectedReview.serviceRating && (
+                    <div>
+                      <Label className="text-muted-foreground">Service</Label>
+                      <p className="font-medium">{selectedReview.serviceRating}/5</p>
+                    </div>
+                  )}
+                  {selectedReview.cleanlinessRating && (
+                    <div>
+                      <Label className="text-muted-foreground">Cleanliness</Label>
+                      <p className="font-medium">{selectedReview.cleanlinessRating}/5</p>
+                    </div>
+                  )}
+                  {selectedReview.convenienceRating && (
+                    <div>
+                      <Label className="text-muted-foreground">Convenience</Label>
+                      <p className="font-medium">{selectedReview.convenienceRating}/5</p>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Helpful Votes</Label>
+                  <p className="font-medium">{selectedReview.helpfulCount}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Submitted</Label>
+                  <p className="font-medium">{new Date(selectedReview.createdAt).toLocaleString()}</p>
+                </div>
+                {selectedReview.adminNotes && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Admin Notes</Label>
+                    <p className="font-medium">{selectedReview.adminNotes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
   );
-}
-
-function StatusBadge({ status }: { status: SubmissionStatus }) {
-  switch (status) {
-    case "pending":
-      return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pending</Badge>;
-    case "approved":
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Approved</Badge>;
-    case "rejected":
-      return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rejected</Badge>;
-  }
-}
-
-function ReportStatusBadge({ status }: { status: ReportStatus }) {
-  switch (status) {
-    case "pending":
-      return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pending</Badge>;
-    case "reviewed":
-      return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Reviewed</Badge>;
-    case "resolved":
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Resolved</Badge>;
-    case "dismissed":
-      return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Dismissed</Badge>;
-  }
 }
