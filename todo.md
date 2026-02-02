@@ -58,3 +58,11 @@
 - [x] Create favorites page to view saved facilities
 - [x] Add favorites link to navigation for logged-in users
 - [x] Unit tests for favorites functionality
+
+## Search Autocomplete
+- [x] Create autocomplete component with dropdown suggestions
+- [x] Index facility names and addresses for fast matching
+- [x] Show matching results as user types (debounced)
+- [x] Highlight matching text in suggestions
+- [x] Allow keyboard navigation (arrow keys, enter to select)
+- [x] Integrate into homepage and map view search bars

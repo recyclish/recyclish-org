@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -8,10 +7,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, X, Filter, MapPin, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Filter, MapPin, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { MATERIAL_TYPES, DISTANCE_OPTIONS } from "@/hooks/useRecyclingData";
+import { SearchAutocomplete } from "./SearchAutocomplete";
+
+interface Facility {
+  Name: string;
+  Address: string;
+  Category: string;
+  State: string;
+}
 
 interface SearchFiltersProps {
   searchTerm: string;
@@ -33,6 +40,7 @@ interface SearchFiltersProps {
   isLocating: boolean;
   locationError: string | null;
   requestLocation: () => void;
+  facilities?: Facility[];
 }
 
 export function SearchFilters({
@@ -55,6 +63,7 @@ export function SearchFilters({
   isLocating,
   locationError,
   requestLocation,
+  facilities = [],
 }: SearchFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const hasFilters = activeFilterCount > 0;
@@ -111,15 +120,12 @@ export function SearchFilters({
           <label className="text-sm font-label text-muted-foreground mb-1.5 block">
             Search by name, address, or material
           </label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="e.g., Green Earth Recycling, Los Angeles, or batteries"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 font-body"
-            />
-          </div>
+          <SearchAutocomplete
+            value={searchTerm}
+            onChange={setSearchTerm}
+            facilities={facilities}
+            placeholder="e.g., Green Earth Recycling, Los Angeles, or batteries"
+          />
         </div>
         
         <div>

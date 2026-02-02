@@ -171,6 +171,7 @@ export default function Home() {
           isLocating={isLocating}
           locationError={locationError}
           requestLocation={requestLocation}
+          facilities={facilities}
         />
 
         {isLoading ? (

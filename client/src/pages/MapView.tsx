@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import {
   MapPin,
   Phone,
@@ -22,7 +22,6 @@ import {
   ExternalLink,
   List,
   X,
-  Search,
   Loader2,
   Filter,
   Navigation,
@@ -66,6 +65,7 @@ export default function MapViewPage() {
     requestLocation,
     clearFilters,
     activeFilterCount,
+    facilities,
   } = useRecyclingData();
 
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -322,13 +322,12 @@ export default function MapViewPage() {
             {showFilters && (
               <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border/50">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <div className="relative md:col-span-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search facilities..."
+                  <div className="md:col-span-2">
+                    <SearchAutocomplete
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9"
+                      onChange={setSearchTerm}
+                      facilities={facilities}
+                      placeholder="Search facilities..."
                     />
                   </div>
 
