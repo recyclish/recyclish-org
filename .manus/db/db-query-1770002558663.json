@@ -1,0 +1,30 @@
+{
+  "query": "SELECT * FROM facility_submissions ORDER BY id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2E2TRrL2zvJsqDD.root --database PqSFDCDpnpBAApbbr8pykZ --execute SELECT * FROM facility_submissions ORDER BY id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Test Recycling Center",
+      "address": "456 Oak Avenue",
+      "city": "San Francisco",
+      "state": "California",
+      "zipCode": "NULL",
+      "phone": "NULL",
+      "email": "NULL",
+      "website": "NULL",
+      "category": "Electronics Recyclers",
+      "materialsAccepted": "NULL",
+      "additionalNotes": "NULL",
+      "submitterName": "NULL",
+      "submitterEmail": "NULL",
+      "status": "pending",
+      "reviewNotes": "NULL",
+      "createdAt": "2026-02-02 03:22:25",
+      "updatedAt": "2026-02-02 03:22:25"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\taddress\tcity\tstate\tzipCode\tphone\temail\twebsite\tcategory\tmaterialsAccepted\tadditionalNotes\tsubmitterName\tsubmitterEmail\tstatus\treviewNotes\tcreatedAt\tupdatedAt\n1\tTest Recycling Center\t456 Oak Avenue\tSan Francisco\tCalifornia\tNULL\tNULL\tNULL\tNULL\tElectronics Recyclers\tNULL\tNULL\tNULL\tNULL\tpending\tNULL\t2026-02-02 03:22:25\t2026-02-02 03:22:25\n",
+  "stderr": "",
+  "execution_time_ms": 81
+}

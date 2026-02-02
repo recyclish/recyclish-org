@@ -8,6 +8,7 @@ import { useRecyclingData } from "@/hooks/useRecyclingData";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronDown, MapPin, Recycle } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -17,7 +18,7 @@ export default function Home() {
     states,
     categories,
     isLoading,
-    error,
+    error: dataError,
     searchTerm,
     setSearchTerm,
     selectedState,
@@ -86,6 +87,15 @@ export default function Home() {
                   <span>EPA Data</span>
                 </div>
               </div>
+              
+              <div className="mt-6">
+                <Link href="/submit">
+                  <Button variant="outline" className="font-label">
+                    <Recycle className="h-4 w-4 mr-2" />
+                    Submit a Facility
+                  </Button>
+                </Link>
+              </div>
             </motion.div>
           </div>
           
@@ -133,9 +143,9 @@ export default function Home() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <span className="ml-3 text-muted-foreground font-body">Loading recycling facilities...</span>
           </div>
-        ) : error ? (
+        ) : dataError ? (
           <div className="text-center py-20">
-            <p className="text-destructive font-body">{error}</p>
+            <p className="text-destructive font-body">{dataError}</p>
           </div>
         ) : filteredFacilities.length === 0 ? (
           <div className="text-center py-20">
