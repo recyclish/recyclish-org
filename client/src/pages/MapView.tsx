@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { Link } from "wouter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -25,8 +25,9 @@ import {
   Search,
   Loader2,
   Filter,
+  Navigation,
 } from "lucide-react";
-import { useRecyclingData } from "@/hooks/useRecyclingData";
+import { useRecyclingData, MATERIAL_TYPES, DISTANCE_OPTIONS } from "@/hooks/useRecyclingData";
 import type { RecyclingFacility } from "@/components/RecyclingCard";
 
 const categoryColors: Record<string, string> = {
@@ -55,11 +56,21 @@ export default function MapViewPage() {
     setSelectedState,
     selectedCategory,
     setSelectedCategory,
+    selectedMaterial,
+    setSelectedMaterial,
+    selectedDistance,
+    setSelectedDistance,
+    userLocation,
+    isLocating,
+    locationError,
+    requestLocation,
     clearFilters,
+    activeFilterCount,
   } = useRecyclingData();
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<RecyclingFacility | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -71,8 +82,11 @@ export default function MapViewPage() {
     );
   }, [filteredFacilities]);
 
-  // Calculate center based on filtered facilities
+  // Calculate center based on user location or filtered facilities
   const mapCenter = useMemo(() => {
+    if (userLocation) {
+      return { lat: userLocation.latitude, lng: userLocation.longitude };
+    }
     if (facilitiesWithCoords.length === 0) {
       return { lat: 39.8283, lng: -98.5795 }; // Center of US
     }
@@ -83,7 +97,7 @@ export default function MapViewPage() {
       facilitiesWithCoords.reduce((sum, f) => sum + f.Longitude, 0) /
       facilitiesWithCoords.length;
     return { lat: avgLat, lng: avgLng };
-  }, [facilitiesWithCoords]);
+  }, [facilitiesWithCoords, userLocation]);
 
   // Clear existing markers
   const clearMarkers = useCallback(() => {
@@ -91,6 +105,44 @@ export default function MapViewPage() {
       marker.map = null;
     });
     markersRef.current = [];
+  }, []);
+
+  // Create user location marker
+  const createUserMarker = useCallback((map: google.maps.Map, location: { latitude: number; longitude: number }) => {
+    if (userMarkerRef.current) {
+      userMarkerRef.current.map = null;
+    }
+
+    const markerContent = document.createElement("div");
+    markerContent.innerHTML = `
+      <div style="
+        width: 20px;
+        height: 20px;
+        background-color: #4285f4;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        position: relative;
+      ">
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 8px;
+          height: 8px;
+          background-color: white;
+          border-radius: 50%;
+        "></div>
+      </div>
+    `;
+
+    userMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
+      map,
+      position: { lat: location.latitude, lng: location.longitude },
+      title: "Your Location",
+      content: markerContent,
+    });
   }, []);
 
   // Create markers for facilities
@@ -157,8 +209,15 @@ export default function MapViewPage() {
       if (facilitiesWithCoords.length > 0) {
         createMarkers(map, facilitiesWithCoords);
       }
+
+      // Create user location marker if available
+      if (userLocation) {
+        createUserMarker(map, userLocation);
+        map.setCenter({ lat: userLocation.latitude, lng: userLocation.longitude });
+        map.setZoom(10);
+      }
     },
-    [facilitiesWithCoords, createMarkers]
+    [facilitiesWithCoords, createMarkers, userLocation, createUserMarker]
   );
 
   // Update markers when filtered facilities change
@@ -169,11 +228,20 @@ export default function MapViewPage() {
   }, [mapReady, facilitiesWithCoords, createMarkers]);
 
   // Effect to update markers when filters change
-  useMemo(() => {
+  useEffect(() => {
     if (mapReady) {
       updateMarkers();
     }
   }, [mapReady, updateMarkers]);
+
+  // Effect to update user location marker when location changes
+  useEffect(() => {
+    if (mapRef.current && mapReady && userLocation) {
+      createUserMarker(mapRef.current, userLocation);
+      mapRef.current.setCenter({ lat: userLocation.latitude, lng: userLocation.longitude });
+      mapRef.current.setZoom(10);
+    }
+  }, [mapReady, userLocation, createUserMarker]);
 
   const formatCategory = (cat: string) => {
     return cat
@@ -204,10 +272,25 @@ export default function MapViewPage() {
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   {facilitiesWithCoords.length} facilities with location data
+                  {userLocation && selectedDistance !== "any" && " • Sorted by distance"}
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
+                <Button
+                  variant={userLocation ? "default" : "outline"}
+                  size="sm"
+                  onClick={requestLocation}
+                  disabled={isLocating}
+                  className="font-label"
+                >
+                  {isLocating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Navigation className="h-4 w-4 mr-2" />
+                  )}
+                  {userLocation ? "Located" : "Find Me"}
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -216,9 +299,9 @@ export default function MapViewPage() {
                 >
                   <Filter className="h-4 w-4 mr-2" />
                   Filters
-                  {(selectedState !== "all" || selectedCategory !== "all" || searchTerm) && (
+                  {activeFilterCount > 0 && (
                     <Badge variant="secondary" className="ml-2">
-                      Active
+                      {activeFilterCount}
                     </Badge>
                   )}
                 </Button>
@@ -231,11 +314,15 @@ export default function MapViewPage() {
               </div>
             </div>
 
+            {locationError && (
+              <p className="text-xs text-destructive mt-2">{locationError}</p>
+            )}
+
             {/* Collapsible Filters */}
             {showFilters && (
               <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border/50">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="relative">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  <div className="relative md:col-span-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search facilities..."
@@ -261,10 +348,10 @@ export default function MapViewPage() {
 
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All Categories" />
+                      <SelectValue placeholder="All Facility Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value="all">All Facility Types</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category} value={category}>
                           {formatCategory(category)}
@@ -273,8 +360,38 @@ export default function MapViewPage() {
                     </SelectContent>
                   </Select>
 
-                  <Button variant="outline" onClick={clearFilters} className="font-label">
-                    Clear Filters
+                  <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Materials" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Materials</SelectItem>
+                      {MATERIAL_TYPES.map((material) => (
+                        <SelectItem key={material.value} value={material.value}>
+                          {material.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedDistance} onValueChange={setSelectedDistance}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any Distance" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DISTANCE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex justify-end mt-3">
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="font-label">
+                    <X className="h-4 w-4 mr-1" />
+                    Clear All Filters
                   </Button>
                 </div>
               </div>
@@ -299,7 +416,7 @@ export default function MapViewPage() {
             <MapView
               className="w-full h-[calc(100vh-200px)] min-h-[500px]"
               initialCenter={mapCenter}
-              initialZoom={4}
+              initialZoom={userLocation ? 10 : 4}
               onMapReady={handleMapReady}
             />
           )}
@@ -307,7 +424,7 @@ export default function MapViewPage() {
           {/* Selected Facility Panel */}
           {selectedFacility && (
             <div className="absolute top-4 right-4 w-80 max-w-[calc(100%-2rem)] z-10">
-              <Card className="shadow-xl border-border bg-card">
+              <Card className="shadow-lg border-border/50">
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="text-lg font-display leading-tight line-clamp-2">
@@ -337,6 +454,15 @@ export default function MapViewPage() {
                     <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
                     <span className="line-clamp-2">{selectedFacility.Address}</span>
                   </div>
+
+                  {selectedFacility.distance !== undefined && (
+                    <div className="flex items-center gap-1 text-primary font-medium">
+                      <Navigation className="h-3 w-3" />
+                      {selectedFacility.distance < 1
+                        ? "Less than 1 mile away"
+                        : `${selectedFacility.distance.toFixed(1)} miles away`}
+                    </div>
+                  )}
 
                   {selectedFacility.Phone && (
                     <div className="flex items-center gap-2">
@@ -421,6 +547,12 @@ export default function MapViewPage() {
                 </div>
               ))}
             </div>
+            {userLocation && (
+              <div className="mt-2 pt-2 border-t border-border/50 flex items-center gap-1.5 text-xs">
+                <div className="w-3 h-3 rounded-full bg-[#4285f4] border-2 border-white shrink-0" />
+                <span className="text-muted-foreground">Your Location</span>
+              </div>
+            )}
           </div>
         </div>
       </main>

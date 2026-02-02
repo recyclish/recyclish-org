@@ -25,7 +25,16 @@ export default function Home() {
     setSelectedState,
     selectedCategory,
     setSelectedCategory,
+    selectedMaterial,
+    setSelectedMaterial,
+    selectedDistance,
+    setSelectedDistance,
+    userLocation,
+    isLocating,
+    locationError,
+    requestLocation,
     clearFilters,
+    activeFilterCount,
     facilities,
   } = useRecyclingData();
 
@@ -138,10 +147,19 @@ export default function Home() {
           setSelectedState={setSelectedState}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
+          selectedMaterial={selectedMaterial}
+          setSelectedMaterial={setSelectedMaterial}
+          selectedDistance={selectedDistance}
+          setSelectedDistance={setSelectedDistance}
           states={states}
           categories={categories}
           onClear={clearFilters}
           totalResults={filteredFacilities.length}
+          activeFilterCount={activeFilterCount}
+          userLocation={userLocation}
+          isLocating={isLocating}
+          locationError={locationError}
+          requestLocation={requestLocation}
         />
 
         {isLoading ? (

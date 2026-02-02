@@ -1,11 +1,39 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import type { RecyclingFacility } from "@/components/RecyclingCard";
+
+// Common material types extracted from Feedstock field
+export const MATERIAL_TYPES = [
+  { value: "electronics", label: "Electronics", keywords: ["electronics", "tvs", "computers", "cell phones", "appliances"] },
+  { value: "batteries", label: "Batteries", keywords: ["batteries", "rechargeable", "lead-acid"] },
+  { value: "plastic", label: "Plastic", keywords: ["plastic"] },
+  { value: "glass", label: "Glass", keywords: ["glass"] },
+  { value: "paper", label: "Paper", keywords: ["paper"] },
+  { value: "textiles", label: "Textiles", keywords: ["textiles", "clothing", "fabric"] },
+  { value: "wood", label: "Wood", keywords: ["wood"] },
+  { value: "ink", label: "Ink & Toner", keywords: ["ink", "toner", "cartridges"] },
+  { value: "cfls", label: "CFLs & Light Bulbs", keywords: ["cfls", "light bulbs", "fluorescent"] },
+];
+
+// Distance options in miles
+export const DISTANCE_OPTIONS = [
+  { value: "any", label: "Any Distance" },
+  { value: "10", label: "Within 10 miles" },
+  { value: "25", label: "Within 25 miles" },
+  { value: "50", label: "Within 50 miles" },
+  { value: "100", label: "Within 100 miles" },
+];
+
+interface UserLocation {
+  latitude: number;
+  longitude: number;
+}
 
 interface UseRecyclingDataReturn {
   facilities: RecyclingFacility[];
   filteredFacilities: RecyclingFacility[];
   states: string[];
   categories: string[];
+  materialTypes: typeof MATERIAL_TYPES;
   isLoading: boolean;
   error: string | null;
   searchTerm: string;
@@ -14,7 +42,29 @@ interface UseRecyclingDataReturn {
   setSelectedState: (value: string) => void;
   selectedCategory: string;
   setSelectedCategory: (value: string) => void;
+  selectedMaterial: string;
+  setSelectedMaterial: (value: string) => void;
+  selectedDistance: string;
+  setSelectedDistance: (value: string) => void;
+  userLocation: UserLocation | null;
+  isLocating: boolean;
+  locationError: string | null;
+  requestLocation: () => void;
   clearFilters: () => void;
+  activeFilterCount: number;
+}
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 3959; // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 export function useRecyclingData(): UseRecyclingDataReturn {
@@ -24,6 +74,11 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedState, setSelectedState] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedMaterial, setSelectedMaterial] = useState("all");
+  const [selectedDistance, setSelectedDistance] = useState("any");
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -44,6 +99,43 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     loadData();
   }, []);
 
+  const requestLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setIsLocating(false);
+      },
+      (error) => {
+        let message = "Unable to get your location";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message = "Location permission denied. Please enable location access.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message = "Location information unavailable.";
+            break;
+          case error.TIMEOUT:
+            message = "Location request timed out.";
+            break;
+        }
+        setLocationError(message);
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
+
   const states = useMemo(() => {
     const uniqueStates = Array.from(new Set(facilities.map((f) => f.State).filter(Boolean)));
     return uniqueStates.sort();
@@ -55,24 +147,85 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   }, [facilities]);
 
   const filteredFacilities = useMemo(() => {
-    return facilities.filter((facility) => {
-      const matchesSearch =
-        !searchTerm ||
-        facility.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        facility.Address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        facility.State?.toLowerCase().includes(searchTerm.toLowerCase());
+    return facilities
+      .map((facility) => {
+        // Calculate distance if user location is available
+        let distance: number | undefined;
+        if (userLocation && facility.Latitude && facility.Longitude) {
+          distance = calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            facility.Latitude,
+            facility.Longitude
+          );
+        }
+        return { ...facility, distance };
+      })
+      .filter((facility) => {
+        // Search term filter
+        const matchesSearch =
+          !searchTerm ||
+          facility.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          facility.Address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          facility.State?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          facility.Feedstock?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesState = selectedState === "all" || facility.State === selectedState;
-      const matchesCategory = selectedCategory === "all" || facility.Category === selectedCategory;
+        // State filter
+        const matchesState = selectedState === "all" || facility.State === selectedState;
 
-      return matchesSearch && matchesState && matchesCategory;
-    });
-  }, [facilities, searchTerm, selectedState, selectedCategory]);
+        // Category filter
+        const matchesCategory = selectedCategory === "all" || facility.Category === selectedCategory;
+
+        // Material type filter
+        let matchesMaterial = selectedMaterial === "all";
+        if (!matchesMaterial) {
+          const materialType = MATERIAL_TYPES.find(m => m.value === selectedMaterial);
+          if (materialType) {
+            const feedstockLower = (facility.Feedstock || "").toLowerCase();
+            const categoryLower = (facility.Category || "").toLowerCase();
+            matchesMaterial = materialType.keywords.some(
+              keyword => feedstockLower.includes(keyword) || categoryLower.includes(keyword)
+            );
+          }
+        }
+
+        // Distance filter
+        let matchesDistance = selectedDistance === "any";
+        if (!matchesDistance && facility.distance !== undefined) {
+          const maxDistance = parseInt(selectedDistance, 10);
+          matchesDistance = facility.distance <= maxDistance;
+        } else if (!matchesDistance && facility.distance === undefined) {
+          // If no distance calculated (no user location), include all
+          matchesDistance = true;
+        }
+
+        return matchesSearch && matchesState && matchesCategory && matchesMaterial && matchesDistance;
+      })
+      .sort((a, b) => {
+        // Sort by distance if available
+        if (a.distance !== undefined && b.distance !== undefined) {
+          return a.distance - b.distance;
+        }
+        return 0;
+      });
+  }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, userLocation]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (selectedState !== "all") count++;
+    if (selectedCategory !== "all") count++;
+    if (selectedMaterial !== "all") count++;
+    if (selectedDistance !== "any") count++;
+    return count;
+  }, [searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance]);
 
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedState("all");
     setSelectedCategory("all");
+    setSelectedMaterial("all");
+    setSelectedDistance("any");
   };
 
   return {
@@ -80,6 +233,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     filteredFacilities,
     states,
     categories,
+    materialTypes: MATERIAL_TYPES,
     isLoading,
     error,
     searchTerm,
@@ -88,7 +242,16 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedState,
     selectedCategory,
     setSelectedCategory,
+    selectedMaterial,
+    setSelectedMaterial,
+    selectedDistance,
+    setSelectedDistance,
+    userLocation,
+    isLocating,
+    locationError,
+    requestLocation,
     clearFilters,
+    activeFilterCount,
   };
 }
 

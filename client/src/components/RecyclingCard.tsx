@@ -18,6 +18,7 @@ export interface RecyclingFacility {
   Latitude: number;
   Longitude: number;
   NAICS_Code: string;
+  distance?: number; // Distance from user in miles (calculated)
 }
 
 interface RecyclingCardProps {
@@ -113,6 +114,15 @@ export function RecyclingCard({ facility, index }: RecyclingCardProps) {
                 Visit Website
                 <ExternalLink className="h-3 w-3" />
               </a>
+            </div>
+          )}
+          
+          {facility.distance !== undefined && (
+            <div className="flex items-center gap-1 text-sm text-primary font-medium">
+              <MapPin className="h-3 w-3" />
+              {facility.distance < 1 
+                ? "Less than 1 mile away" 
+                : `${facility.distance.toFixed(1)} miles away`}
             </div>
           )}
           

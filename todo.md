@@ -43,3 +43,10 @@
 - [x] Add export approved facilities to CSV functionality
 - [x] Protect admin routes with role-based access
 - [x] Unit tests for admin functionality
+
+## Enhanced Search
+- [x] Add material type filter (extract from materialsAccepted field)
+- [x] Add facility type filter (rename from category for clarity)
+- [x] Add distance-based filtering with geolocation
+- [x] Redesign search bar UI with collapsible advanced filters
+- [x] Update both homepage and map view with new filters
