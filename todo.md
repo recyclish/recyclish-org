@@ -82,3 +82,10 @@
 - [x] Add reports section to admin dashboard
 - [x] Notify admin when new reports are submitted
 - [x] Unit tests for report functionality
+
+## Print Feature
+- [x] Create print button component for facility cards
+- [x] Design print-friendly facility detail layout
+- [x] Include facility name, address, contact info, materials accepted
+- [x] Add print styles for clean output
+- [x] Integrate print button into facility cards

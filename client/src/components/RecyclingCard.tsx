@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { ShareButton } from "./ShareButton";
 import { ReportIssueButton } from "./ReportIssueButton";
+import { PrintButton } from "./PrintButton";
 
 export interface RecyclingFacility {
   Name: string;
@@ -147,6 +148,7 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
                 facilityName={facility.Name}
                 facilityAddress={facility.Address}
               />
+              <PrintButton facility={facility} />
               <ShareButton
                 facilityName={facility.Name}
                 facilityAddress={facility.Address}
