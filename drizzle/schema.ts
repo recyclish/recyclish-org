@@ -60,3 +60,32 @@ export const facilitySubmissions = mysqlTable("facility_submissions", {
 
 export type FacilitySubmission = typeof facilitySubmissions.$inferSelect;
 export type InsertFacilitySubmission = typeof facilitySubmissions.$inferInsert;
+
+/**
+ * User favorites table for saving recycling facilities.
+ * Uses a composite key of userId and facilityId to store favorites.
+ * facilityId is a string identifier based on facility name and address hash.
+ */
+export const userFavorites = mysqlTable("user_favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  // Facility identifier (hash of name + address for CSV-based facilities)
+  facilityId: varchar("facilityId", { length: 64 }).notNull(),
+  
+  // Store facility details for quick access without CSV lookup
+  facilityName: varchar("facilityName", { length: 255 }).notNull(),
+  facilityAddress: varchar("facilityAddress", { length: 500 }).notNull(),
+  facilityCategory: varchar("facilityCategory", { length: 100 }),
+  facilityPhone: varchar("facilityPhone", { length: 50 }),
+  facilityWebsite: varchar("facilityWebsite", { length: 500 }),
+  facilityFeedstock: text("facilityFeedstock"),
+  facilityLatitude: varchar("facilityLatitude", { length: 20 }),
+  facilityLongitude: varchar("facilityLongitude", { length: 20 }),
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserFavorite = typeof userFavorites.$inferSelect;
+export type InsertUserFavorite = typeof userFavorites.$inferInsert;

@@ -1,8 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Mail, Globe, ExternalLink } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, ExternalLink, Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 export interface RecyclingFacility {
   Name: string;
@@ -24,6 +27,8 @@ export interface RecyclingFacility {
 interface RecyclingCardProps {
   facility: RecyclingFacility;
   index: number;
+  isFavorite?: boolean;
+  onFavoriteChange?: () => void;
 }
 
 const categoryColors: Record<string, string> = {
@@ -36,10 +41,75 @@ const categoryColors: Record<string, string> = {
   "TextilesRecycling Facilities": "bg-[oklch(0.50_0.15_320)] text-white",
   "WoodRecycling Facilities": "bg-[oklch(0.45_0.12_60)] text-white",
   "WoodSecondary Processors": "bg-[oklch(0.40_0.10_60)] text-white",
+  "Retail Take-Back Program": "bg-[oklch(0.55_0.20_25)] text-white",
 };
 
-export function RecyclingCard({ facility, index }: RecyclingCardProps) {
+// Generate a unique facility ID from name and address
+export function generateFacilityId(name: string, address: string): string {
+  const str = `${name}-${address}`.toLowerCase().replace(/[^a-z0-9]/g, '');
+  // Simple hash function
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteChange }: RecyclingCardProps) {
+  const { isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
+  
   const categoryColor = categoryColors[facility.Category] || "bg-primary text-primary-foreground";
+  const facilityId = generateFacilityId(facility.Name, facility.Address);
+  
+  const addFavorite = trpc.favorites.add.useMutation({
+    onSuccess: () => {
+      toast.success("Added to favorites");
+      utils.favorites.ids.invalidate();
+      onFavoriteChange?.();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to add to favorites");
+    },
+  });
+
+  const removeFavorite = trpc.favorites.remove.useMutation({
+    onSuccess: () => {
+      toast.success("Removed from favorites");
+      utils.favorites.ids.invalidate();
+      onFavoriteChange?.();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to remove from favorites");
+    },
+  });
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast.error("Please log in to save favorites");
+      return;
+    }
+
+    if (isFavorite) {
+      removeFavorite.mutate({ facilityId });
+    } else {
+      addFavorite.mutate({
+        facilityId,
+        facilityName: facility.Name,
+        facilityAddress: facility.Address,
+        facilityCategory: facility.Category || undefined,
+        facilityPhone: facility.Phone || undefined,
+        facilityWebsite: facility.Website || undefined,
+        facilityFeedstock: facility.Feedstock || undefined,
+        facilityLatitude: facility.Latitude?.toString() || undefined,
+        facilityLongitude: facility.Longitude?.toString() || undefined,
+      });
+    }
+  };
   
   const formatCategory = (cat: string) => {
     return cat
@@ -55,6 +125,8 @@ export function RecyclingCard({ facility, index }: RecyclingCardProps) {
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
   };
 
+  const isLoading = addFavorite.isPending || removeFavorite.isPending;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -64,9 +136,19 @@ export function RecyclingCard({ facility, index }: RecyclingCardProps) {
       <Card className="h-full hover:shadow-lg transition-shadow duration-300 border-border/50 bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg font-display leading-tight line-clamp-2">
+            <CardTitle className="text-lg font-display leading-tight line-clamp-2 flex-1">
               {facility.Name}
             </CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`shrink-0 -mt-1 -mr-2 ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'}`}
+              onClick={handleFavoriteClick}
+              disabled={isLoading}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+            </Button>
           </div>
           <Badge className={`${categoryColor} w-fit text-xs font-label`}>
             {formatCategory(facility.Category)}

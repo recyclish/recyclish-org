@@ -9,6 +9,7 @@ import About from "./pages/About";
 import SubmitFacility from "./pages/SubmitFacility";
 import MapViewPage from "./pages/MapView";
 import Admin from "./pages/Admin";
+import Favorites from "./pages/Favorites";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/submit" component={SubmitFacility} />
       <Route path="/admin" component={Admin} />
+      <Route path="/favorites" component={Favorites} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

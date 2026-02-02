@@ -1,6 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission } from "../drizzle/schema";
+import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -171,4 +171,83 @@ export async function getSubmissionStats() {
     .groupBy(facilitySubmissions.status);
 
   return result;
+}
+
+// User favorites functions
+export async function addUserFavorite(favorite: InsertUserFavorite) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Check if already favorited
+  const existing = await db.select()
+    .from(userFavorites)
+    .where(and(
+      eq(userFavorites.userId, favorite.userId),
+      eq(userFavorites.facilityId, favorite.facilityId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return { alreadyExists: true, id: existing[0].id };
+  }
+
+  const result = await db.insert(userFavorites).values(favorite);
+  return { alreadyExists: false, id: Number(result[0].insertId) };
+}
+
+export async function removeUserFavorite(userId: number, facilityId: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.delete(userFavorites)
+    .where(and(
+      eq(userFavorites.userId, userId),
+      eq(userFavorites.facilityId, facilityId)
+    ));
+}
+
+export async function getUserFavorites(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  return db.select()
+    .from(userFavorites)
+    .where(eq(userFavorites.userId, userId))
+    .orderBy(desc(userFavorites.createdAt));
+}
+
+export async function isUserFavorite(userId: number, facilityId: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select()
+    .from(userFavorites)
+    .where(and(
+      eq(userFavorites.userId, userId),
+      eq(userFavorites.facilityId, facilityId)
+    ))
+    .limit(1);
+
+  return result.length > 0;
+}
+
+export async function getUserFavoriteIds(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select({ facilityId: userFavorites.facilityId })
+    .from(userFavorites)
+    .where(eq(userFavorites.userId, userId));
+
+  return result.map(r => r.facilityId);
 }

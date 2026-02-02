@@ -10,7 +10,11 @@ import {
   updateFacilitySubmissionStatus,
   getFacilitySubmissionById,
   deleteFacilitySubmission,
-  getSubmissionStats
+  getSubmissionStats,
+  addUserFavorite,
+  removeUserFavorite,
+  getUserFavorites,
+  getUserFavoriteIds
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 
@@ -40,6 +44,19 @@ const facilitySubmissionSchema = z.object({
   additionalNotes: z.string().max(2000).optional(),
   submitterName: z.string().max(255).optional(),
   submitterEmail: z.string().email().max(320).optional().or(z.literal("")),
+});
+
+// Validation schema for adding a favorite
+const addFavoriteSchema = z.object({
+  facilityId: z.string().min(1).max(64),
+  facilityName: z.string().min(1).max(255),
+  facilityAddress: z.string().min(1).max(500),
+  facilityCategory: z.string().max(100).optional(),
+  facilityPhone: z.string().max(50).optional(),
+  facilityWebsite: z.string().max(500).optional(),
+  facilityFeedstock: z.string().optional(),
+  facilityLatitude: z.string().max(20).optional(),
+  facilityLongitude: z.string().max(20).optional(),
 });
 
 export const appRouter = router({
@@ -152,6 +169,54 @@ export const appRouter = router({
           Longitude: "",
           NAICS_Code: ""
         }));
+      }),
+  }),
+
+  // User favorites routes
+  favorites: router({
+    // Add a facility to favorites
+    add: protectedProcedure
+      .input(addFavoriteSchema)
+      .mutation(async ({ ctx, input }) => {
+        const result = await addUserFavorite({
+          userId: ctx.user.id,
+          facilityId: input.facilityId,
+          facilityName: input.facilityName,
+          facilityAddress: input.facilityAddress,
+          facilityCategory: input.facilityCategory || null,
+          facilityPhone: input.facilityPhone || null,
+          facilityWebsite: input.facilityWebsite || null,
+          facilityFeedstock: input.facilityFeedstock || null,
+          facilityLatitude: input.facilityLatitude || null,
+          facilityLongitude: input.facilityLongitude || null,
+        });
+        return { 
+          success: true, 
+          alreadyExists: result.alreadyExists,
+          message: result.alreadyExists ? "Already in favorites" : "Added to favorites" 
+        };
+      }),
+
+    // Remove a facility from favorites
+    remove: protectedProcedure
+      .input(z.object({ facilityId: z.string().min(1).max(64) }))
+      .mutation(async ({ ctx, input }) => {
+        await removeUserFavorite(ctx.user.id, input.facilityId);
+        return { success: true, message: "Removed from favorites" };
+      }),
+
+    // Get all user favorites
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        const favorites = await getUserFavorites(ctx.user.id);
+        return favorites;
+      }),
+
+    // Get list of favorite facility IDs (for checking if facilities are favorited)
+    ids: protectedProcedure
+      .query(async ({ ctx }) => {
+        const ids = await getUserFavoriteIds(ctx.user.id);
+        return ids;
       }),
   }),
 });

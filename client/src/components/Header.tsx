@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Recycle, Menu, X, Shield } from "lucide-react";
+import { Recycle, Menu, X, Shield, Heart } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -8,7 +8,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export function Header() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const navLinks = [
     { href: "/", label: "Directory" },
@@ -50,6 +50,18 @@ export function Header() {
                 </Button>
               </Link>
             ))}
+            {isAuthenticated && (
+              <Link href="/favorites">
+                <Button
+                  variant={location === "/favorites" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="font-label"
+                >
+                  <Heart className="h-4 w-4 mr-1" />
+                  Favorites
+                </Button>
+              </Link>
+            )}
             {isAdmin && (
               <Link href="/admin">
                 <Button
@@ -112,6 +124,18 @@ export function Header() {
                   </Button>
                 </Link>
               ))}
+              {isAuthenticated && (
+                <Link href="/favorites">
+                  <Button
+                    variant={location === "/favorites" ? "secondary" : "ghost"}
+                    className="w-full justify-start font-label"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Heart className="h-4 w-4 mr-2" />
+                    Favorites
+                  </Button>
+                </Link>
+              )}
               {isAdmin && (
                 <Link href="/admin">
                   <Button

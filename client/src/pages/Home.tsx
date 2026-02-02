@@ -2,17 +2,21 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SearchFilters } from "@/components/SearchFilters";
-import { RecyclingCard } from "@/components/RecyclingCard";
+import { RecyclingCard, generateFacilityId } from "@/components/RecyclingCard";
 import { Stats } from "@/components/Stats";
 import { useRecyclingData } from "@/hooks/useRecyclingData";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronDown, MapPin, Recycle, Map } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 
 const ITEMS_PER_PAGE = 12;
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
+  
   const {
     filteredFacilities,
     states,
@@ -37,6 +41,13 @@ export default function Home() {
     activeFilterCount,
     facilities,
   } = useRecyclingData();
+
+  // Fetch user's favorite IDs
+  const { data: favoriteIds, refetch: refetchFavorites } = trpc.favorites.ids.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const favoriteIdSet = new Set(favoriteIds || []);
 
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
 
@@ -187,13 +198,18 @@ export default function Home() {
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-8">
-              {displayedFacilities.map((facility, index) => (
-                <RecyclingCard
-                  key={`${facility.Name}-${facility.Address}-${index}`}
-                  facility={facility}
-                  index={index % ITEMS_PER_PAGE}
-                />
-              ))}
+              {displayedFacilities.map((facility, index) => {
+                const facilityId = generateFacilityId(facility.Name, facility.Address);
+                return (
+                  <RecyclingCard
+                    key={`${facility.Name}-${facility.Address}-${index}`}
+                    facility={facility}
+                    index={index % ITEMS_PER_PAGE}
+                    isFavorite={favoriteIdSet.has(facilityId)}
+                    onFavoriteChange={() => refetchFavorites()}
+                  />
+                );
+              })}
             </div>
 
             {hasMore && (

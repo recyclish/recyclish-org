@@ -50,3 +50,11 @@
 - [x] Add distance-based filtering with geolocation
 - [x] Redesign search bar UI with collapsible advanced filters
 - [x] Update both homepage and map view with new filters
+
+## Favorites Feature
+- [x] Create favorites database table
+- [x] Add backend API endpoints for favorites (add, remove, list)
+- [x] Add favorite button to facility cards
+- [x] Create favorites page to view saved facilities
+- [x] Add favorites link to navigation for logged-in users
+- [x] Unit tests for favorites functionality
