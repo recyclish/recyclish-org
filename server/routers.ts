@@ -3,8 +3,27 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { createFacilitySubmission, getFacilitySubmissions, updateFacilitySubmissionStatus } from "./db";
+import { TRPCError } from "@trpc/server";
+import { 
+  createFacilitySubmission, 
+  getFacilitySubmissions, 
+  updateFacilitySubmissionStatus,
+  getFacilitySubmissionById,
+  deleteFacilitySubmission,
+  getSubmissionStats
+} from "./db";
 import { notifyOwner } from "./_core/notification";
+
+// Admin-only procedure - checks if user has admin role
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== 'admin') {
+    throw new TRPCError({ 
+      code: 'FORBIDDEN', 
+      message: 'You do not have permission to access this resource' 
+    });
+  }
+  return next({ ctx });
+});
 
 // Validation schema for facility submission
 const facilitySubmissionSchema = z.object({
@@ -66,7 +85,7 @@ export const appRouter = router({
         return { success: true, message: "Thank you! Your submission has been received and will be reviewed." };
       }),
 
-    // Admin-only endpoint - list all submissions
+    // Protected endpoint - list submissions (admin sees all, users see their own)
     list: protectedProcedure
       .input(z.object({
         status: z.enum(["pending", "approved", "rejected"]).optional(),
@@ -77,7 +96,7 @@ export const appRouter = router({
       }),
 
     // Admin-only endpoint - update submission status
-    updateStatus: protectedProcedure
+    updateStatus: adminProcedure
       .input(z.object({
         id: z.number(),
         status: z.enum(["pending", "approved", "rejected"]),
@@ -86,6 +105,53 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await updateFacilitySubmissionStatus(input.id, input.status, input.reviewNotes);
         return { success: true };
+      }),
+
+    // Admin-only endpoint - get single submission by ID
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const submission = await getFacilitySubmissionById(input.id);
+        if (!submission) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Submission not found' });
+        }
+        return submission;
+      }),
+
+    // Admin-only endpoint - delete a submission
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteFacilitySubmission(input.id);
+        return { success: true };
+      }),
+
+    // Admin-only endpoint - get submission statistics
+    stats: adminProcedure
+      .query(async () => {
+        const stats = await getSubmissionStats();
+        return stats;
+      }),
+
+    // Admin-only endpoint - export approved submissions as CSV data
+    exportApproved: adminProcedure
+      .query(async () => {
+        const approved = await getFacilitySubmissions("approved");
+        return approved.map(sub => ({
+          Name: sub.name,
+          Address: `${sub.address}, ${sub.city}, ${sub.state} ${sub.zipCode || ''}`.trim(),
+          State: sub.state,
+          County: "",
+          Phone: sub.phone || "",
+          Email: sub.email || "",
+          Website: sub.website || "",
+          Category: sub.category,
+          Facility_Type: "User Submitted",
+          Feedstock: sub.materialsAccepted || "",
+          Latitude: "",
+          Longitude: "",
+          NAICS_Code: ""
+        }));
       }),
   }),
 });

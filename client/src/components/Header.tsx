@@ -1,12 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Recycle, Menu, X } from "lucide-react";
+import { Recycle, Menu, X, Shield } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export function Header() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   const navLinks = [
     { href: "/", label: "Directory" },
@@ -14,6 +16,8 @@ export function Header() {
     { href: "/submit", label: "Submit" },
     { href: "/about", label: "About" },
   ];
+
+  const isAdmin = user?.role === "admin";
 
   return (
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border/50">
@@ -46,6 +50,18 @@ export function Header() {
                 </Button>
               </Link>
             ))}
+            {isAdmin && (
+              <Link href="/admin">
+                <Button
+                  variant={location === "/admin" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="font-label text-primary"
+                >
+                  <Shield className="h-4 w-4 mr-1" />
+                  Admin
+                </Button>
+              </Link>
+            )}
             <div className="ml-2 pl-2 border-l border-border">
               <a
                 href="https://recyclish.com"
@@ -96,6 +112,18 @@ export function Header() {
                   </Button>
                 </Link>
               ))}
+              {isAdmin && (
+                <Link href="/admin">
+                  <Button
+                    variant={location === "/admin" ? "secondary" : "ghost"}
+                    className="w-full justify-start font-label text-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Admin Dashboard
+                  </Button>
+                </Link>
+              )}
               <a
                 href="https://recyclish.com"
                 target="_blank"

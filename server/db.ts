@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -131,4 +131,44 @@ export async function updateFacilitySubmissionStatus(
   await db.update(facilitySubmissions)
     .set({ status, reviewNotes: reviewNotes || null })
     .where(eq(facilitySubmissions.id, id));
+}
+
+export async function getFacilitySubmissionById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select()
+    .from(facilitySubmissions)
+    .where(eq(facilitySubmissions.id, id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function deleteFacilitySubmission(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.delete(facilitySubmissions)
+    .where(eq(facilitySubmissions.id, id));
+}
+
+export async function getSubmissionStats() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select({
+    status: facilitySubmissions.status,
+    count: sql<number>`count(*)`
+  })
+    .from(facilitySubmissions)
+    .groupBy(facilitySubmissions.status);
+
+  return result;
 }
