@@ -6,7 +6,7 @@ import { RecyclingCard } from "@/components/RecyclingCard";
 import { Stats } from "@/components/Stats";
 import { useRecyclingData } from "@/hooks/useRecyclingData";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronDown, MapPin, Recycle } from "lucide-react";
+import { Loader2, ChevronDown, MapPin, Recycle, Map } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 
@@ -88,7 +88,13 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="mt-6">
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/map">
+                  <Button variant="default" className="font-label">
+                    <Map className="h-4 w-4 mr-2" />
+                    View Map
+                  </Button>
+                </Link>
                 <Link href="/submit">
                   <Button variant="outline" className="font-label">
                     <Recycle className="h-4 w-4 mr-2" />

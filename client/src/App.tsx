@@ -7,11 +7,13 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import SubmitFacility from "./pages/SubmitFacility";
+import MapViewPage from "./pages/MapView";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/map" component={MapViewPage} />
       <Route path="/about" component={About} />
       <Route path="/submit" component={SubmitFacility} />
       <Route path="/404" component={NotFound} />

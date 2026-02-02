@@ -22,3 +22,8 @@
 - [ ] Admin panel to review submissions
 - [ ] Interactive map view
 - [ ] Export approved submissions to main CSV
+
+## In Progress
+- [x] Interactive map view with facility markers
+- [x] Map clustering for better performance
+- [x] Map/list view toggle on homepage
