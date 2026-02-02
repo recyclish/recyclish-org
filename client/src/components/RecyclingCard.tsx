@@ -7,6 +7,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { ShareButton } from "./ShareButton";
+import { ReportIssueButton } from "./ReportIssueButton";
 
 export interface RecyclingFacility {
   Name: string;
@@ -140,7 +141,12 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
             <CardTitle className="text-lg font-display leading-tight line-clamp-2 flex-1">
               {facility.Name}
             </CardTitle>
-            <div className="flex items-center gap-1 shrink-0 -mt-1 -mr-2">
+            <div className="flex items-center gap-0.5 shrink-0 -mt-1 -mr-2">
+              <ReportIssueButton
+                facilityId={facilityId}
+                facilityName={facility.Name}
+                facilityAddress={facility.Address}
+              />
               <ShareButton
                 facilityName={facility.Name}
                 facilityAddress={facility.Address}

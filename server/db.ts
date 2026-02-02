@@ -251,3 +251,89 @@ export async function getUserFavoriteIds(userId: number) {
 
   return result.map(r => r.facilityId);
 }
+
+// Facility report functions
+import { facilityReports, InsertFacilityReport } from "../drizzle/schema";
+
+export async function createFacilityReport(report: InsertFacilityReport) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.insert(facilityReports).values(report);
+  return { id: Number(result[0].insertId) };
+}
+
+export async function getFacilityReports(status?: "pending" | "reviewed" | "resolved" | "dismissed") {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  if (status) {
+    return db.select()
+      .from(facilityReports)
+      .where(eq(facilityReports.status, status))
+      .orderBy(desc(facilityReports.createdAt));
+  }
+  
+  return db.select()
+    .from(facilityReports)
+    .orderBy(desc(facilityReports.createdAt));
+}
+
+export async function updateFacilityReportStatus(
+  id: number, 
+  status: "pending" | "reviewed" | "resolved" | "dismissed",
+  adminNotes?: string
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(facilityReports)
+    .set({ status, adminNotes: adminNotes || null })
+    .where(eq(facilityReports.id, id));
+}
+
+export async function getFacilityReportById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select()
+    .from(facilityReports)
+    .where(eq(facilityReports.id, id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function deleteFacilityReport(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.delete(facilityReports)
+    .where(eq(facilityReports.id, id));
+}
+
+export async function getReportStats() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select({
+    status: facilityReports.status,
+    count: sql<number>`count(*)`
+  })
+    .from(facilityReports)
+    .groupBy(facilityReports.status);
+
+  return result;
+}

@@ -14,7 +14,13 @@ import {
   addUserFavorite,
   removeUserFavorite,
   getUserFavorites,
-  getUserFavoriteIds
+  getUserFavoriteIds,
+  createFacilityReport,
+  getFacilityReports,
+  updateFacilityReportStatus,
+  getFacilityReportById,
+  deleteFacilityReport,
+  getReportStats
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 
@@ -57,6 +63,26 @@ const addFavoriteSchema = z.object({
   facilityFeedstock: z.string().optional(),
   facilityLatitude: z.string().max(20).optional(),
   facilityLongitude: z.string().max(20).optional(),
+});
+
+// Validation schema for facility report
+const facilityReportSchema = z.object({
+  facilityId: z.string().min(1).max(64),
+  facilityName: z.string().min(1).max(255),
+  facilityAddress: z.string().min(1).max(500),
+  issueType: z.enum([
+    "permanently_closed",
+    "temporarily_closed",
+    "wrong_address",
+    "wrong_phone",
+    "wrong_hours",
+    "wrong_materials",
+    "duplicate_listing",
+    "other"
+  ]),
+  description: z.string().max(2000).optional(),
+  reporterName: z.string().max(255).optional(),
+  reporterEmail: z.string().email().max(320).optional().or(z.literal("")),
 });
 
 export const appRouter = router({
@@ -217,6 +243,92 @@ export const appRouter = router({
       .query(async ({ ctx }) => {
         const ids = await getUserFavoriteIds(ctx.user.id);
         return ids;
+      }),
+  }),
+
+  // Facility reports routes
+  reports: router({
+    // Public endpoint - anyone can report an issue
+    submit: publicProcedure
+      .input(facilityReportSchema)
+      .mutation(async ({ input }) => {
+        // Clean up optional empty strings
+        const cleanedInput = {
+          ...input,
+          description: input.description || null,
+          reporterName: input.reporterName || null,
+          reporterEmail: input.reporterEmail || null,
+        };
+
+        await createFacilityReport(cleanedInput);
+
+        // Format issue type for notification
+        const issueTypeLabels: Record<string, string> = {
+          permanently_closed: "Permanently Closed",
+          temporarily_closed: "Temporarily Closed",
+          wrong_address: "Wrong Address",
+          wrong_phone: "Wrong Phone Number",
+          wrong_hours: "Wrong Hours",
+          wrong_materials: "Wrong Materials Accepted",
+          duplicate_listing: "Duplicate Listing",
+          other: "Other Issue",
+        };
+
+        // Notify owner about new report
+        await notifyOwner({
+          title: "New Facility Issue Report",
+          content: `A user has reported an issue with a facility:\n\n**${input.facilityName}**\n${input.facilityAddress}\n\n**Issue Type:** ${issueTypeLabels[input.issueType]}\n${input.description ? `**Description:** ${input.description}` : ''}\n\nPlease review in the admin panel.`,
+        });
+
+        return { success: true, message: "Thank you for your report! We will review it shortly." };
+      }),
+
+    // Admin-only endpoint - list all reports
+    list: adminProcedure
+      .input(z.object({
+        status: z.enum(["pending", "reviewed", "resolved", "dismissed"]).optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        const reports = await getFacilityReports(input?.status);
+        return reports;
+      }),
+
+    // Admin-only endpoint - update report status
+    updateStatus: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["pending", "reviewed", "resolved", "dismissed"]),
+        adminNotes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await updateFacilityReportStatus(input.id, input.status, input.adminNotes);
+        return { success: true };
+      }),
+
+    // Admin-only endpoint - get single report by ID
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const report = await getFacilityReportById(input.id);
+        if (!report) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Report not found' });
+        }
+        return report;
+      }),
+
+    // Admin-only endpoint - delete a report
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteFacilityReport(input.id);
+        return { success: true };
+      }),
+
+    // Admin-only endpoint - get report statistics
+    stats: adminProcedure
+      .query(async () => {
+        const stats = await getReportStats();
+        return stats;
       }),
   }),
 });

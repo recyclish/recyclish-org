@@ -89,3 +89,44 @@ export const userFavorites = mysqlTable("user_favorites", {
 
 export type UserFavorite = typeof userFavorites.$inferSelect;
 export type InsertUserFavorite = typeof userFavorites.$inferInsert;
+
+/**
+ * Facility reports table for users to flag incorrect or outdated information.
+ * Reports are reviewed by admins to maintain data accuracy.
+ */
+export const facilityReports = mysqlTable("facility_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // Facility identifier (hash of name + address)
+  facilityId: varchar("facilityId", { length: 64 }).notNull(),
+  facilityName: varchar("facilityName", { length: 255 }).notNull(),
+  facilityAddress: varchar("facilityAddress", { length: 500 }).notNull(),
+  
+  // Report details
+  issueType: mysqlEnum("issueType", [
+    "permanently_closed",
+    "temporarily_closed",
+    "wrong_address",
+    "wrong_phone",
+    "wrong_hours",
+    "wrong_materials",
+    "duplicate_listing",
+    "other"
+  ]).notNull(),
+  description: text("description"),
+  
+  // Reporter information (optional)
+  reporterName: varchar("reporterName", { length: 255 }),
+  reporterEmail: varchar("reporterEmail", { length: 320 }),
+  
+  // Status tracking
+  status: mysqlEnum("status", ["pending", "reviewed", "resolved", "dismissed"]).default("pending").notNull(),
+  adminNotes: text("adminNotes"),
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FacilityReport = typeof facilityReports.$inferSelect;
+export type InsertFacilityReport = typeof facilityReports.$inferInsert;

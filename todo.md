@@ -73,3 +73,12 @@
 - [x] Add share via email with pre-filled subject and body
 - [x] Add copy link to clipboard functionality
 - [x] Integrate share button into facility cards
+
+## Report Issue Feature
+- [x] Create facility_reports database table
+- [x] Add backend API endpoints for submitting and managing reports
+- [x] Create report issue button component with modal form
+- [x] Add issue type selection (closed, wrong address, wrong phone, etc.)
+- [x] Add reports section to admin dashboard
+- [x] Notify admin when new reports are submitted
+- [x] Unit tests for report functionality
