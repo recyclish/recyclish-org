@@ -130,13 +130,20 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 w-80"
+            className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2"
           >
-            <img
-              src="/images/recycling-illustration.png"
-              alt="Recycling illustration"
-              className="w-full h-auto drop-shadow-xl"
-            />
+            <a 
+              href="https://recyclish.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block hover:opacity-90 transition-opacity"
+            >
+              <img
+                src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/RhcQwfEviabRvpfW.png"
+                alt="Recyclish - Turning Knowledge into Action"
+                className="w-72 h-auto drop-shadow-xl"
+              />
+            </a>
           </motion.div>
         </div>
       </section>

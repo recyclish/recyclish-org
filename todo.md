@@ -139,3 +139,8 @@
 - [x] Upload Recyclish logo to S3
 - [x] Add logo to header with link to recyclish.com
 - [x] Add logo to footer with link to recyclish.com
+
+## Homepage Hero Image
+- [x] Upload transparent Recyclish logo to CDN
+- [x] Replace hero image with Recyclish logo
+- [x] Adjust logo size to fit hero section
