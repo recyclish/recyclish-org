@@ -26,6 +26,7 @@ import {
   deleteFacilityReview,
   getFacilityReviews,
   getFacilityRatingStats,
+  getBatchFacilityRatingStats,
   getAllReviewsForAdmin,
   updateReviewStatus,
   getReviewStats,
@@ -440,6 +441,14 @@ export const appRouter = router({
           avgCleanliness: stats?.avgCleanliness ? Number(stats.avgCleanliness.toFixed(1)) : null,
           avgConvenience: stats?.avgConvenience ? Number(stats.avgConvenience.toFixed(1)) : null,
         };
+      }),
+
+    // Public endpoint - get batch rating stats for multiple facilities
+    batchStats: publicProcedure
+      .input(z.object({ facilityIds: z.array(z.string().min(1).max(64)).max(100) }))
+      .query(async ({ input }) => {
+        const statsMap = await getBatchFacilityRatingStats(input.facilityIds);
+        return statsMap;
       }),
 
     // Public endpoint - get top-rated facilities

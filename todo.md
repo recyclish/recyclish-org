@@ -125,3 +125,12 @@
 - [x] Add share, print, favorite, and report buttons
 - [x] Update facility cards to link to detail page with View Details button
 - [x] Add quick actions sidebar (Get Directions, Call Now, Visit Website)
+
+## Nearby Facilities Section
+- [x] Calculate distance between facilities using coordinates
+- [x] Find facilities within 10-mile radius of current facility
+- [x] Display nearby facilities section on detail page
+- [x] Show distance, category, and rating for each nearby facility
+- [x] Link to nearby facility detail pages
+- [x] Add batchStats API endpoint for efficient rating lookups
+- [x] Unit tests for batchStats endpoint (4 tests)

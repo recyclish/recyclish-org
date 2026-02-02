@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -461,6 +461,40 @@ export async function getFacilityRatingStats(facilityId: string) {
     ));
 
   return result[0];
+}
+
+export async function getBatchFacilityRatingStats(facilityIds: string[]) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  if (facilityIds.length === 0) {
+    return {};
+  }
+
+  const result = await db.select({
+    facilityId: facilityReviews.facilityId,
+    avgRating: sql<number>`AVG(rating)`,
+    totalReviews: sql<number>`COUNT(*)`,
+  })
+    .from(facilityReviews)
+    .where(and(
+      inArray(facilityReviews.facilityId, facilityIds),
+      eq(facilityReviews.status, "approved")
+    ))
+    .groupBy(facilityReviews.facilityId);
+
+  // Convert to a map for easy lookup
+  const statsMap: Record<string, { average: number; count: number }> = {};
+  for (const row of result) {
+    statsMap[row.facilityId] = {
+      average: row.avgRating ? Number(row.avgRating.toFixed(1)) : 0,
+      count: row.totalReviews ? Number(row.totalReviews) : 0,
+    };
+  }
+
+  return statsMap;
 }
 
 export async function getAllReviewsForAdmin(status?: "pending" | "approved" | "rejected") {

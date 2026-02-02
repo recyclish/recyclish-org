@@ -35,6 +35,7 @@ import {
   Building2,
 } from "lucide-react";
 import { RecyclingFacility, generateFacilityId } from "@/components/RecyclingCard";
+import { NearbyFacilities } from "@/components/NearbyFacilities";
 
 const categoryColors: Record<string, string> = {
   "Electronics Recyclers": "bg-[oklch(0.35_0.08_250)] text-white",
@@ -760,6 +761,16 @@ export default function FacilityDetail() {
               </motion.div>
             </div>
           </div>
+
+          {/* Nearby Facilities Section */}
+          {facility.Latitude && facility.Longitude && (
+            <NearbyFacilities
+              currentFacilityId={facilityId}
+              latitude={facility.Latitude}
+              longitude={facility.Longitude}
+              className="mt-8"
+            />
+          )}
         </div>
       </main>
 

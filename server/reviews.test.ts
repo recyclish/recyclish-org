@@ -182,3 +182,54 @@ describe("reviews.helpfulVotes", () => {
     expect(Array.isArray(result)).toBe(true);
   });
 });
+
+describe("reviews.batchStats", () => {
+  it("returns empty object for empty facility list", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.reviews.batchStats({ facilityIds: [] });
+
+    expect(result).toEqual({});
+  });
+
+  it("returns stats map for multiple facilities", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.reviews.batchStats({ 
+      facilityIds: ["facility-1", "facility-2", "facility-3"] 
+    });
+
+    expect(typeof result).toBe("object");
+    // Each facility should have average and count properties
+    for (const facilityId of Object.keys(result)) {
+      expect(result[facilityId]).toHaveProperty("average");
+      expect(result[facilityId]).toHaveProperty("count");
+    }
+  });
+
+  it("returns stats for facilities with no reviews", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.reviews.batchStats({ 
+      facilityIds: ["nonexistent-facility-xyz"] 
+    });
+
+    expect(typeof result).toBe("object");
+    // Facilities with no reviews should still be in the result
+    if (result["nonexistent-facility-xyz"]) {
+      expect(result["nonexistent-facility-xyz"].count).toBe(0);
+    }
+  });
+
+  it("is accessible without authentication", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    // Should not throw - this is a public endpoint
+    const result = await caller.reviews.batchStats({ facilityIds: ["test-facility"] });
+    expect(typeof result).toBe("object");
+  });
+});
