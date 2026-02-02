@@ -144,3 +144,13 @@
 - [x] Upload transparent Recyclish logo to CDN
 - [x] Replace hero image with Recyclish logo
 - [x] Adjust logo size to fit hero section
+
+## Mailing List Signup
+- [x] Create database schema for newsletter subscribers
+- [x] Add backend API endpoint for subscription
+- [x] Create mailing list signup form component
+- [x] Include email and zip code as required fields
+- [x] Add optional age, gender, sex fields
+- [x] Add additional information text area
+- [x] Integrate signup form into homepage
+- [x] Unit tests for subscription endpoint (9 tests)

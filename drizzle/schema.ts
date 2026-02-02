@@ -185,3 +185,34 @@ export const reviewHelpfulVotes = mysqlTable("review_helpful_votes", {
 
 export type ReviewHelpfulVote = typeof reviewHelpfulVotes.$inferSelect;
 export type InsertReviewHelpfulVote = typeof reviewHelpfulVotes.$inferInsert;
+
+
+/**
+ * Newsletter subscribers table for mailing list signups.
+ * Collects email, zip code for location-based updates, and optional demographics.
+ */
+export const newsletterSubscribers = mysqlTable("newsletter_subscribers", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // Required fields
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  zipCode: varchar("zipCode", { length: 20 }).notNull(),
+  
+  // Optional demographics
+  age: varchar("age", { length: 20 }), // e.g., "18-24", "25-34", etc.
+  gender: varchar("gender", { length: 50 }),
+  sex: varchar("sex", { length: 50 }),
+  
+  // Additional information
+  additionalInfo: text("additionalInfo"),
+  
+  // Subscription status
+  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = unsubscribed
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+export type InsertNewsletterSubscriber = typeof newsletterSubscribers.$inferInsert;

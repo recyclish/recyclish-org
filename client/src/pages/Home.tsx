@@ -5,6 +5,7 @@ import { SearchFilters } from "@/components/SearchFilters";
 import { RecyclingCard, generateFacilityId } from "@/components/RecyclingCard";
 import { Stats } from "@/components/Stats";
 import { HighestRated } from "@/components/HighestRated";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { useRecyclingData } from "@/hooks/useRecyclingData";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronDown, MapPin, Recycle, Map } from "lucide-react";
@@ -240,6 +241,9 @@ export default function Home() {
           </>
         )}
       </section>
+
+      {/* Newsletter Signup Section */}
+      <NewsletterSignup />
 
       <Footer />
     </div>

@@ -1,6 +1,6 @@
 import { and, desc, eq, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite } from "../drizzle/schema";
+import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite, newsletterSubscribers, InsertNewsletterSubscriber } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -653,4 +653,102 @@ export async function getTopRatedFacilities(limit: number = 10) {
     avgRating: Number(r.avgRating),
     totalReviews: Number(r.totalReviews),
   }));
+}
+
+
+// Newsletter subscription functions
+export async function createNewsletterSubscription(data: {
+  email: string;
+  zipCode: string;
+  age?: string | null;
+  gender?: string | null;
+  sex?: string | null;
+  additionalInfo?: string | null;
+}) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Check if email already exists
+  const existing = await db.select()
+    .from(newsletterSubscribers)
+    .where(eq(newsletterSubscribers.email, data.email))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // If already subscribed but inactive, reactivate
+    if (existing[0].isActive === 0) {
+      await db.update(newsletterSubscribers)
+        .set({ 
+          isActive: 1,
+          zipCode: data.zipCode,
+          age: data.age || null,
+          gender: data.gender || null,
+          sex: data.sex || null,
+          additionalInfo: data.additionalInfo || null,
+        })
+        .where(eq(newsletterSubscribers.email, data.email));
+      return { success: true, reactivated: true };
+    }
+    return { success: false, alreadySubscribed: true };
+  }
+
+  await db.insert(newsletterSubscribers).values({
+    email: data.email,
+    zipCode: data.zipCode,
+    age: data.age || null,
+    gender: data.gender || null,
+    sex: data.sex || null,
+    additionalInfo: data.additionalInfo || null,
+  });
+
+  return { success: true, reactivated: false };
+}
+
+export async function getNewsletterSubscribers(activeOnly: boolean = true) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  if (activeOnly) {
+    return db.select()
+      .from(newsletterSubscribers)
+      .where(eq(newsletterSubscribers.isActive, 1))
+      .orderBy(desc(newsletterSubscribers.createdAt));
+  }
+
+  return db.select()
+    .from(newsletterSubscribers)
+    .orderBy(desc(newsletterSubscribers.createdAt));
+}
+
+export async function getNewsletterStats() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select({
+    total: sql<number>`COUNT(*)`,
+    active: sql<number>`SUM(CASE WHEN isActive = 1 THEN 1 ELSE 0 END)`,
+  })
+    .from(newsletterSubscribers);
+
+  return {
+    total: Number(result[0]?.total || 0),
+    active: Number(result[0]?.active || 0),
+  };
+}
+
+export async function unsubscribeNewsletter(email: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(newsletterSubscribers)
+    .set({ isActive: 0 })
+    .where(eq(newsletterSubscribers.email, email));
 }

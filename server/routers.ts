@@ -34,7 +34,10 @@ import {
   removeHelpfulVote,
   getUserHelpfulVotes,
   hasUserReviewedFacility,
-  getTopRatedFacilities
+  getTopRatedFacilities,
+  createNewsletterSubscription,
+  getNewsletterSubscribers,
+  getNewsletterStats
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 
@@ -110,6 +113,16 @@ const facilityReviewSchema = z.object({
   serviceRating: z.number().min(1).max(5).optional(),
   cleanlinessRating: z.number().min(1).max(5).optional(),
   convenienceRating: z.number().min(1).max(5).optional(),
+});
+
+// Validation schema for newsletter subscription
+const newsletterSubscriptionSchema = z.object({
+  email: z.string().email("Please enter a valid email address").max(320),
+  zipCode: z.string().min(5, "Please enter a valid zip code").max(20),
+  age: z.string().max(20).optional(),
+  gender: z.string().max(50).optional(),
+  sex: z.string().max(50).optional(),
+  additionalInfo: z.string().max(1000).optional(),
 });
 
 export const appRouter = router({
@@ -531,6 +544,65 @@ export const appRouter = router({
     adminStats: adminProcedure
       .query(async () => {
         const stats = await getReviewStats();
+        return stats;
+      }),
+  }),
+
+  // Newsletter subscription routes
+  newsletter: router({
+    // Public endpoint - anyone can subscribe
+    subscribe: publicProcedure
+      .input(newsletterSubscriptionSchema)
+      .mutation(async ({ input }) => {
+        const result = await createNewsletterSubscription({
+          email: input.email,
+          zipCode: input.zipCode,
+          age: input.age || null,
+          gender: input.gender || null,
+          sex: input.sex || null,
+          additionalInfo: input.additionalInfo || null,
+        });
+
+        if (result.alreadySubscribed) {
+          return { 
+            success: false, 
+            message: "This email is already subscribed to our newsletter." 
+          };
+        }
+
+        if (result.reactivated) {
+          return { 
+            success: true, 
+            message: "Welcome back! Your subscription has been reactivated." 
+          };
+        }
+
+        // Notify owner about new subscription
+        await notifyOwner({
+          title: "New Newsletter Subscription",
+          content: `A new user has subscribed to the newsletter:\n\n**Email:** ${input.email}\n**Zip Code:** ${input.zipCode}${input.age ? `\n**Age:** ${input.age}` : ''}${input.gender ? `\n**Gender:** ${input.gender}` : ''}${input.additionalInfo ? `\n**Additional Info:** ${input.additionalInfo}` : ''}`,
+        });
+
+        return { 
+          success: true, 
+          message: "Thank you for subscribing! You'll receive recycling tips and updates for your area." 
+        };
+      }),
+
+    // Admin-only endpoint - list all subscribers
+    list: adminProcedure
+      .input(z.object({
+        activeOnly: z.boolean().optional().default(true),
+      }).optional())
+      .query(async ({ input }) => {
+        const subscribers = await getNewsletterSubscribers(input?.activeOnly ?? true);
+        return subscribers;
+      }),
+
+    // Admin-only endpoint - get subscription statistics
+    stats: adminProcedure
+      .query(async () => {
+        const stats = await getNewsletterStats();
         return stats;
       }),
   }),
