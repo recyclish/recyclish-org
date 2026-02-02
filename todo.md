@@ -66,3 +66,10 @@
 - [x] Highlight matching text in suggestions
 - [x] Allow keyboard navigation (arrow keys, enter to select)
 - [x] Integrate into homepage and map view search bars
+
+## Share Feature
+- [x] Create share button component with dropdown menu
+- [x] Add share via Facebook, Twitter/X, LinkedIn
+- [x] Add share via email with pre-filled subject and body
+- [x] Add copy link to clipboard functionality
+- [x] Integrate share button into facility cards

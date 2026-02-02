@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { ShareButton } from "./ShareButton";
 
 export interface RecyclingFacility {
   Name: string;
@@ -139,16 +140,23 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
             <CardTitle className="text-lg font-display leading-tight line-clamp-2 flex-1">
               {facility.Name}
             </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`shrink-0 -mt-1 -mr-2 ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'}`}
-              onClick={handleFavoriteClick}
-              disabled={isLoading}
-              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-            </Button>
+            <div className="flex items-center gap-1 shrink-0 -mt-1 -mr-2">
+              <ShareButton
+                facilityName={facility.Name}
+                facilityAddress={facility.Address}
+                facilityCategory={formatCategory(facility.Category)}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'}`}
+                onClick={handleFavoriteClick}
+                disabled={isLoading}
+                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+              </Button>
+            </div>
           </div>
           <Badge className={`${categoryColor} w-fit text-xs font-label`}>
             {formatCategory(facility.Category)}
