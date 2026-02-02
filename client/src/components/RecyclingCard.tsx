@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ShareButton } from "./ShareButton";
 import { ReportIssueButton } from "./ReportIssueButton";
 import { PrintButton } from "./PrintButton";
+import { ReviewButton } from "./ReviewButton";
 
 export interface RecyclingFacility {
   Name: string;
@@ -143,6 +144,11 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
               {facility.Name}
             </CardTitle>
             <div className="flex items-center gap-0.5 shrink-0 -mt-1 -mr-2">
+              <ReviewButton
+                facilityId={facilityId}
+                facilityName={facility.Name}
+                facilityAddress={facility.Address}
+              />
               <ReportIssueButton
                 facilityId={facilityId}
                 facilityName={facility.Name}

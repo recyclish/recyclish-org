@@ -130,3 +130,58 @@ export const facilityReports = mysqlTable("facility_reports", {
 
 export type FacilityReport = typeof facilityReports.$inferSelect;
 export type InsertFacilityReport = typeof facilityReports.$inferInsert;
+
+/**
+ * Facility reviews table for user ratings and reviews.
+ * Allows users to share their experiences with recycling facilities.
+ */
+export const facilityReviews = mysqlTable("facility_reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // User who wrote the review
+  userId: int("userId").notNull(),
+  userName: varchar("userName", { length: 255 }),
+  
+  // Facility identifier (hash of name + address)
+  facilityId: varchar("facilityId", { length: 64 }).notNull(),
+  facilityName: varchar("facilityName", { length: 255 }).notNull(),
+  facilityAddress: varchar("facilityAddress", { length: 500 }).notNull(),
+  
+  // Review content
+  rating: int("rating").notNull(), // 1-5 stars
+  title: varchar("title", { length: 255 }),
+  content: text("content"),
+  
+  // Review aspects (optional detailed ratings)
+  serviceRating: int("serviceRating"), // 1-5
+  cleanlinessRating: int("cleanlinessRating"), // 1-5
+  convenienceRating: int("convenienceRating"), // 1-5
+  
+  // Moderation
+  status: mysqlEnum("status", ["published", "pending", "hidden"]).default("published").notNull(),
+  adminNotes: text("adminNotes"),
+  
+  // Helpful votes
+  helpfulCount: int("helpfulCount").default(0).notNull(),
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FacilityReview = typeof facilityReviews.$inferSelect;
+export type InsertFacilityReview = typeof facilityReviews.$inferInsert;
+
+/**
+ * Review helpful votes table to track which users found reviews helpful.
+ * Prevents duplicate votes from the same user.
+ */
+export const reviewHelpfulVotes = mysqlTable("review_helpful_votes", {
+  id: int("id").autoincrement().primaryKey(),
+  reviewId: int("reviewId").notNull(),
+  userId: int("userId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ReviewHelpfulVote = typeof reviewHelpfulVotes.$inferSelect;
+export type InsertReviewHelpfulVote = typeof reviewHelpfulVotes.$inferInsert;

@@ -20,7 +20,19 @@ import {
   updateFacilityReportStatus,
   getFacilityReportById,
   deleteFacilityReport,
-  getReportStats
+  getReportStats,
+  createFacilityReview,
+  updateFacilityReview,
+  deleteFacilityReview,
+  getFacilityReviews,
+  getFacilityRatingStats,
+  getAllReviewsForAdmin,
+  updateReviewStatus,
+  getReviewStats,
+  addHelpfulVote,
+  removeHelpfulVote,
+  getUserHelpfulVotes,
+  hasUserReviewedFacility
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 
@@ -83,6 +95,19 @@ const facilityReportSchema = z.object({
   description: z.string().max(2000).optional(),
   reporterName: z.string().max(255).optional(),
   reporterEmail: z.string().email().max(320).optional().or(z.literal("")),
+});
+
+// Validation schema for facility review
+const facilityReviewSchema = z.object({
+  facilityId: z.string().min(1).max(64),
+  facilityName: z.string().min(1).max(255),
+  facilityAddress: z.string().min(1).max(500),
+  rating: z.number().min(1).max(5),
+  title: z.string().max(255).optional(),
+  content: z.string().max(2000).optional(),
+  serviceRating: z.number().min(1).max(5).optional(),
+  cleanlinessRating: z.number().min(1).max(5).optional(),
+  convenienceRating: z.number().min(1).max(5).optional(),
 });
 
 export const appRouter = router({
@@ -328,6 +353,166 @@ export const appRouter = router({
     stats: adminProcedure
       .query(async () => {
         const stats = await getReportStats();
+        return stats;
+      }),
+  }),
+
+  // Facility reviews routes
+  reviews: router({
+    // Protected endpoint - submit a review (must be logged in)
+    submit: protectedProcedure
+      .input(facilityReviewSchema)
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const result = await createFacilityReview({
+            userId: ctx.user.id,
+            userName: ctx.user.name || "Anonymous",
+            facilityId: input.facilityId,
+            facilityName: input.facilityName,
+            facilityAddress: input.facilityAddress,
+            rating: input.rating,
+            title: input.title || null,
+            content: input.content || null,
+            serviceRating: input.serviceRating || null,
+            cleanlinessRating: input.cleanlinessRating || null,
+            convenienceRating: input.convenienceRating || null,
+          });
+
+          return { success: true, id: result.id, message: "Thank you for your review!" };
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("already reviewed")) {
+            throw new TRPCError({ code: 'CONFLICT', message: error.message });
+          }
+          throw error;
+        }
+      }),
+
+    // Protected endpoint - update own review
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        rating: z.number().min(1).max(5).optional(),
+        title: z.string().max(255).optional(),
+        content: z.string().max(2000).optional(),
+        serviceRating: z.number().min(1).max(5).optional(),
+        cleanlinessRating: z.number().min(1).max(5).optional(),
+        convenienceRating: z.number().min(1).max(5).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...updates } = input;
+        try {
+          await updateFacilityReview(id, ctx.user.id, updates);
+          return { success: true, message: "Review updated successfully" };
+        } catch (error) {
+          if (error instanceof Error) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: error.message });
+          }
+          throw error;
+        }
+      }),
+
+    // Protected endpoint - delete own review
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteFacilityReview(input.id, ctx.user.id, ctx.user.role === 'admin');
+        return { success: true, message: "Review deleted" };
+      }),
+
+    // Public endpoint - get reviews for a facility
+    list: publicProcedure
+      .input(z.object({ facilityId: z.string().min(1).max(64) }))
+      .query(async ({ input }) => {
+        const reviews = await getFacilityReviews(input.facilityId);
+        return reviews;
+      }),
+
+    // Public endpoint - get rating stats for a facility
+    stats: publicProcedure
+      .input(z.object({ facilityId: z.string().min(1).max(64) }))
+      .query(async ({ input }) => {
+        const stats = await getFacilityRatingStats(input.facilityId);
+        return {
+          avgRating: stats?.avgRating ? Number(stats.avgRating.toFixed(1)) : null,
+          totalReviews: stats?.totalReviews ? Number(stats.totalReviews) : 0,
+          avgService: stats?.avgService ? Number(stats.avgService.toFixed(1)) : null,
+          avgCleanliness: stats?.avgCleanliness ? Number(stats.avgCleanliness.toFixed(1)) : null,
+          avgConvenience: stats?.avgConvenience ? Number(stats.avgConvenience.toFixed(1)) : null,
+        };
+      }),
+
+    // Protected endpoint - check if user has reviewed a facility
+    hasReviewed: protectedProcedure
+      .input(z.object({ facilityId: z.string().min(1).max(64) }))
+      .query(async ({ ctx, input }) => {
+        const hasReviewed = await hasUserReviewedFacility(ctx.user.id, input.facilityId);
+        return { hasReviewed };
+      }),
+
+    // Protected endpoint - mark review as helpful
+    markHelpful: protectedProcedure
+      .input(z.object({ reviewId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          await addHelpfulVote(input.reviewId, ctx.user.id);
+          return { success: true, message: "Marked as helpful" };
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("already marked")) {
+            throw new TRPCError({ code: 'CONFLICT', message: error.message });
+          }
+          throw error;
+        }
+      }),
+
+    // Protected endpoint - remove helpful vote
+    unmarkHelpful: protectedProcedure
+      .input(z.object({ reviewId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await removeHelpfulVote(input.reviewId, ctx.user.id);
+        return { success: true, message: "Removed helpful vote" };
+      }),
+
+    // Protected endpoint - get user's helpful votes
+    helpfulVotes: protectedProcedure
+      .query(async ({ ctx }) => {
+        const votes = await getUserHelpfulVotes(ctx.user.id);
+        return votes;
+      }),
+
+    // Admin-only endpoint - list all reviews
+    adminList: adminProcedure
+      .input(z.object({
+        status: z.enum(["published", "pending", "hidden"]).optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        const reviews = await getAllReviewsForAdmin(input?.status);
+        return reviews;
+      }),
+
+    // Admin-only endpoint - update review status
+    adminUpdateStatus: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["published", "pending", "hidden"]),
+        adminNotes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await updateReviewStatus(input.id, input.status, input.adminNotes);
+        return { success: true };
+      }),
+
+    // Admin-only endpoint - delete any review
+    adminDelete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteFacilityReview(input.id, 0, true);
+        return { success: true };
+      }),
+
+    // Admin-only endpoint - get review statistics
+    adminStats: adminProcedure
+      .query(async () => {
+        const stats = await getReviewStats();
         return stats;
       }),
   }),

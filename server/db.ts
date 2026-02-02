@@ -337,3 +337,254 @@ export async function getReportStats() {
 
   return result;
 }
+
+
+// Facility review functions
+import { facilityReviews, InsertFacilityReview, reviewHelpfulVotes, InsertReviewHelpfulVote } from "../drizzle/schema";
+
+export async function createFacilityReview(review: InsertFacilityReview) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Check if user already reviewed this facility
+  const existing = await db.select()
+    .from(facilityReviews)
+    .where(and(
+      eq(facilityReviews.userId, review.userId),
+      eq(facilityReviews.facilityId, review.facilityId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    throw new Error("You have already reviewed this facility");
+  }
+
+  const result = await db.insert(facilityReviews).values(review);
+  return { id: Number(result[0].insertId) };
+}
+
+export async function updateFacilityReview(
+  id: number,
+  userId: number,
+  updates: Partial<Pick<InsertFacilityReview, 'rating' | 'title' | 'content' | 'serviceRating' | 'cleanlinessRating' | 'convenienceRating'>>
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Verify ownership
+  const existing = await db.select()
+    .from(facilityReviews)
+    .where(and(
+      eq(facilityReviews.id, id),
+      eq(facilityReviews.userId, userId)
+    ))
+    .limit(1);
+
+  if (existing.length === 0) {
+    throw new Error("Review not found or you don't have permission to edit it");
+  }
+
+  await db.update(facilityReviews)
+    .set(updates)
+    .where(eq(facilityReviews.id, id));
+}
+
+export async function deleteFacilityReview(id: number, userId: number, isAdmin: boolean = false) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  if (isAdmin) {
+    // Admin can delete any review
+    await db.delete(facilityReviews).where(eq(facilityReviews.id, id));
+  } else {
+    // User can only delete their own review
+    const result = await db.delete(facilityReviews)
+      .where(and(
+        eq(facilityReviews.id, id),
+        eq(facilityReviews.userId, userId)
+      ));
+  }
+}
+
+export async function getFacilityReviews(facilityId: string, status: "published" | "pending" | "hidden" = "published") {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  return db.select()
+    .from(facilityReviews)
+    .where(and(
+      eq(facilityReviews.facilityId, facilityId),
+      eq(facilityReviews.status, status)
+    ))
+    .orderBy(desc(facilityReviews.createdAt));
+}
+
+export async function getFacilityReviewById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select()
+    .from(facilityReviews)
+    .where(eq(facilityReviews.id, id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getFacilityRatingStats(facilityId: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select({
+    avgRating: sql<number>`AVG(rating)`,
+    totalReviews: sql<number>`COUNT(*)`,
+    avgService: sql<number>`AVG(serviceRating)`,
+    avgCleanliness: sql<number>`AVG(cleanlinessRating)`,
+    avgConvenience: sql<number>`AVG(convenienceRating)`,
+  })
+    .from(facilityReviews)
+    .where(and(
+      eq(facilityReviews.facilityId, facilityId),
+      eq(facilityReviews.status, "published")
+    ));
+
+  return result[0];
+}
+
+export async function getAllReviewsForAdmin(status?: "published" | "pending" | "hidden") {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  if (status) {
+    return db.select()
+      .from(facilityReviews)
+      .where(eq(facilityReviews.status, status))
+      .orderBy(desc(facilityReviews.createdAt));
+  }
+  
+  return db.select()
+    .from(facilityReviews)
+    .orderBy(desc(facilityReviews.createdAt));
+}
+
+export async function updateReviewStatus(
+  id: number,
+  status: "published" | "pending" | "hidden",
+  adminNotes?: string
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(facilityReviews)
+    .set({ status, adminNotes: adminNotes || null })
+    .where(eq(facilityReviews.id, id));
+}
+
+export async function getReviewStats() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select({
+    status: facilityReviews.status,
+    count: sql<number>`count(*)`
+  })
+    .from(facilityReviews)
+    .groupBy(facilityReviews.status);
+
+  return result;
+}
+
+// Helpful vote functions
+export async function addHelpfulVote(reviewId: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Check if already voted
+  const existing = await db.select()
+    .from(reviewHelpfulVotes)
+    .where(and(
+      eq(reviewHelpfulVotes.reviewId, reviewId),
+      eq(reviewHelpfulVotes.userId, userId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    throw new Error("You have already marked this review as helpful");
+  }
+
+  // Add vote
+  await db.insert(reviewHelpfulVotes).values({ reviewId, userId });
+
+  // Increment helpful count on review
+  await db.update(facilityReviews)
+    .set({ helpfulCount: sql`helpfulCount + 1` })
+    .where(eq(facilityReviews.id, reviewId));
+}
+
+export async function removeHelpfulVote(reviewId: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.delete(reviewHelpfulVotes)
+    .where(and(
+      eq(reviewHelpfulVotes.reviewId, reviewId),
+      eq(reviewHelpfulVotes.userId, userId)
+    ));
+
+  // Decrement helpful count on review
+  await db.update(facilityReviews)
+    .set({ helpfulCount: sql`GREATEST(helpfulCount - 1, 0)` })
+    .where(eq(facilityReviews.id, reviewId));
+}
+
+export async function getUserHelpfulVotes(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select({ reviewId: reviewHelpfulVotes.reviewId })
+    .from(reviewHelpfulVotes)
+    .where(eq(reviewHelpfulVotes.userId, userId));
+
+  return result.map(r => r.reviewId);
+}
+
+export async function hasUserReviewedFacility(userId: number, facilityId: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select()
+    .from(facilityReviews)
+    .where(and(
+      eq(facilityReviews.userId, userId),
+      eq(facilityReviews.facilityId, facilityId)
+    ))
+    .limit(1);
+
+  return result.length > 0;
+}

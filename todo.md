@@ -89,3 +89,13 @@
 - [x] Include facility name, address, contact info, materials accepted
 - [x] Add print styles for clean output
 - [x] Integrate print button into facility cards
+
+## Rating and Review System
+- [x] Create facility_reviews database table
+- [x] Add backend API endpoints for reviews (create, list, update, delete)
+- [x] Create star rating component
+- [x] Build review submission form
+- [x] Display average rating and review count on facility cards
+- [x] Create reviews section showing all reviews for a facility
+- [x] Add helpful votes feature
+- [x] Unit tests for review functionality (12 tests)
