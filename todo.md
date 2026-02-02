@@ -116,3 +116,12 @@
 - [x] Add approve/reject functionality with notes
 - [x] Filter public reviews to show only approved ones
 - [x] Unit tests for review moderation (8 tests)
+
+## Facility Detail Page
+- [x] Create FacilityDetail page component with dedicated URL route (/facility/:id)
+- [x] Display full facility information (name, category, address, contact, materials)
+- [x] Add reviews section showing all reviews for the facility
+- [x] Integrate mini-map showing facility location
+- [x] Add share, print, favorite, and report buttons
+- [x] Update facility cards to link to detail page with View Details button
+- [x] Add quick actions sidebar (Get Directions, Call Now, Visit Website)

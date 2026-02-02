@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Mail, Globe, ExternalLink, Heart } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, ExternalLink, Heart, ChevronRight } from "lucide-react";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -140,9 +141,11 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
       <Card className="h-full hover:shadow-lg transition-shadow duration-300 border-border/50 bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg font-display leading-tight line-clamp-2 flex-1">
-              {facility.Name}
-            </CardTitle>
+            <Link href={`/facility/${facilityId}`}>
+              <CardTitle className="text-lg font-display leading-tight line-clamp-2 flex-1 hover:text-primary transition-colors cursor-pointer">
+                {facility.Name}
+              </CardTitle>
+            </Link>
             <div className="flex items-center gap-0.5 shrink-0 -mt-1 -mr-2">
               <ReviewButton
                 facilityId={facilityId}
@@ -238,15 +241,27 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
             </div>
           )}
           
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full mt-2 font-label"
-            onClick={openMaps}
-          >
-            <MapPin className="h-4 w-4 mr-2" />
-            Get Directions
-          </Button>
+          <div className="flex gap-2 mt-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 font-label"
+              onClick={openMaps}
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              Directions
+            </Button>
+            <Link href={`/facility/${facilityId}`} className="flex-1">
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="w-full font-label"
+              >
+                View Details
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
