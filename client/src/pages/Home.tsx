@@ -167,9 +167,9 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden lg:flex lg:flex-col lg:items-center absolute right-8 top-8"
+            className="hidden lg:flex lg:flex-col lg:items-center absolute right-8 top-4"
           >
-            <span className="text-sm font-label text-muted-foreground tracking-wider uppercase mb-2">Powered By</span>
+            <span className="text-sm font-label text-muted-foreground tracking-wider uppercase mb-1">Powered By</span>
             <a 
               href="https://recyclish.com" 
               target="_blank" 
