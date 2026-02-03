@@ -90,7 +90,7 @@ export default function Home() {
               </h1>
               
               <p className="text-lg md:text-xl text-muted-foreground font-body leading-relaxed mb-6">
-                Search our comprehensive directory of over 1,980 recycling facilities across 
+                Search our comprehensive directory of over 2,000 recycling facilities across 
                 all 50 states. Find the right place to recycle electronics, plastics, glass, 
                 paper, textiles, cardboard, metals, clothing, sharps, and more.
               </p>

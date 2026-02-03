@@ -198,3 +198,13 @@
 - [x] Research and add verified metals/scrap recycling locations (Sims Metal Management - 20 locations)
 - [x] Research and add verified clothing donation/recycling locations (Goodwill, Salvation Army - 20 locations)
 - [x] Update CSV with real addresses, phone numbers, and websites (55 verified locations)
+
+## Rural Area Expansion
+- [x] Research recycling facilities in rural Midwest (Iowa, Nebraska, Kansas) - 10 locations
+- [x] Research recycling facilities in rural South (Mississippi, Arkansas, Louisiana) - 6 locations
+- [x] Research recycling facilities in rural Mountain West (Montana, Wyoming) - 12 locations
+- [x] Research recycling facilities in rural Northeast (Vermont, Maine) - 8 locations
+- [x] Research recycling facilities in rural Appalachia (West Virginia) - 10 locations
+- [x] Add municipal recycling centers in small towns - 50 locations total
+- [x] Add county transfer stations and drop-off sites
+- [x] Total facility count now 2,024 across all 50 states
