@@ -47,6 +47,7 @@ const categoryColors: Record<string, string> = {
   "WoodRecycling Facilities": "bg-[oklch(0.45_0.12_60)] text-white",
   "WoodSecondary Processors": "bg-[oklch(0.40_0.10_60)] text-white",
   "Retail Take-Back Program": "bg-[oklch(0.55_0.20_25)] text-white",
+  "Sharps Disposal": "bg-[oklch(0.45_0.15_0)] text-white",
 };
 
 // Generate a unique facility ID from name and address

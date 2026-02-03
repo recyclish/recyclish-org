@@ -162,3 +162,11 @@
 - [x] Integrate welcome email into subscription flow
 - [x] Add welcome email preview dialog for subscribers
 - [x] Unit tests for welcome email (7 tests)
+
+## Sharps/Needles Disposal Category
+- [x] Add "Sharps Disposal" category to facility types
+- [x] Update category colors for sharps (maroon badge)
+- [x] Research sharps disposal locations (pharmacies, hospitals, drop-off sites)
+- [x] Add sharps disposal facilities to database (109 locations across 25+ cities)
+- [x] Update search filters to include sharps category
+- [x] Facilities include: health departments, hospitals, CVS, Walgreens, municipal centers

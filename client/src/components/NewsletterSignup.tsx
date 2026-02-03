@@ -324,8 +324,8 @@ export function NewsletterSignup() {
       </div>
     </section>
 
-      {/* Welcome Email Preview Dialog */}
-      <Dialog open={showEmailPreview} onOpenChange={setShowEmailPreview}>
+    {/* Welcome Email Preview Dialog */}
+    <Dialog open={showEmailPreview} onOpenChange={setShowEmailPreview}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0">
           <DialogHeader className="p-4 pb-0">
             <DialogTitle className="flex items-center gap-2">
