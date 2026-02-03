@@ -170,3 +170,11 @@
 - [x] Add sharps disposal facilities to database (109 locations across 25+ cities)
 - [x] Update search filters to include sharps category
 - [x] Facilities include: health departments, hospitals, CVS, Walgreens, municipal centers
+
+## AI Recycling Chatbot
+- [x] Create chatbot backend API endpoint with LLM integration
+- [x] Add recycling knowledge context (sharps disposal, GLP-1, local options)
+- [x] Build floating chatbot UI component with RecycleBot branding
+- [x] Implement chat history and conversation context
+- [x] Add suggested prompts for common questions
+- [x] Unit tests for chatbot functionality (6 tests)

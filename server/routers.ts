@@ -41,6 +41,7 @@ import {
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { generateWelcomeEmailContent, formatWelcomeEmailHtml, formatWelcomeEmailText } from "./welcomeEmail";
+import { generateChatResponse, ChatMessage } from "./chatbot";
 
 // Admin-only procedure - checks if user has admin role
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -550,6 +551,22 @@ export const appRouter = router({
   }),
 
   // Newsletter subscription routes
+  // AI Chatbot for recycling questions
+  chatbot: router({
+    chat: publicProcedure
+      .input(z.object({
+        message: z.string().min(1).max(2000),
+        history: z.array(z.object({
+          role: z.enum(["user", "assistant"]),
+          content: z.string(),
+        })).optional().default([]),
+      }))
+      .mutation(async ({ input }) => {
+        const response = await generateChatResponse(input.message, input.history as ChatMessage[]);
+        return { response };
+      }),
+  }),
+
   newsletter: router({
     // Public endpoint - anyone can subscribe
     subscribe: publicProcedure

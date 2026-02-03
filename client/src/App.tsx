@@ -11,6 +11,7 @@ import MapViewPage from "./pages/MapView";
 import Admin from "./pages/Admin";
 import Favorites from "./pages/Favorites";
 import FacilityDetail from "./pages/FacilityDetail";
+import { RecyclingChatbot } from "./components/RecyclingChatbot";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <RecyclingChatbot />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
