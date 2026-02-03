@@ -249,3 +249,10 @@
 - [x] Add Get Directions button to facility cards
 - [x] Open Google Maps with directions to facility address
 - [x] Style button with Navigation icon to match existing card design
+
+## Powered By Text Above Recyclish Logo
+- [x] Add "Powered By" text above the Recyclish logo
+- [x] Style text to match site fonts and colors (Overpass font, muted-foreground color, uppercase tracking)
+- [x] Ensure proper positioning on desktop (centered above logo)
+- [x] Ensure proper positioning on mobile (centered above logo)
+- [x] Maintain visual balance of hero section

@@ -145,7 +145,8 @@ export default function Home() {
               </div>
               
               {/* Mobile Hero Logo */}
-              <div className="lg:hidden mt-8 flex justify-center">
+              <div className="lg:hidden mt-8 flex flex-col items-center">
+                <span className="text-sm font-label text-muted-foreground tracking-wider uppercase mb-2">Powered By</span>
                 <a 
                   href="https://recyclish.com" 
                   target="_blank" 
@@ -166,8 +167,9 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden lg:block absolute right-8 top-8"
+            className="hidden lg:flex lg:flex-col lg:items-center absolute right-8 top-8"
           >
+            <span className="text-sm font-label text-muted-foreground tracking-wider uppercase mb-2">Powered By</span>
             <a 
               href="https://recyclish.com" 
               target="_blank" 
