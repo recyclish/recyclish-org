@@ -154,3 +154,11 @@
 - [x] Add additional information text area
 - [x] Integrate signup form into homepage
 - [x] Unit tests for subscription endpoint (9 tests)
+
+## Welcome Email for Subscribers
+- [x] Research email notification capabilities
+- [x] Create welcome email function with recycling tips
+- [x] Generate location-based tips using zip code (LLM-powered)
+- [x] Integrate welcome email into subscription flow
+- [x] Add welcome email preview dialog for subscribers
+- [x] Unit tests for welcome email (7 tests)

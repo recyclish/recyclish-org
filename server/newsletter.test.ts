@@ -17,6 +17,20 @@ vi.mock("./_core/notification", () => ({
   notifyOwner: vi.fn().mockResolvedValue(true),
 }));
 
+// Mock the welcome email generation to avoid LLM calls in tests
+vi.mock("./welcomeEmail", () => ({
+  generateWelcomeEmailContent: vi.fn().mockResolvedValue({
+    subject: "Welcome to Recyclish!",
+    greeting: "Welcome!",
+    intro: "Thanks for subscribing.",
+    tips: ["Tip 1", "Tip 2"],
+    localInfo: "Local info.",
+    closing: "Best regards!",
+  }),
+  formatWelcomeEmailHtml: vi.fn().mockReturnValue("<html>Welcome</html>"),
+  formatWelcomeEmailText: vi.fn().mockReturnValue("Welcome"),
+}));
+
 function createPublicContext() {
   return {
     user: null,

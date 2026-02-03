@@ -15,7 +15,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Mail, Loader2, ChevronDown, Check, Leaf } from "lucide-react";
+import { Mail, Loader2, ChevronDown, Check, Leaf, Eye, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -47,12 +54,18 @@ export function NewsletterSignup() {
   const [showOptional, setShowOptional] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [welcomeEmailHtml, setWelcomeEmailHtml] = useState<string | null>(null);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
 
   const subscribeMutation = trpc.newsletter.subscribe.useMutation({
     onSuccess: (data) => {
       if (data.success) {
         setSuccessMessage(data.message);
         setErrorMessage("");
+        // Store welcome email for preview
+        if (data.welcomeEmail?.html) {
+          setWelcomeEmailHtml(data.welcomeEmail.html);
+        }
         // Reset form
         setEmail("");
         setZipCode("");
@@ -93,6 +106,7 @@ export function NewsletterSignup() {
   };
 
   return (
+    <>
     <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-background py-12 md:py-16">
       <div className="container">
         <div className="max-w-2xl mx-auto">
@@ -123,9 +137,20 @@ export function NewsletterSignup() {
                 <h3 className="font-display text-xl font-semibold text-foreground mb-2">
                   You're Subscribed!
                 </h3>
-                <p className="text-muted-foreground font-body">
+                <p className="text-muted-foreground font-body mb-4">
                   {successMessage}
                 </p>
+                {welcomeEmailHtml && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowEmailPreview(true)}
+                    className="gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Preview Your Welcome Email
+                  </Button>
+                )}
               </motion.div>
             ) : (
               <motion.form
@@ -298,5 +323,29 @@ export function NewsletterSignup() {
         </div>
       </div>
     </section>
+
+      {/* Welcome Email Preview Dialog */}
+      <Dialog open={showEmailPreview} onOpenChange={setShowEmailPreview}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Welcome Email Preview
+            </DialogTitle>
+            <DialogDescription>
+              This is the personalized welcome email you'll receive with recycling tips for your area.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-auto max-h-[calc(90vh-100px)] p-4 pt-2">
+            {welcomeEmailHtml && (
+              <div 
+                className="bg-white rounded-lg shadow-inner"
+                dangerouslySetInnerHTML={{ __html: welcomeEmailHtml }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

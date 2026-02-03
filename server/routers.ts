@@ -40,6 +40,7 @@ import {
   getNewsletterStats
 } from "./db";
 import { notifyOwner } from "./_core/notification";
+import { generateWelcomeEmailContent, formatWelcomeEmailHtml, formatWelcomeEmailText } from "./welcomeEmail";
 
 // Admin-only procedure - checks if user has admin role
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -577,6 +578,19 @@ export const appRouter = router({
           };
         }
 
+        // Generate personalized welcome email content
+        let welcomeEmail = null;
+        try {
+          const emailContent = await generateWelcomeEmailContent(input.email, input.zipCode);
+          welcomeEmail = {
+            subject: emailContent.subject,
+            html: formatWelcomeEmailHtml(emailContent),
+            text: formatWelcomeEmailText(emailContent),
+          };
+        } catch (error) {
+          console.error("[Newsletter] Failed to generate welcome email:", error);
+        }
+
         // Notify owner about new subscription
         await notifyOwner({
           title: "New Newsletter Subscription",
@@ -585,7 +599,8 @@ export const appRouter = router({
 
         return { 
           success: true, 
-          message: "Thank you for subscribing! You'll receive recycling tips and updates for your area." 
+          message: "Thank you for subscribing! You'll receive recycling tips and updates for your area.",
+          welcomeEmail,
         };
       }),
 
