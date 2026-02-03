@@ -121,6 +121,7 @@ export default function FacilityDetail() {
               Latitude: parseFloat(facilityData.Latitude) || 0,
               Longitude: parseFloat(facilityData.Longitude) || 0,
               NAICS_Code: facilityData.NAICS_Code || "",
+              Hours: facilityData.Hours || "",
             };
 
             const currentId = generateFacilityId(currentFacility.Name, currentFacility.Address);
@@ -494,6 +495,19 @@ export default function FacilityDetail() {
                         </div>
                       )}
                     </div>
+
+                    {/* Operating Hours */}
+                    {facility.Hours && (
+                      <div className="pt-4 border-t">
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-5 w-5 mt-0.5 shrink-0 text-accent" />
+                          <div>
+                            <p className="font-medium mb-1">Operating Hours</p>
+                            <p className="text-sm text-muted-foreground">{facility.Hours}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Materials Accepted */}
                     {facility.Feedstock && (

@@ -261,3 +261,11 @@
 - [x] Move Powered By text closer to logo (reduced mb-2 to mb-1)
 - [x] Move entire logo block higher (changed top-8 to top-4)
 - [x] Verify no overlap on desktop view
+
+## Facility Operating Hours
+- [x] Add Hours column to CSV data with realistic operating hours
+- [x] Update TypeScript Facility type to include hours field
+- [x] Display hours on facility cards (with clock icon)
+- [x] Display hours on facility detail page (Operating Hours section)
+- [ ] Show open/closed status based on current time (future enhancement)
+- [x] Handle facilities with unknown hours gracefully (empty string fallback)

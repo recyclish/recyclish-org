@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Mail, Globe, ExternalLink, Heart, ChevronRight, Navigation } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, ExternalLink, Heart, ChevronRight, Navigation, Clock } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -26,6 +26,7 @@ export interface RecyclingFacility {
   Latitude: number;
   Longitude: number;
   NAICS_Code: string;
+  Hours: string;
   distance?: number; // Distance from user in miles (calculated)
 }
 
@@ -236,6 +237,15 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
                 Visit Website
                 <ExternalLink className="h-3 w-3" />
               </a>
+            </div>
+          )}
+          
+          {facility.Hours && (
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4 shrink-0 text-accent" />
+              <span className="text-muted-foreground truncate" title={facility.Hours}>
+                {facility.Hours}
+              </span>
             </div>
           )}
           

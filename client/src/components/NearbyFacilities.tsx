@@ -124,6 +124,7 @@ export function NearbyFacilities({ currentFacilityId, latitude, longitude, class
               Latitude: lat,
               Longitude: lng,
               NAICS_Code: facilityData.NAICS_Code || "",
+              Hours: facilityData.Hours || "",
             };
 
             const id = generateFacilityId(facilityObj.Name, facilityObj.Address);

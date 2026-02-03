@@ -279,6 +279,7 @@ function parseCSV(text: string): RecyclingFacility[] {
       Latitude: parseFloat(obj.Latitude) || 0,
       Longitude: parseFloat(obj.Longitude) || 0,
       NAICS_Code: obj.NAICS_Code || "",
+      Hours: obj.Hours || "",
     } as RecyclingFacility;
   });
 }

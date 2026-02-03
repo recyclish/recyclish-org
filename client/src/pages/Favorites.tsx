@@ -30,6 +30,7 @@ export default function Favorites() {
     Latitude: fav.facilityLatitude ? parseFloat(fav.facilityLatitude) : 0,
     Longitude: fav.facilityLongitude ? parseFloat(fav.facilityLongitude) : 0,
     NAICS_Code: "",
+    Hours: "",
   }));
 
   // Get favorite IDs for the cards
