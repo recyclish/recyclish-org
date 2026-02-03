@@ -90,9 +90,9 @@ export default function Home() {
               </h1>
               
               <p className="text-lg md:text-xl text-muted-foreground font-body leading-relaxed mb-6">
-                Search our comprehensive directory of over 1,900 recycling facilities across 
+                Search our comprehensive directory of over 1,980 recycling facilities across 
                 all 50 states. Find the right place to recycle electronics, plastics, glass, 
-                paper, textiles, sharps, and more.
+                paper, textiles, cardboard, metals, clothing, sharps, and more.
               </p>
               
               <div className="flex items-center gap-4 text-sm font-label text-muted-foreground">
@@ -102,7 +102,7 @@ export default function Home() {
                 </div>
                 <div className="w-1 h-1 rounded-full bg-muted-foreground/50" />
                 <div className="flex items-center gap-1">
-                  <span>11 Categories</span>
+                  <span>14 Categories</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-muted-foreground/50" />
                 <div className="flex items-center gap-1">

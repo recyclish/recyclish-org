@@ -185,3 +185,10 @@
 - [x] Add Twitter Card meta tags
 - [x] Implement on facility detail pages
 - [x] Add structured data (JSON-LD) for RecyclingCenter schema
+
+## New Recycling Categories
+- [x] Add Cardboard Recycling category and facilities (20 locations)
+- [x] Add Metals Recycling category and facilities (20 locations)
+- [x] Add Clothing Recycling category and facilities (20 locations)
+- [x] Update category colors in UI components
+- [x] Update hero text with new facility count (1,981) and 14 categories

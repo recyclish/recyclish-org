@@ -49,6 +49,10 @@ const categoryColors: Record<string, string> = {
   "WoodRecycling Facilities": "bg-[oklch(0.45_0.12_60)] text-white",
   "WoodSecondary Processors": "bg-[oklch(0.40_0.10_60)] text-white",
   "Retail Take-Back Program": "bg-[oklch(0.55_0.20_25)] text-white",
+  "Sharps Disposal": "bg-[oklch(0.45_0.15_0)] text-white",
+  "Cardboard Recycling": "bg-[oklch(0.50_0.12_70)] text-white",
+  "Metals Recycling": "bg-[oklch(0.45_0.08_240)] text-white",
+  "Clothing Recycling": "bg-[oklch(0.55_0.18_340)] text-white",
 };
 
 export default function FacilityDetail() {
