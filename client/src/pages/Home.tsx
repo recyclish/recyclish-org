@@ -131,7 +131,7 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden lg:block absolute right-8 top-16"
+            className="hidden lg:block absolute right-8 top-8"
           >
             <a 
               href="https://recyclish.com" 
