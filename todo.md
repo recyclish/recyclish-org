@@ -217,3 +217,12 @@
 - [x] Register service worker
 - [x] Configure offline fallback page with recycling tips
 - [x] Add Apple touch icon and meta tags for iOS
+
+## Install App Banner
+- [x] Create InstallAppBanner component
+- [x] Detect PWA install availability (beforeinstallprompt event)
+- [x] Show banner on first visit for eligible devices
+- [x] Add dismiss button with localStorage persistence (30 days)
+- [x] Style banner to match site design
+- [x] Integrate into App.tsx
+- [x] iOS Safari instructions for manual install
