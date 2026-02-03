@@ -192,3 +192,9 @@
 - [x] Add Clothing Recycling category and facilities (20 locations)
 - [x] Update category colors in UI components
 - [x] Update hero text with new facility count (1,981) and 14 categories
+
+## Research Real Locations for New Categories
+- [x] Research and add verified cardboard recycling locations (Waste Management, Republic Services, Pratt, Sonoco)
+- [x] Research and add verified metals/scrap recycling locations (Sims Metal Management - 20 locations)
+- [x] Research and add verified clothing donation/recycling locations (Goodwill, Salvation Army - 20 locations)
+- [x] Update CSV with real addresses, phone numbers, and websites (55 verified locations)

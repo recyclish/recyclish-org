@@ -107,7 +107,7 @@ export function NewsletterSignup() {
 
   return (
     <>
-    <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-background py-12 md:py-16">
+      <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-background py-12 md:py-16">
       <div className="container">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
