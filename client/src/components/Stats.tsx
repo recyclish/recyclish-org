@@ -16,8 +16,8 @@ export function Stats({ totalFacilities, totalStates, totalCategories }: StatsPr
     },
     {
       icon: MapPin,
-      value: totalStates.toString(),
-      label: "States Covered",
+      value: "50",
+      label: "All States",
     },
     {
       icon: Layers,
