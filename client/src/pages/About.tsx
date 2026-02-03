@@ -29,7 +29,7 @@ export default function About() {
     {
       icon: Target,
       title: "Comprehensive Coverage",
-      description: "Covering all 50 states with over 1,750 facilities across 9 different recycling categories.",
+      description: "Covering all 50 states with over 1,900 facilities across 11 different recycling categories including sharps disposal.",
     },
   ];
 
@@ -95,7 +95,7 @@ export default function About() {
               that accepts textiles, our directory makes it easy.
             </p>
             <p className="text-muted-foreground font-body text-lg leading-relaxed mb-6">
-              This project is a service of <strong>Recyclish LLC</strong>, a company dedicated to 
+              This project is a service of <a href="https://recyclish.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">Recyclish LLC</a>, a company dedicated to 
               promoting sustainable practices and making recycling accessible to everyone.
             </p>
             <a
@@ -114,12 +114,23 @@ export default function About() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-col items-center"
           >
-            <img
-              src="/images/community-recycling.png"
-              alt="Community recycling"
-              className="w-full h-auto rounded-xl shadow-xl"
-            />
+            <a 
+              href="https://recyclish.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block hover:opacity-90 transition-opacity"
+            >
+              <img
+                src="https://manus-storage-test.oss-cn-beijing.aliyuncs.com/user-file/e6d2f6a2-7e4c-4f7f-8a75-c4f8a0e8f7e3/fulllogo_transparent.png"
+                alt="Recyclish - Turning Knowledge into Action"
+                className="w-full max-w-md h-auto"
+              />
+            </a>
+            <p className="text-sm text-muted-foreground mt-4 font-body">
+              A service of <a href="https://recyclish.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">Recyclish LLC</a>
+            </p>
           </motion.div>
         </div>
       </section>

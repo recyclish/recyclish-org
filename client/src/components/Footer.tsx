@@ -57,8 +57,8 @@ export function Footer() {
             <h3 className="font-display text-lg font-semibold mb-4">Data Sources</h3>
             <p className="text-sm text-white/80 font-body leading-relaxed mb-3">
               This directory uses data from the U.S. Environmental Protection Agency (EPA) 
-              Recycling Infrastructure dataset, which includes information on over 1,750 
-              recycling facilities nationwide.
+              Recycling Infrastructure dataset, featuring over 1,900 
+              recycling facilities nationwide including sharps disposal locations.
             </p>
             <p className="text-xs text-white/60 font-label">
               Last updated: 2025
