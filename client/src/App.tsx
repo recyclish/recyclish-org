@@ -13,6 +13,7 @@ import Favorites from "./pages/Favorites";
 import FacilityDetail from "./pages/FacilityDetail";
 import { RecyclingChatbot } from "./components/RecyclingChatbot";
 import { InstallAppBanner } from "./components/InstallAppBanner";
+import { BottomNav } from "./components/BottomNav";
 
 function Router() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Router />
           <RecyclingChatbot />
           <InstallAppBanner />
+          <BottomNav />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

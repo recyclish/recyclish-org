@@ -124,6 +124,22 @@ export default function Home() {
                   </Button>
                 </Link>
               </div>
+              
+              {/* Mobile Hero Logo */}
+              <div className="lg:hidden mt-8 flex justify-center">
+                <a 
+                  href="https://recyclish.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block hover:opacity-90 transition-opacity"
+                >
+                  <img
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/RhcQwfEviabRvpfW.png"
+                    alt="Recyclish - Turning Knowledge into Action"
+                    className="w-48 sm:w-56 h-auto drop-shadow-lg"
+                  />
+                </a>
+              </div>
             </motion.div>
           </div>
           
@@ -162,7 +178,7 @@ export default function Home() {
       <HighestRated />
 
       {/* Search & Results Section */}
-      <section className="container pb-16">
+      <section id="search-section" className="container pb-16">
         <SearchFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}

@@ -226,3 +226,13 @@
 - [x] Style banner to match site design
 - [x] Integrate into App.tsx
 - [x] iOS Safari instructions for manual install
+
+## Mobile Improvements
+- [x] Add mobile hero logo below hero text on small screens
+- [x] Create bottom navigation bar component
+- [x] Add Home, Map, Search, Favorites, and More menu to bottom nav
+- [x] Hide bottom nav on desktop (md:hidden)
+- [x] Add active state indicators for current page
+- [x] Integrate bottom nav into App.tsx
+- [x] Add safe-area padding for iOS devices
+- [x] Add bottom padding to footer for mobile nav clearance
