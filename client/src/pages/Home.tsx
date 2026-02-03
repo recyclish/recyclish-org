@@ -8,7 +8,7 @@ import { HighestRated } from "@/components/HighestRated";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { useRecyclingData } from "@/hooks/useRecyclingData";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronDown, MapPin, Recycle, Map } from "lucide-react";
+import { Loader2, ChevronDown, MapPin, Recycle, Map, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -111,8 +111,27 @@ export default function Home() {
               </div>
               
               <div className="mt-6 flex flex-wrap gap-3">
+                <Button 
+                  variant="default" 
+                  className="font-label bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    requestLocation();
+                    // Scroll to search section after requesting location
+                    setTimeout(() => {
+                      document.getElementById('search-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 300);
+                  }}
+                  disabled={isLocating}
+                >
+                  {isLocating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Navigation className="h-4 w-4 mr-2" />
+                  )}
+                  {isLocating ? 'Finding Location...' : 'Near Me'}
+                </Button>
                 <Link href="/map">
-                  <Button variant="default" className="font-label">
+                  <Button variant="outline" className="font-label">
                     <Map className="h-4 w-4 mr-2" />
                     View Map
                   </Button>

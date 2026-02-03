@@ -186,7 +186,17 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
         <CardContent className="space-y-3">
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-            <span className="line-clamp-2">{facility.Address}</span>
+            <div className="flex-1">
+              <span className="line-clamp-2">{facility.Address}</span>
+              {facility.distance !== undefined && (
+                <span className="block text-xs text-primary font-medium mt-0.5">
+                  {facility.distance < 1 
+                    ? `${(facility.distance * 5280).toFixed(0)} ft away`
+                    : `${facility.distance.toFixed(1)} mi away`
+                  }
+                </span>
+              )}
+            </div>
           </div>
           
           {facility.Phone && (

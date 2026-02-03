@@ -236,3 +236,11 @@
 - [x] Integrate bottom nav into App.tsx
 - [x] Add safe-area padding for iOS devices
 - [x] Add bottom padding to footer for mobile nav clearance
+
+## Near Me Geolocation Button
+- [x] Create Near Me button in hero section with geolocation API
+- [x] Add loading state while detecting location
+- [x] Handle location permission denied errors
+- [x] Sort facilities by distance from user location
+- [x] Display distance to each facility (mi or ft)
+- [x] Auto-scroll to search results after location detected
