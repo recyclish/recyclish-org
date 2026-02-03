@@ -208,3 +208,12 @@
 - [x] Add municipal recycling centers in small towns - 50 locations total
 - [x] Add county transfer stations and drop-off sites
 - [x] Total facility count now 2,024 across all 50 states
+
+## Progressive Web App (PWA) Support
+- [x] Create web app manifest (manifest.json)
+- [x] Create service worker for offline caching
+- [x] Generate PWA icons in 8 sizes (72-512px)
+- [x] Add manifest link to index.html
+- [x] Register service worker
+- [x] Configure offline fallback page with recycling tips
+- [x] Add Apple touch icon and meta tags for iOS
