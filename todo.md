@@ -178,3 +178,10 @@
 - [x] Implement chat history and conversation context
 - [x] Add suggested prompts for common questions
 - [x] Unit tests for chatbot functionality (6 tests)
+
+## SEO Meta Tags
+- [x] Create SEO/meta tag component for dynamic page titles
+- [x] Add Open Graph tags for social sharing
+- [x] Add Twitter Card meta tags
+- [x] Implement on facility detail pages
+- [x] Add structured data (JSON-LD) for RecyclingCenter schema

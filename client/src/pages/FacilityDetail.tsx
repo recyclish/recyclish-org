@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { RecyclingFacility, generateFacilityId } from "@/components/RecyclingCard";
 import { NearbyFacilities } from "@/components/NearbyFacilities";
+import { SEOHead, generateFacilitySEO } from "@/components/SEOHead";
 
 const categoryColors: Record<string, string> = {
   "Electronics Recyclers": "bg-[oklch(0.35_0.08_250)] text-white",
@@ -333,8 +334,42 @@ export default function FacilityDetail() {
 
   const categoryColor = categoryColors[facility.Category] || "bg-primary text-primary-foreground";
 
+  // Extract city from address (usually format: "123 Main St, City, State ZIP")
+  const addressParts = facility.Address.split(",").map(p => p.trim());
+  const city = addressParts.length >= 2 ? addressParts[addressParts.length - 2] : "";
+  
+  // Generate SEO data
+  const seoData = generateFacilitySEO({
+    name: facility.Name,
+    category: facility.Category,
+    address: facility.Address,
+    city: city,
+    state: facility.State,
+    phone: facility.Phone,
+    website: facility.Website,
+    latitude: facility.Latitude,
+    longitude: facility.Longitude,
+    materials: facility.Feedstock ? facility.Feedstock.split(",").map(m => m.trim()) : undefined,
+  });
+
   return (
     <div className="min-h-screen flex flex-col bg-topo-pattern">
+      <SEOHead
+        title={seoData.title}
+        description={seoData.description}
+        ogType="place"
+        canonicalUrl={`https://recycling.recyclish.com/facility/${facilityId}`}
+        businessName={seoData.businessName}
+        category={seoData.category}
+        phone={seoData.phone}
+        website={seoData.website}
+        coordinates={seoData.coordinates}
+        address={{
+          street: addressParts[0] || facility.Address,
+          city: city,
+          state: facility.State,
+        }}
+      />
       <Header />
       
       <main className="flex-1">
