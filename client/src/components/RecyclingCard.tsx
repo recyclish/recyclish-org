@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Mail, Globe, ExternalLink, Heart, ChevronRight } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, ExternalLink, Heart, ChevronRight, Navigation } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -129,9 +129,10 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
       .trim();
   };
 
-  const openMaps = () => {
-    const query = encodeURIComponent(facility.Address);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
+  const getDirections = () => {
+    const destination = encodeURIComponent(facility.Address);
+    // Use Google Maps directions URL - will prompt user for starting location or use current location
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}`, "_blank");
   };
 
   const isLoading = addFavorite.isPending || removeFavorite.isPending;
@@ -260,10 +261,10 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
               variant="outline" 
               size="sm" 
               className="flex-1 font-label"
-              onClick={openMaps}
+              onClick={getDirections}
             >
-              <MapPin className="h-4 w-4 mr-2" />
-              Directions
+              <Navigation className="h-4 w-4 mr-2" />
+              Get Directions
             </Button>
             <Link href={`/facility/${facilityId}`} className="flex-1">
               <Button 

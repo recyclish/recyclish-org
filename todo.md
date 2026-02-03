@@ -244,3 +244,8 @@
 - [x] Sort facilities by distance from user location
 - [x] Display distance to each facility (mi or ft)
 - [x] Auto-scroll to search results after location detected
+
+## Get Directions Button
+- [x] Add Get Directions button to facility cards
+- [x] Open Google Maps with directions to facility address
+- [x] Style button with Navigation icon to match existing card design
