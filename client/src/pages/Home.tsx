@@ -142,7 +142,7 @@ export default function Home() {
               <img
                 src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/RhcQwfEviabRvpfW.png"
                 alt="Recyclish - Turning Knowledge into Action"
-                className="w-72 h-auto drop-shadow-xl"
+                className="w-86 h-auto drop-shadow-xl" style={{ width: '345px' }}
               />
             </a>
           </motion.div>
