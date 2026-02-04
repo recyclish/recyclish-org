@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, MapPin, Recycle, Map, Navigation, ArrowRight, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
-import { SocialShareButtons } from "@/components/SocialShareButtons";
+
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -138,10 +138,6 @@ export default function Home() {
                   </Link>
                 </div>
                 
-                {/* Social Share Buttons */}
-                <div className="mt-6">
-                  <SocialShareButtons />
-                </div>
                 
                 {/* Mobile Hero Logo */}
                 <div className="lg:hidden mt-8 flex flex-col items-center">

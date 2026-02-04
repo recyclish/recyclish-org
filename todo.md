@@ -360,3 +360,8 @@
 - [x] Update "Near Me" button to navigate to /directory with location filter
 - [x] Update navigation header link to point to /directory
 - [x] Ensure /directory supports URL parameters for filters (state, category, nearme)
+
+## Move Social Share Buttons to Footer
+- [x] Remove SocialShareButtons from Home.tsx hero section
+- [x] Add SocialShareButtons to Footer component (new "Connect With Us" section)
+- [x] Style share buttons appropriately for footer placement (4-column grid layout)

@@ -1,11 +1,12 @@
 import { Recycle, Heart } from "lucide-react";
 import { Link } from "wouter";
+import { SocialShareButtons } from "@/components/SocialShareButtons";
 
 export function Footer() {
   return (
     <footer className="bg-[oklch(0.35_0.08_250)] text-white mt-auto pb-20 md:pb-0">
       <div className="container py-12">
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="p-2 rounded-lg bg-white/10">
@@ -31,7 +32,7 @@ export function Footer() {
             <h3 className="font-display text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 font-body">
               <li>
-                <Link href="/" className="text-white/80 hover:text-white transition-colors">
+                <Link href="/directory" className="text-white/80 hover:text-white transition-colors">
                   Search Directory
                 </Link>
               </li>
@@ -73,6 +74,16 @@ export function Footer() {
             <p className="text-xs text-white/60 font-label">
               Last updated: 2025
             </p>
+          </div>
+          
+          <div>
+            <h3 className="font-display text-lg font-semibold mb-4">Connect With Us</h3>
+            <p className="text-sm text-white/80 font-body leading-relaxed mb-4">
+              Follow us on social media or share this directory with others who might find it useful.
+            </p>
+            <SocialShareButtons 
+              className="[&>span]:text-white/70 [&>button]:h-9 [&>button]:w-9"
+            />
           </div>
         </div>
         
