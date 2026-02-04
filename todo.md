@@ -323,3 +323,8 @@
 ## Copy Link Button
 - [x] Add Copy Link button to SocialShareButtons component
 - [x] Show visual feedback when link is copied (green checkmark + "Copied!" text)
+
+## Instagram and TikTok Buttons
+- [x] Add Instagram button with Recyclish profile link (gradient background)
+- [x] Add TikTok button with Recyclish profile link (black background)
+- [x] Style buttons with brand colors (Instagram gradient purple-red-orange, TikTok black)
