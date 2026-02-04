@@ -101,7 +101,7 @@ export function Footer() {
               <img 
                 src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png" 
                 alt="Recyclish - Turning Knowledge into Action" 
-                className="h-10 w-auto brightness-0 invert"
+                className="h-10 w-auto"
               />
             </a>
           </div>
