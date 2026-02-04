@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SearchFilters } from "@/components/SearchFilters";
@@ -65,8 +66,33 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-topo-pattern">
-      <Header />
+    <>
+      <Helmet>
+        <title>Find Recycling Centers Near You | National Directory</title>
+        <meta 
+          name="description" 
+          content="Search 2,000+ recycling centers across all 50 US states. Free directory for electronics, plastics, glass, paper, hazardous waste, sharps disposal, and more." 
+        />
+        <meta 
+          name="keywords" 
+          content="recycling centers, recycling near me, electronics recycling, hazardous waste disposal, sharps disposal, e-waste recycling, plastic recycling, glass recycling, paper recycling, recycling directory, recycling locations, where to recycle, free recycling" 
+        />
+        <link rel="canonical" href="https://recycling.recyclish.com/" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Find Recycling Centers Near You | National Directory" />
+        <meta property="og:description" content="Search 2,000+ recycling centers across all 50 US states. Free directory for electronics, hazardous waste, sharps disposal, and more." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://recycling.recyclish.com/" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Find Recycling Centers Near You | National Directory" />
+        <meta name="twitter:description" content="Search 2,000+ recycling centers across all 50 US states." />
+      </Helmet>
+      
+      <div className="min-h-screen flex flex-col bg-topo-pattern">
+        <Header />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
@@ -291,6 +317,7 @@ export default function Home() {
       <NewsletterSignup />
 
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }
