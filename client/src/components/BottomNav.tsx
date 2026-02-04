@@ -18,15 +18,18 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: Home, label: "Home", href: "/" },
+  { icon: Search, label: "Directory", href: "/directory" },
   { icon: Map, label: "Map", href: "/map" },
-  { icon: Search, label: "Search", href: "/#search" },
   { icon: Heart, label: "Favorites", href: "/favorites" },
 ];
 
 const menuItems = [
-  { label: "Directory", href: "/" },
+  { label: "Home", href: "/" },
+  { label: "Browse Directory", href: "/directory" },
   { label: "Map View", href: "/map" },
   { label: "Submit Facility", href: "/submit" },
+  { label: "Browse by State", href: "/states" },
+  { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
   { label: "Favorites", href: "/favorites" },
   { label: "Admin", href: "/admin" },
@@ -36,15 +39,7 @@ export function BottomNav() {
   const [location] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleSearchClick = (e: React.MouseEvent) => {
-    if (location === "/") {
-      e.preventDefault();
-      const searchSection = document.getElementById("search-section");
-      if (searchSection) {
-        searchSection.scrollIntoView({ behavior: "smooth" });
-      }
-    }
-  };
+
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border safe-area-bottom">
@@ -58,23 +53,6 @@ export function BottomNav() {
                 : location.startsWith(item.href);
           
           const Icon = item.icon;
-          
-          if (item.href === "/#search") {
-            return (
-              <Link
-                key={item.label}
-                href="/"
-                onClick={handleSearchClick}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[64px]",
-                  "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs font-label">{item.label}</span>
-              </Link>
-            );
-          }
           
           return (
             <Link

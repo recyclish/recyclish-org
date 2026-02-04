@@ -11,7 +11,7 @@ export function Header() {
   const { user, isAuthenticated } = useAuth();
 
   const navLinks = [
-    { href: "/", label: "Directory" },
+    { href: "/directory", label: "Directory" },
     { href: "/map", label: "Map" },
     { href: "/submit", label: "Submit" },
     { href: "/about", label: "About" },

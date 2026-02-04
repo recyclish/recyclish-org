@@ -352,3 +352,11 @@
 - [x] Redesign feature tiles to show unique value propositions (Free Drop-offs, Verified Data, Updated Regularly, Mobile Friendly)
 - [x] Maintain SEO keywords in primary description
 - [x] Ensure mobile layout remains clean
+
+## Separate Directory Page from Landing Page
+- [x] Create dedicated /directory page with full search filters and facility grid
+- [x] Simplify landing page to show only featured/preview facilities (HighestRated section)
+- [x] Add clear CTA on landing page to browse full directory (Browse All Facilities button)
+- [x] Update "Near Me" button to navigate to /directory with location filter
+- [x] Update navigation header link to point to /directory
+- [x] Ensure /directory supports URL parameters for filters (state, category, nearme)
