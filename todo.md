@@ -306,3 +306,10 @@
 ## Homepage SEO Fixes
 - [x] Add meta keywords tag to homepage (13 relevant keywords)
 - [x] Update page title to 30-60 characters (now 52 characters)
+
+## Open Graph Social Sharing Image
+- [x] Generate branded OG image (1456x816px) with Recyclish branding and messaging
+- [x] Upload image to CDN (https://files.manuscdn.com/...)
+- [x] Add og:image meta tag to homepage
+- [x] Add og:image meta tag to state pages
+- [x] Add twitter:image meta tag for Twitter Card support

@@ -84,11 +84,17 @@ export default function Home() {
         <meta property="og:description" content="Search 2,000+ recycling centers across all 50 US states. Free directory for electronics, hazardous waste, sharps disposal, and more." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://recycling.recyclish.com/" />
+        <meta property="og:image" content="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/MHnZhwLgCpRxIMdo.png" />
+        <meta property="og:image:width" content="1456" />
+        <meta property="og:image:height" content="816" />
+        <meta property="og:image:alt" content="National Recycling Directory - Find 2,000+ Recycling Centers Near You" />
+        <meta property="og:site_name" content="National Recycling Directory" />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Find Recycling Centers Near You | National Directory" />
         <meta name="twitter:description" content="Search 2,000+ recycling centers across all 50 US states." />
+        <meta name="twitter:image" content="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/MHnZhwLgCpRxIMdo.png" />
       </Helmet>
       
       <div className="min-h-screen flex flex-col bg-topo-pattern">

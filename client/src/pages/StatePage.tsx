@@ -235,11 +235,17 @@ export default function StatePage() {
         <meta property="og:description" content={`Find ${stateFacilities.length} recycling centers in ${stateInfo.name}. Electronics, hazardous waste, sharps disposal, and more.`} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`https://recycling.recyclish.com/state/${stateSlug}`} />
+        <meta property="og:image" content="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/MHnZhwLgCpRxIMdo.png" />
+        <meta property="og:image:width" content="1456" />
+        <meta property="og:image:height" content="816" />
+        <meta property="og:image:alt" content={`Recycling Centers in ${stateInfo.name} - National Recycling Directory`} />
+        <meta property="og:site_name" content="National Recycling Directory" />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`Recycling Centers in ${stateInfo.name}`} />
         <meta name="twitter:description" content={`Find ${stateFacilities.length} recycling centers in ${stateInfo.name}.`} />
+        <meta name="twitter:image" content="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/MHnZhwLgCpRxIMdo.png" />
         
         {/* Structured Data */}
         <script type="application/ld+json">
