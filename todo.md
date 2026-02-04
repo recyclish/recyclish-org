@@ -269,3 +269,9 @@
 - [x] Display hours on facility detail page (Operating Hours section)
 - [ ] Show open/closed status based on current time (future enhancement)
 - [x] Handle facilities with unknown hours gracefully (empty string fallback)
+
+## Fix State Dropdown Showing Cities
+- [x] Create list of valid US states (50 states + DC + territories)
+- [x] Filter state dropdown to only show valid US states
+- [x] Normalize state abbreviations to full names
+- [x] Handle facilities with city names in State field gracefully (filtered out)

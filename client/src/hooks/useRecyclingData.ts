@@ -67,6 +67,127 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
+// Valid US states and territories
+const US_STATES: Record<string, string> = {
+  // Full names
+  'Alabama': 'Alabama',
+  'Alaska': 'Alaska',
+  'Arizona': 'Arizona',
+  'Arkansas': 'Arkansas',
+  'California': 'California',
+  'Colorado': 'Colorado',
+  'Connecticut': 'Connecticut',
+  'Delaware': 'Delaware',
+  'Florida': 'Florida',
+  'Georgia': 'Georgia',
+  'Hawaii': 'Hawaii',
+  'Idaho': 'Idaho',
+  'Illinois': 'Illinois',
+  'Indiana': 'Indiana',
+  'Iowa': 'Iowa',
+  'Kansas': 'Kansas',
+  'Kentucky': 'Kentucky',
+  'Louisiana': 'Louisiana',
+  'Maine': 'Maine',
+  'Maryland': 'Maryland',
+  'Massachusetts': 'Massachusetts',
+  'Michigan': 'Michigan',
+  'Minnesota': 'Minnesota',
+  'Mississippi': 'Mississippi',
+  'Missouri': 'Missouri',
+  'Montana': 'Montana',
+  'Nebraska': 'Nebraska',
+  'Nevada': 'Nevada',
+  'New Hampshire': 'New Hampshire',
+  'New Jersey': 'New Jersey',
+  'New Mexico': 'New Mexico',
+  'New York': 'New York',
+  'North Carolina': 'North Carolina',
+  'North Dakota': 'North Dakota',
+  'Ohio': 'Ohio',
+  'Oklahoma': 'Oklahoma',
+  'Oregon': 'Oregon',
+  'Pennsylvania': 'Pennsylvania',
+  'Rhode Island': 'Rhode Island',
+  'South Carolina': 'South Carolina',
+  'South Dakota': 'South Dakota',
+  'Tennessee': 'Tennessee',
+  'Texas': 'Texas',
+  'Utah': 'Utah',
+  'Vermont': 'Vermont',
+  'Virginia': 'Virginia',
+  'Washington': 'Washington',
+  'West Virginia': 'West Virginia',
+  'Wisconsin': 'Wisconsin',
+  'Wyoming': 'Wyoming',
+  'District of Columbia': 'District of Columbia',
+  'Puerto Rico': 'Puerto Rico',
+  'Guam': 'Guam',
+  'U.S. Virgin Islands': 'U.S. Virgin Islands',
+  // Abbreviations
+  'AL': 'Alabama',
+  'AK': 'Alaska',
+  'AZ': 'Arizona',
+  'AR': 'Arkansas',
+  'CA': 'California',
+  'CO': 'Colorado',
+  'CT': 'Connecticut',
+  'DE': 'Delaware',
+  'FL': 'Florida',
+  'GA': 'Georgia',
+  'HI': 'Hawaii',
+  'ID': 'Idaho',
+  'IL': 'Illinois',
+  'IN': 'Indiana',
+  'IA': 'Iowa',
+  'KS': 'Kansas',
+  'KY': 'Kentucky',
+  'LA': 'Louisiana',
+  'ME': 'Maine',
+  'MD': 'Maryland',
+  'MA': 'Massachusetts',
+  'MI': 'Michigan',
+  'MN': 'Minnesota',
+  'MS': 'Mississippi',
+  'MO': 'Missouri',
+  'MT': 'Montana',
+  'NE': 'Nebraska',
+  'NV': 'Nevada',
+  'NH': 'New Hampshire',
+  'NJ': 'New Jersey',
+  'NM': 'New Mexico',
+  'NY': 'New York',
+  'NC': 'North Carolina',
+  'ND': 'North Dakota',
+  'OH': 'Ohio',
+  'OK': 'Oklahoma',
+  'OR': 'Oregon',
+  'PA': 'Pennsylvania',
+  'RI': 'Rhode Island',
+  'SC': 'South Carolina',
+  'SD': 'South Dakota',
+  'TN': 'Tennessee',
+  'TX': 'Texas',
+  'UT': 'Utah',
+  'VT': 'Vermont',
+  'VA': 'Virginia',
+  'WA': 'Washington',
+  'WV': 'West Virginia',
+  'WI': 'Wisconsin',
+  'WY': 'Wyoming',
+  'DC': 'District of Columbia',
+  'PR': 'Puerto Rico',
+  'GU': 'Guam',
+  'VI': 'U.S. Virgin Islands',
+};
+
+// Normalize state value to full state name
+function normalizeState(state: string): string {
+  if (!state) return '';
+  const trimmed = state.trim();
+  return US_STATES[trimmed] || '';
+}
+
 export function useRecyclingData(): UseRecyclingDataReturn {
   const [facilities, setFacilities] = useState<RecyclingFacility[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,7 +258,11 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   }, []);
 
   const states = useMemo(() => {
-    const uniqueStates = Array.from(new Set(facilities.map((f) => f.State).filter(Boolean)));
+    // Normalize and filter to only valid US states
+    const normalizedStates = facilities
+      .map((f) => normalizeState(f.State))
+      .filter(Boolean);
+    const uniqueStates = Array.from(new Set(normalizedStates));
     return uniqueStates.sort();
   }, [facilities]);
 
@@ -170,8 +295,9 @@ export function useRecyclingData(): UseRecyclingDataReturn {
           facility.State?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           facility.Feedstock?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // State filter
-        const matchesState = selectedState === "all" || facility.State === selectedState;
+        // State filter (normalize facility state for comparison)
+        const normalizedFacilityState = normalizeState(facility.State);
+        const matchesState = selectedState === "all" || normalizedFacilityState === selectedState;
 
         // Category filter
         const matchesCategory = selectedCategory === "all" || facility.Category === selectedCategory;
