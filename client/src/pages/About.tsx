@@ -53,7 +53,7 @@ export default function About() {
       <section className="relative overflow-hidden bg-[oklch(0.35_0.08_250)]">
         <div className="absolute inset-0 opacity-10">
           <img
-            src="/images/map-pattern.png"
+            src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/VQWiUEBjKxxYaPFV.png"
             alt=""
             className="w-full h-full object-cover"
           />

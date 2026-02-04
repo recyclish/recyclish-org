@@ -328,3 +328,8 @@
 - [x] Add Instagram button with Recyclish profile link (gradient background)
 - [x] Add TikTok button with Recyclish profile link (black background)
 - [x] Style buttons with brand colors (Instagram gradient purple-red-orange, TikTok black)
+
+## Social Share Buttons on Facility Detail Pages
+- [x] Import SocialShareButtons component to FacilityDetail page
+- [x] Pass facility-specific URL, title, and description to share buttons
+- [x] Position share buttons below Get Directions button with border separator

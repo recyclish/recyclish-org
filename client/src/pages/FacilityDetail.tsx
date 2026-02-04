@@ -41,6 +41,7 @@ import {
 import { RecyclingFacility, generateFacilityId } from "@/components/RecyclingCard";
 import { NearbyFacilities } from "@/components/NearbyFacilities";
 import { SEOHead, generateFacilitySEO } from "@/components/SEOHead";
+import { SocialShareButtons } from "@/components/SocialShareButtons";
 
 const categoryColors: Record<string, string> = {
   "Electronics Recyclers": "bg-[oklch(0.35_0.08_250)] text-white",
@@ -603,6 +604,15 @@ export default function FacilityDetail() {
                       <Navigation className="h-4 w-4 mr-2" />
                       Get Directions
                     </Button>
+
+                    {/* Social Share Buttons */}
+                    <div className="pt-4 border-t mt-4">
+                      <SocialShareButtons
+                        url={`https://recycling.recyclish.com/facility/${facilityId}`}
+                        title={`${facility.Name} - ${formatCategory(facility.Category)} | National Recycling Directory`}
+                        description={`Find ${facility.Name} at ${facility.Address}. ${facility.Feedstock ? `Accepts: ${facility.Feedstock}.` : ''} Search 2,000+ recycling centers across all 50 US states.`}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
