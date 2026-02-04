@@ -345,3 +345,10 @@
 - [x] Add SEO meta tags to all blog pages (title, description, keywords, OG)
 - [x] Add internal links from blog to directory pages
 - [x] Update sitemap with blog URLs
+
+## Consolidate Hero Section Redundancy
+- [x] Review current hero layout (description, summary stats, feature tiles)
+- [x] Keep inline stats in hero (50 States • 14 Categories • EPA Data) - compact format
+- [x] Redesign feature tiles to show unique value propositions (Free Drop-offs, Verified Data, Updated Regularly, Mobile Friendly)
+- [x] Maintain SEO keywords in primary description
+- [x] Ensure mobile layout remains clean

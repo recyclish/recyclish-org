@@ -1,54 +1,48 @@
 import { motion } from "framer-motion";
-import { Building2, MapPin, Layers, Recycle } from "lucide-react";
+import { DollarSign, ShieldCheck, RefreshCw, Smartphone } from "lucide-react";
 
-interface StatsProps {
-  totalFacilities: number;
-  totalStates: number;
-  totalCategories: number;
-}
-
-export function Stats({ totalFacilities, totalStates, totalCategories }: StatsProps) {
-  const stats = [
+export function Stats() {
+  const valueProps = [
     {
-      icon: Building2,
-      value: totalFacilities.toLocaleString(),
-      label: "Recycling Facilities",
+      icon: DollarSign,
+      title: "Free Drop-offs",
+      description: "Find locations that accept materials at no cost",
     },
     {
-      icon: MapPin,
-      value: "50",
-      label: "All States",
+      icon: ShieldCheck,
+      title: "Verified Data",
+      description: "EPA-sourced and community verified listings",
     },
     {
-      icon: Layers,
-      value: totalCategories.toString(),
-      label: "Categories",
+      icon: RefreshCw,
+      title: "Updated Regularly",
+      description: "Fresh information you can rely on",
     },
     {
-      icon: Recycle,
-      value: "100%",
-      label: "Free to Use",
+      icon: Smartphone,
+      title: "Mobile Friendly",
+      description: "Search and navigate on any device",
     },
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((stat, index) => (
+      {valueProps.map((prop, index) => (
         <motion.div
-          key={stat.label}
+          key={prop.title}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: index * 0.1 }}
           className="bg-card rounded-xl p-4 border border-border/50 text-center"
         >
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 mb-3">
-            <stat.icon className="h-5 w-5 text-primary" />
+            <prop.icon className="h-5 w-5 text-primary" />
           </div>
-          <div className="font-display text-2xl font-bold text-foreground">
-            {stat.value}
+          <div className="font-display text-lg font-bold text-foreground mb-1">
+            {prop.title}
           </div>
-          <div className="text-sm font-label text-muted-foreground">
-            {stat.label}
+          <div className="text-xs font-label text-muted-foreground leading-snug">
+            {prop.description}
           </div>
         </motion.div>
       ))}

@@ -228,13 +228,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Value Propositions Section */}
       <section className="container -mt-8 relative z-10 mb-8">
-        <Stats
-          totalFacilities={facilities.length}
-          totalStates={states.length}
-          totalCategories={categories.length}
-        />
+        <Stats />
       </section>
 
       {/* Highest Rated Section */}
