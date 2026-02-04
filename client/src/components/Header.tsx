@@ -15,6 +15,7 @@ export function Header() {
     { href: "/map", label: "Map" },
     { href: "/submit", label: "Submit" },
     { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
   ];
 
   const isAdmin = user?.role === "admin";

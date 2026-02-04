@@ -13,6 +13,8 @@ import Favorites from "./pages/Favorites";
 import FacilityDetail from "./pages/FacilityDetail";
 import StatesIndex from "./pages/StatesIndex";
 import StatePage from "./pages/StatePage";
+import Blog from "./pages/Blog";
+import BlogArticle from "./pages/BlogArticle";
 import { RecyclingChatbot } from "./components/RecyclingChatbot";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 import { BottomNav } from "./components/BottomNav";
@@ -29,6 +31,8 @@ function Router() {
       <Route path="/facility/:id" component={FacilityDetail} />
       <Route path="/states" component={StatesIndex} />
       <Route path="/state/:stateSlug" component={StatePage} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/blog/:slug" component={BlogArticle} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

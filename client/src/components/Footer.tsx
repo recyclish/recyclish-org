@@ -46,6 +46,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">
+                  Recycling Guides
+                </Link>
+              </li>
+              <li>
                 <a 
                   href="https://recyclish.com" 
                   target="_blank" 

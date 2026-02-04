@@ -333,3 +333,15 @@
 - [x] Import SocialShareButtons component to FacilityDetail page
 - [x] Pass facility-specific URL, title, and description to share buttons
 - [x] Position share buttons below Get Directions button with border separator
+
+## Blog Section with Recycling Guides
+- [x] Create blog index page (/blog) with article grid
+- [x] Create blog article page component with SEO support
+- [x] Write article: How to Recycle Electronics Safely (8 min read)
+- [x] Write article: Guide to Sharps Disposal for GLP-1 Medications (6 min read)
+- [x] Write article: What Can and Cannot Be Recycled (10 min read)
+- [x] Write article: How to Find Free Recycling Near You (5 min read)
+- [x] Add blog link to navigation header
+- [x] Add SEO meta tags to all blog pages (title, description, keywords, OG)
+- [x] Add internal links from blog to directory pages
+- [x] Update sitemap with blog URLs

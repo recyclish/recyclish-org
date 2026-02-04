@@ -27,6 +27,33 @@
     <priority>0.5</priority>
   </url>
   
+  <!-- Blog Pages -->
+  <url>
+    <loc>https://recycling.recyclish.com/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://recycling.recyclish.com/blog/how-to-recycle-electronics-safely</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://recycling.recyclish.com/blog/sharps-disposal-guide-glp1-medications</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://recycling.recyclish.com/blog/what-can-and-cannot-be-recycled</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://recycling.recyclish.com/blog/find-free-recycling-near-you</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
   <!-- State Pages -->
   <url>
     <loc>https://recycling.recyclish.com/state/alabama</loc>
