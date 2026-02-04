@@ -41,6 +41,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/states" className="text-white/80 hover:text-white transition-colors">
+                  Browse by State
+                </Link>
+              </li>
+              <li>
                 <a 
                   href="https://recyclish.com" 
                   target="_blank" 

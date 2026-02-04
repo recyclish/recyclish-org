@@ -11,6 +11,8 @@ import MapViewPage from "./pages/MapView";
 import Admin from "./pages/Admin";
 import Favorites from "./pages/Favorites";
 import FacilityDetail from "./pages/FacilityDetail";
+import StatesIndex from "./pages/StatesIndex";
+import StatePage from "./pages/StatePage";
 import { RecyclingChatbot } from "./components/RecyclingChatbot";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 import { BottomNav } from "./components/BottomNav";
@@ -25,6 +27,8 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/favorites" component={Favorites} />
       <Route path="/facility/:id" component={FacilityDetail} />
+      <Route path="/states" component={StatesIndex} />
+      <Route path="/state/:stateSlug" component={StatePage} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

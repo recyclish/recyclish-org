@@ -1,0 +1,19 @@
+# Robots.txt for National Recycling Directory
+# https://recycling.recyclish.com
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://recycling.recyclish.com/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin
+Disallow: /api/
+
+# Allow search engines to crawl all public content
+Allow: /state/
+Allow: /states
+Allow: /facility/
+Allow: /map
+Allow: /about
