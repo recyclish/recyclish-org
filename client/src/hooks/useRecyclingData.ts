@@ -23,6 +23,23 @@ export const DISTANCE_OPTIONS = [
   { value: "100", label: "Within 100 miles" },
 ];
 
+// Drop-off acceptance options
+export const DROPOFF_OPTIONS = [
+  { value: "all", label: "All Facilities" },
+  { value: "Yes", label: "Accepts Drop-offs" },
+  { value: "By Appointment", label: "By Appointment Only" },
+  { value: "No", label: "No Drop-offs" },
+];
+
+// Fee structure options
+export const FEE_OPTIONS = [
+  { value: "all", label: "Any Fee Structure" },
+  { value: "Free", label: "Free" },
+  { value: "Fee", label: "Has Fees" },
+  { value: "Varies", label: "Fees Vary" },
+  { value: "pays", label: "Pays for Materials" },
+];
+
 interface UserLocation {
   latitude: number;
   longitude: number;
@@ -34,6 +51,8 @@ interface UseRecyclingDataReturn {
   states: string[];
   categories: string[];
   materialTypes: typeof MATERIAL_TYPES;
+  dropoffOptions: typeof DROPOFF_OPTIONS;
+  feeOptions: typeof FEE_OPTIONS;
   isLoading: boolean;
   error: string | null;
   searchTerm: string;
@@ -46,6 +65,10 @@ interface UseRecyclingDataReturn {
   setSelectedMaterial: (value: string) => void;
   selectedDistance: string;
   setSelectedDistance: (value: string) => void;
+  selectedDropoff: string;
+  setSelectedDropoff: (value: string) => void;
+  selectedFee: string;
+  setSelectedFee: (value: string) => void;
   userLocation: UserLocation | null;
   isLocating: boolean;
   locationError: string | null;
@@ -197,6 +220,8 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedMaterial, setSelectedMaterial] = useState("all");
   const [selectedDistance, setSelectedDistance] = useState("any");
+  const [selectedDropoff, setSelectedDropoff] = useState("all");
+  const [selectedFee, setSelectedFee] = useState("all");
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -325,7 +350,23 @@ export function useRecyclingData(): UseRecyclingDataReturn {
           matchesDistance = true;
         }
 
-        return matchesSearch && matchesState && matchesCategory && matchesMaterial && matchesDistance;
+        // Drop-off filter
+        let matchesDropoff = selectedDropoff === "all";
+        if (!matchesDropoff) {
+          matchesDropoff = facility.Accepts_Dropoff === selectedDropoff;
+        }
+
+        // Fee filter
+        let matchesFee = selectedFee === "all";
+        if (!matchesFee) {
+          if (selectedFee === "pays") {
+            matchesFee = facility.Offers_Payment === "Yes";
+          } else {
+            matchesFee = facility.Fee_Structure === selectedFee;
+          }
+        }
+
+        return matchesSearch && matchesState && matchesCategory && matchesMaterial && matchesDistance && matchesDropoff && matchesFee;
       })
       .sort((a, b) => {
         // Sort by distance if available
@@ -334,7 +375,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
         }
         return 0;
       });
-  }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, userLocation]);
+  }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, selectedDropoff, selectedFee, userLocation]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -343,8 +384,10 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     if (selectedCategory !== "all") count++;
     if (selectedMaterial !== "all") count++;
     if (selectedDistance !== "any") count++;
+    if (selectedDropoff !== "all") count++;
+    if (selectedFee !== "all") count++;
     return count;
-  }, [searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance]);
+  }, [searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, selectedDropoff, selectedFee]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -352,6 +395,8 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedCategory("all");
     setSelectedMaterial("all");
     setSelectedDistance("any");
+    setSelectedDropoff("all");
+    setSelectedFee("all");
   };
 
   return {
@@ -360,6 +405,8 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     states,
     categories,
     materialTypes: MATERIAL_TYPES,
+    dropoffOptions: DROPOFF_OPTIONS,
+    feeOptions: FEE_OPTIONS,
     isLoading,
     error,
     searchTerm,
@@ -372,6 +419,10 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedMaterial,
     selectedDistance,
     setSelectedDistance,
+    selectedDropoff,
+    setSelectedDropoff,
+    selectedFee,
+    setSelectedFee,
     userLocation,
     isLocating,
     locationError,
@@ -406,6 +457,11 @@ function parseCSV(text: string): RecyclingFacility[] {
       Longitude: parseFloat(obj.Longitude) || 0,
       NAICS_Code: obj.NAICS_Code || "",
       Hours: obj.Hours || "",
+      Accepts_Dropoff: obj.Accepts_Dropoff || "",
+      Fee_Structure: obj.Fee_Structure || "",
+      Fee_Details: obj.Fee_Details || "",
+      Offers_Payment: obj.Offers_Payment || "",
+      Payment_Details: obj.Payment_Details || "",
     } as RecyclingFacility;
   });
 }

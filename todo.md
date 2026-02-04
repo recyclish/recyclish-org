@@ -275,3 +275,17 @@
 - [x] Filter state dropdown to only show valid US states
 - [x] Normalize state abbreviations to full names
 - [x] Handle facilities with city names in State field gracefully (filtered out)
+
+## Drop-off, Fee, and Payment Fields
+- [x] Add Accepts_Dropoff field to CSV (Yes/No/By Appointment)
+- [x] Add Fee_Structure field to CSV (Free/Fee/Varies)
+- [x] Add Fee_Details field to CSV (specific fee info)
+- [x] Add Offers_Payment field to CSV (Yes/No)
+- [x] Add Payment_Details field to CSV (what they pay for)
+- [x] Pre-populate fields based on facility type
+- [x] Update TypeScript RecyclingFacility interface
+- [x] Update CSV parsing in useRecyclingData hook
+- [x] Display new fields on facility cards (badges for drop-off, fee, pays you)
+- [x] Display new fields on facility detail page (Service Information section)
+- [x] Add filter for drop-off acceptance (More Filters > Drop-off Availability)
+- [x] Add filter for free vs fee facilities (More Filters > Fee Structure)

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Mail, Globe, ExternalLink, Heart, ChevronRight, Navigation, Clock } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, ExternalLink, Heart, ChevronRight, Navigation, Clock, DoorOpen, DollarSign, Banknote } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -27,6 +27,11 @@ export interface RecyclingFacility {
   Longitude: number;
   NAICS_Code: string;
   Hours: string;
+  Accepts_Dropoff: string; // Yes, No, or By Appointment
+  Fee_Structure: string; // Free, Fee, Varies, or N/A
+  Fee_Details: string;
+  Offers_Payment: string; // Yes or No
+  Payment_Details: string;
   distance?: number; // Distance from user in miles (calculated)
 }
 
@@ -181,9 +186,50 @@ export function RecyclingCard({ facility, index, isFavorite = false, onFavoriteC
               </Button>
             </div>
           </div>
-          <Badge className={`${categoryColor} w-fit text-xs font-label`}>
-            {formatCategory(facility.Category)}
-          </Badge>
+          <div className="flex flex-wrap gap-1.5">
+            <Badge className={`${categoryColor} text-xs font-label`}>
+              {formatCategory(facility.Category)}
+            </Badge>
+            {facility.Accepts_Dropoff && (
+              <Badge 
+                variant="outline" 
+                className={`text-xs font-label ${
+                  facility.Accepts_Dropoff === 'Yes' 
+                    ? 'border-green-500 text-green-700 bg-green-50' 
+                    : facility.Accepts_Dropoff === 'No'
+                    ? 'border-red-500 text-red-700 bg-red-50'
+                    : 'border-amber-500 text-amber-700 bg-amber-50'
+                }`}
+              >
+                <DoorOpen className="h-3 w-3 mr-1" />
+                {facility.Accepts_Dropoff === 'Yes' ? 'Drop-off' : facility.Accepts_Dropoff === 'No' ? 'No Drop-off' : 'By Appt'}
+              </Badge>
+            )}
+            {facility.Fee_Structure && facility.Fee_Structure !== 'N/A' && (
+              <Badge 
+                variant="outline" 
+                className={`text-xs font-label ${
+                  facility.Fee_Structure === 'Free' 
+                    ? 'border-green-500 text-green-700 bg-green-50' 
+                    : facility.Fee_Structure === 'Fee'
+                    ? 'border-orange-500 text-orange-700 bg-orange-50'
+                    : 'border-blue-500 text-blue-700 bg-blue-50'
+                }`}
+              >
+                <DollarSign className="h-3 w-3 mr-1" />
+                {facility.Fee_Structure}
+              </Badge>
+            )}
+            {facility.Offers_Payment === 'Yes' && (
+              <Badge 
+                variant="outline" 
+                className="text-xs font-label border-emerald-500 text-emerald-700 bg-emerald-50"
+              >
+                <Banknote className="h-3 w-3 mr-1" />
+                Pays You
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-start gap-2 text-sm text-muted-foreground">

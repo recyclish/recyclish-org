@@ -33,6 +33,10 @@ import {
   ThumbsUp,
   Loader2,
   Building2,
+  DoorOpen,
+  DollarSign,
+  Banknote,
+  Info,
 } from "lucide-react";
 import { RecyclingFacility, generateFacilityId } from "@/components/RecyclingCard";
 import { NearbyFacilities } from "@/components/NearbyFacilities";
@@ -122,6 +126,11 @@ export default function FacilityDetail() {
               Longitude: parseFloat(facilityData.Longitude) || 0,
               NAICS_Code: facilityData.NAICS_Code || "",
               Hours: facilityData.Hours || "",
+              Accepts_Dropoff: facilityData.Accepts_Dropoff || "",
+              Fee_Structure: facilityData.Fee_Structure || "",
+              Fee_Details: facilityData.Fee_Details || "",
+              Offers_Payment: facilityData.Offers_Payment || "",
+              Payment_Details: facilityData.Payment_Details || "",
             };
 
             const currentId = generateFacilityId(currentFacility.Name, currentFacility.Address);
@@ -517,6 +526,73 @@ export default function FacilityDetail() {
                           <div>
                             <p className="font-medium mb-1">Materials Accepted</p>
                             <p className="text-sm text-muted-foreground">{facility.Feedstock}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Drop-off, Fees & Payment Info */}
+                    {(facility.Accepts_Dropoff || facility.Fee_Structure || facility.Offers_Payment === 'Yes') && (
+                      <div className="pt-4 border-t">
+                        <div className="flex items-start gap-3">
+                          <Info className="h-5 w-5 mt-0.5 shrink-0 text-accent" />
+                          <div className="space-y-3 flex-1">
+                            <p className="font-medium">Service Information</p>
+                            
+                            {/* Drop-off Acceptance */}
+                            {facility.Accepts_Dropoff && (
+                              <div className="flex items-start gap-2">
+                                <DoorOpen className={`h-4 w-4 mt-0.5 shrink-0 ${
+                                  facility.Accepts_Dropoff === 'Yes' ? 'text-green-600' : 
+                                  facility.Accepts_Dropoff === 'No' ? 'text-red-600' : 'text-amber-600'
+                                }`} />
+                                <div>
+                                  <span className="text-sm font-medium">Customer Drop-off: </span>
+                                  <span className={`text-sm ${
+                                    facility.Accepts_Dropoff === 'Yes' ? 'text-green-600' : 
+                                    facility.Accepts_Dropoff === 'No' ? 'text-red-600' : 'text-amber-600'
+                                  }`}>
+                                    {facility.Accepts_Dropoff === 'Yes' ? 'Yes, walk-ins welcome' : 
+                                     facility.Accepts_Dropoff === 'No' ? 'Not available' : 'By appointment only'}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Fee Structure */}
+                            {facility.Fee_Structure && facility.Fee_Structure !== 'N/A' && (
+                              <div className="flex items-start gap-2">
+                                <DollarSign className={`h-4 w-4 mt-0.5 shrink-0 ${
+                                  facility.Fee_Structure === 'Free' ? 'text-green-600' : 
+                                  facility.Fee_Structure === 'Fee' ? 'text-orange-600' : 'text-blue-600'
+                                }`} />
+                                <div>
+                                  <span className="text-sm font-medium">Fees: </span>
+                                  <span className={`text-sm ${
+                                    facility.Fee_Structure === 'Free' ? 'text-green-600' : 
+                                    facility.Fee_Structure === 'Fee' ? 'text-orange-600' : 'text-blue-600'
+                                  }`}>
+                                    {facility.Fee_Structure}
+                                  </span>
+                                  {facility.Fee_Details && (
+                                    <p className="text-sm text-muted-foreground mt-0.5">{facility.Fee_Details}</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Payment Offered */}
+                            {facility.Offers_Payment === 'Yes' && (
+                              <div className="flex items-start gap-2">
+                                <Banknote className="h-4 w-4 mt-0.5 shrink-0 text-emerald-600" />
+                                <div>
+                                  <span className="text-sm font-medium text-emerald-600">This facility pays for materials!</span>
+                                  {facility.Payment_Details && (
+                                    <p className="text-sm text-muted-foreground mt-0.5">{facility.Payment_Details}</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

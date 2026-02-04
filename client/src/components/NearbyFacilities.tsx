@@ -125,6 +125,11 @@ export function NearbyFacilities({ currentFacilityId, latitude, longitude, class
               Longitude: lng,
               NAICS_Code: facilityData.NAICS_Code || "",
               Hours: facilityData.Hours || "",
+              Accepts_Dropoff: facilityData.Accepts_Dropoff || "",
+              Fee_Structure: facilityData.Fee_Structure || "",
+              Fee_Details: facilityData.Fee_Details || "",
+              Offers_Payment: facilityData.Offers_Payment || "",
+              Payment_Details: facilityData.Payment_Details || "",
             };
 
             const id = generateFacilityId(facilityObj.Name, facilityObj.Address);

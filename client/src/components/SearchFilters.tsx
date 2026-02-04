@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Filter, MapPin, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { MATERIAL_TYPES, DISTANCE_OPTIONS } from "@/hooks/useRecyclingData";
+import { MATERIAL_TYPES, DISTANCE_OPTIONS, DROPOFF_OPTIONS, FEE_OPTIONS } from "@/hooks/useRecyclingData";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 
 interface Facility {
@@ -31,6 +31,10 @@ interface SearchFiltersProps {
   setSelectedMaterial: (value: string) => void;
   selectedDistance: string;
   setSelectedDistance: (value: string) => void;
+  selectedDropoff: string;
+  setSelectedDropoff: (value: string) => void;
+  selectedFee: string;
+  setSelectedFee: (value: string) => void;
   states: string[];
   categories: string[];
   onClear: () => void;
@@ -54,6 +58,10 @@ export function SearchFilters({
   setSelectedMaterial,
   selectedDistance,
   setSelectedDistance,
+  selectedDropoff,
+  setSelectedDropoff,
+  selectedFee,
+  setSelectedFee,
   states,
   categories,
   onClear,
@@ -197,6 +205,44 @@ export function SearchFilters({
                 </Select>
               </div>
 
+              <div>
+                <label className="text-sm font-label text-muted-foreground mb-1.5 block">
+                  Drop-off Availability
+                </label>
+                <Select value={selectedDropoff} onValueChange={setSelectedDropoff}>
+                  <SelectTrigger className="font-body">
+                    <SelectValue placeholder="All Facilities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DROPOFF_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-label text-muted-foreground mb-1.5 block">
+                  Fee Structure
+                </label>
+                <Select value={selectedFee} onValueChange={setSelectedFee}>
+                  <SelectTrigger className="font-body">
+                    <SelectValue placeholder="Any Fee Structure" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FEE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3 mt-4">
               <div>
                 <label className="text-sm font-label text-muted-foreground mb-1.5 block">
                   Distance

@@ -31,6 +31,11 @@ export default function Favorites() {
     Longitude: fav.facilityLongitude ? parseFloat(fav.facilityLongitude) : 0,
     NAICS_Code: "",
     Hours: "",
+    Accepts_Dropoff: "",
+    Fee_Structure: "",
+    Fee_Details: "",
+    Offers_Payment: "",
+    Payment_Details: "",
   }));
 
   // Get favorite IDs for the cards

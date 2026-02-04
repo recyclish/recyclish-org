@@ -35,6 +35,10 @@ export default function Home() {
     setSelectedMaterial,
     selectedDistance,
     setSelectedDistance,
+    selectedDropoff,
+    setSelectedDropoff,
+    selectedFee,
+    setSelectedFee,
     userLocation,
     isLocating,
     locationError,
@@ -211,6 +215,10 @@ export default function Home() {
           setSelectedMaterial={setSelectedMaterial}
           selectedDistance={selectedDistance}
           setSelectedDistance={setSelectedDistance}
+          selectedDropoff={selectedDropoff}
+          setSelectedDropoff={setSelectedDropoff}
+          selectedFee={selectedFee}
+          setSelectedFee={setSelectedFee}
           states={states}
           categories={categories}
           onClear={clearFilters}
