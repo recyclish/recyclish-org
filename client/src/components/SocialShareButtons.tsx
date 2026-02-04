@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Check, Link2 } from "lucide-react";
 
 // SVG icons for social media platforms
 const FacebookIcon = () => (
@@ -51,6 +53,8 @@ export function SocialShareButtons({
   description = "Search 2,000+ recycling centers across all 50 US states. Free directory for electronics, plastics, glass, paper, hazardous waste, sharps disposal, and more.",
   className = ""
 }: SocialShareButtonsProps) {
+  const [copied, setCopied] = useState(false);
+  
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
   const encodedDescription = encodeURIComponent(description);
@@ -66,6 +70,24 @@ export function SocialShareButtons({
 
   const handleShare = (platform: keyof typeof shareLinks) => {
     window.open(shareLinks[platform], '_blank', 'width=600,height=400');
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -131,6 +153,26 @@ export function SocialShareButtons({
       >
         <EmailIcon />
       </Button>
+      
+      <Button
+        variant="outline"
+        size="icon"
+        className={`h-10 w-10 rounded-full border-0 text-white transition-all duration-200 ${
+          copied 
+            ? 'bg-green-500 hover:bg-green-500' 
+            : 'bg-slate-600 hover:bg-slate-600/90'
+        }`}
+        onClick={handleCopyLink}
+        aria-label={copied ? "Link copied!" : "Copy link"}
+      >
+        {copied ? <Check className="h-5 w-5" /> : <Link2 className="h-5 w-5" />}
+      </Button>
+      
+      {copied && (
+        <span className="text-sm text-green-600 font-medium animate-in fade-in slide-in-from-left-2 duration-200">
+          Copied!
+        </span>
+      )}
     </div>
   );
 }

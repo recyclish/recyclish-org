@@ -319,3 +319,7 @@
 - [x] Add Facebook, Twitter/X, LinkedIn, Pinterest, Reddit, Email share buttons
 - [x] Style buttons with brand colors (circular, colored backgrounds)
 - [x] Add share buttons section to homepage hero area
+
+## Copy Link Button
+- [x] Add Copy Link button to SocialShareButtons component
+- [x] Show visual feedback when link is copied (green checkmark + "Copied!" text)
