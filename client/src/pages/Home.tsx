@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { SocialShareButtons } from "@/components/SocialShareButtons";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -178,6 +179,11 @@ export default function Home() {
                     Submit a Facility
                   </Button>
                 </Link>
+              </div>
+              
+              {/* Social Share Buttons */}
+              <div className="mt-6">
+                <SocialShareButtons />
               </div>
               
               {/* Mobile Hero Logo */}
