@@ -376,3 +376,17 @@
 - [x] Add Scott County Recycle Center (IN)
 - [x] Add Switzerland County Recycle Center (IN)
 - [x] Verify facilities appear correctly in directory
+
+## Expand Directory with Government/Free Recycling Centers (All 50 States)
+- [x] Research Ohio solid waste management districts (28 facilities added)
+- [x] Research Missouri solid waste management districts (12 facilities added)
+- [x] Research California CalRecycle facilities (5 facilities added)
+- [x] Research Texas municipal recycling centers (9 facilities added)
+- [x] Research Florida county recycling programs (17 facilities added)
+- [x] Research New York state recycling facilities (5 facilities added)
+- [x] Research Pennsylvania county recycling centers (5 facilities added)
+- [x] Research Illinois municipal recycling programs (4 facilities added)
+- [x] Research Michigan county recycling facilities (17 facilities added)
+- [x] Research all other states' government recycling programs (558 facilities added)
+- [x] Add verified facilities to CSV with complete information (660 total new facilities)
+- [x] Verify all new facilities appear correctly in directory (2,695 total facilities)
