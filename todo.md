@@ -427,3 +427,10 @@
 ## Mobile UI Fixes
 - [x] Move RecycleBot button above mobile navigation bar (bottom-20 on mobile, bottom-6 on desktop)
 - [x] Investigate facility count discrepancy (2,024 vs 2,695) - CSV has 2,695, mobile app caching old version
+
+## Geocode Missing Facilities
+- [x] Identify facilities with missing or empty coordinates (found 667 missing)
+- [x] Create geocoding script using Google Geocoding API
+- [x] Run geocoding process - geocoded 662 facilities successfully
+- [x] Update CSV with new coordinates (2,690 of 2,695 now have coordinates)
+- [x] Only 5 facilities remain without coordinates (malformed data entries)
