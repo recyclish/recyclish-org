@@ -423,3 +423,7 @@
 - [x] Fix distance calculation to correctly filter by radius (exclude facilities without coords when distance filter active)
 - [x] Ensure only facilities within selected distance are shown
 - [x] Test with ZIP code 47265 - Now shows 4 SEIRD facilities within 25 miles, Jennings County at 1302 ft
+
+## Mobile UI Fixes
+- [x] Move RecycleBot button above mobile navigation bar (bottom-20 on mobile, bottom-6 on desktop)
+- [x] Investigate facility count discrepancy (2,024 vs 2,695) - CSV has 2,695, mobile app caching old version
