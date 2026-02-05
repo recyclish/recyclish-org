@@ -4,30 +4,18 @@ import { Footer } from "@/components/Footer";
 import { Stats } from "@/components/Stats";
 import { HighestRated } from "@/components/HighestRated";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { HeroSearch } from "@/components/HeroSearch";
 import { useRecyclingData } from "@/hooks/useRecyclingData";
-import { Button } from "@/components/ui/button";
-import { Loader2, MapPin, Recycle, Map, Navigation, ArrowRight, Search } from "lucide-react";
+import { MapPin, Recycle } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link, useLocation } from "wouter";
 
 
 export default function Home() {
-  const [, setLocation] = useLocation();
-  
   const {
     categories,
-    isLocating,
-    requestLocation,
+    states,
     facilities,
   } = useRecyclingData();
-
-  const handleNearMe = () => {
-    requestLocation();
-    // Navigate to directory with nearme parameter
-    setTimeout(() => {
-      setLocation('/directory?nearme=true');
-    }, 300);
-  };
 
   return (
     <>
@@ -72,8 +60,9 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
           
-          <div className="container relative py-16 md:py-24">
-            <div className="max-w-3xl">
+          <div className="container relative py-12 md:py-16">
+            <div className="grid lg:grid-cols-2 gap-8 items-start">
+              {/* Left Column - Text Content */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -84,12 +73,12 @@ export default function Home() {
                   <span>Free National Directory</span>
                 </div>
                 
-                <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 text-balance">
+                <h1 className="font-display text-4xl md:text-5xl lg:text-5xl font-bold text-foreground mb-4 text-balance">
                   Find Recycling Centers{" "}
                   <span className="text-primary">Near You</span>
                 </h1>
                 
-                <p className="text-lg md:text-xl text-muted-foreground font-body leading-relaxed mb-6">
+                <p className="text-lg md:text-xl text-muted-foreground font-body leading-relaxed mb-4">
                   Search our comprehensive directory of over {facilities.length.toLocaleString()} recycling facilities across 
                   all 50 states. Find the right place to recycle electronics, plastics, glass, 
                   paper, textiles, cardboard, metals, clothing, sharps, and more.
@@ -110,35 +99,6 @@ export default function Home() {
                   </div>
                 </div>
                 
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Button 
-                    variant="default" 
-                    className="font-label bg-primary hover:bg-primary/90"
-                    onClick={handleNearMe}
-                    disabled={isLocating}
-                  >
-                    {isLocating ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Navigation className="h-4 w-4 mr-2" />
-                    )}
-                    {isLocating ? 'Finding Location...' : 'Near Me'}
-                  </Button>
-                  <Link href="/directory">
-                    <Button variant="outline" className="font-label">
-                      <Search className="h-4 w-4 mr-2" />
-                      Browse Directory
-                    </Button>
-                  </Link>
-                  <Link href="/map">
-                    <Button variant="outline" className="font-label">
-                      <Map className="h-4 w-4 mr-2" />
-                      View Map
-                    </Button>
-                  </Link>
-                </div>
-                
-                
                 {/* Mobile Hero Logo */}
                 <div className="lg:hidden mt-8 flex flex-col items-center">
                   <span className="text-xs font-label text-muted-foreground tracking-wider uppercase">Powered By</span>
@@ -156,66 +116,45 @@ export default function Home() {
                   </a>
                 </div>
               </motion.div>
+              
+              {/* Right Column - Desktop Logo */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="hidden lg:flex lg:flex-col lg:items-center lg:justify-start"
+              >
+                <span className="text-xs font-label text-muted-foreground tracking-wider uppercase">Powered By</span>
+                <a 
+                  href="https://recyclish.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block hover:opacity-90 transition-opacity"
+                >
+                  <img
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/RhcQwfEviabRvpfW.png"
+                    alt="Recyclish - Turning Knowledge into Action"
+                    className="w-72 h-auto drop-shadow-xl"
+                  />
+                </a>
+              </motion.div>
             </div>
             
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="hidden lg:flex lg:flex-col lg:items-center absolute right-8 top-4"
-            >
-              <span className="text-xs font-label text-muted-foreground tracking-wider uppercase">Powered By</span>
-              <a 
-                href="https://recyclish.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block hover:opacity-90 transition-opacity"
-              >
-                <img
-                  src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/RhcQwfEviabRvpfW.png"
-                  alt="Recyclish - Turning Knowledge into Action"
-                  className="w-86 h-auto drop-shadow-xl" style={{ width: '345px' }}
-                />
-              </a>
-            </motion.div>
+            {/* Hero Search - Full Width Below */}
+            <HeroSearch 
+              states={states} 
+              totalFacilities={facilities.length}
+            />
           </div>
         </section>
 
         {/* Value Propositions Section */}
-        <section className="container -mt-8 relative z-10 mb-8">
+        <section className="container -mt-4 relative z-10 mb-8">
           <Stats />
         </section>
 
         {/* Highest Rated Section */}
         <HighestRated />
-
-        {/* Browse Directory CTA Section */}
-        <section className="container py-12">
-          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl p-8 md:p-12 border border-primary/20">
-            <div className="max-w-2xl">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
-                Ready to Find Your Recycling Center?
-              </h2>
-              <p className="text-muted-foreground font-body mb-6">
-                Browse our complete directory of {facilities.length.toLocaleString()} recycling facilities. 
-                Filter by state, category, material type, and more to find exactly what you need.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/directory">
-                  <Button size="lg" className="font-label bg-primary hover:bg-primary/90">
-                    Browse All Facilities
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
-                <Link href="/states">
-                  <Button size="lg" variant="outline" className="font-label">
-                    Browse by State
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Newsletter Signup Section */}
         <NewsletterSignup />

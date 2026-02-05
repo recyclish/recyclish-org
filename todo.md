@@ -401,3 +401,10 @@
 - [x] Add distance display on facility cards (e.g., "1.2 miles away")
 - [x] Update search placeholder to "Enter your city or ZIP code"
 - [x] Test new search experience across different cities (Austin, TX verified)
+
+## Move Search Bar to Homepage Hero Section
+- [x] Remove "Ready to Find Your Recycling Center?" section
+- [x] Add search bar with city autocomplete to hero section (HeroSearch component)
+- [x] Add quick filter buttons below search bar (Household Drop-off, Free, Municipal)
+- [x] Improve copy/messaging ("Search X Recycling Centers", "I'm looking for...")
+- [x] Test new homepage layout and search flow (Denver, CO verified)

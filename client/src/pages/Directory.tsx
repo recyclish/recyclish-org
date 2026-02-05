@@ -58,6 +58,11 @@ export default function Directory() {
     const categoryParam = params.get('category');
     const nearMe = params.get('nearme');
     const household = params.get('household');
+    const feeParam = params.get('fee');
+    const latParam = params.get('lat');
+    const lngParam = params.get('lng');
+    const locationNameParam = params.get('locationName');
+    const distanceParam = params.get('distance');
     
     if (stateParam) {
       setSelectedState(stateParam);
@@ -70,6 +75,21 @@ export default function Directory() {
     }
     if (household === 'true') {
       setHouseholdDropoff(true);
+    }
+    if (feeParam) {
+      setSelectedFee(feeParam);
+    }
+    // Handle location from HeroSearch
+    if (latParam && lngParam) {
+      const lat = parseFloat(latParam);
+      const lng = parseFloat(lngParam);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setUserLocation({ latitude: lat, longitude: lng });
+        setLocationDisplayName(locationNameParam || 'Selected Location');
+        if (distanceParam) {
+          setSelectedDistance(distanceParam);
+        }
+      }
     }
   }, []);
 
