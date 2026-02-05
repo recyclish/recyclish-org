@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { RecyclingFacility } from "@/components/RecyclingCard";
+import { getDataUrl } from "@/lib/dataVersion";
 
 // Common material types extracted from Feedstock field
 export const MATERIAL_TYPES = [
@@ -261,7 +262,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   useEffect(() => {
     async function loadData() {
       try {
-        const response = await fetch("/data/master_recycling_directory.csv");
+        const response = await fetch(getDataUrl());
         if (!response.ok) {
           throw new Error("Failed to load recycling data");
         }

@@ -441,3 +441,7 @@
 - [x] Remove 3 corrupted data entries (notes/hours parsed as facility names)
 - [x] Geocode the corrected addresses
 - [x] Verify 100% geocoding coverage (2,692 facilities, all with coordinates)
+
+## Cache-Busting for CSV Data
+- [x] Add version parameter to CSV URL to force browser cache refresh (v=20260205-2692)
+- [x] Test that new data loads correctly after version change (verified in network logs)
