@@ -365,3 +365,14 @@
 - [x] Remove SocialShareButtons from Home.tsx hero section
 - [x] Add SocialShareButtons to Footer component (new "Connect With Us" section)
 - [x] Style share buttons appropriately for footer placement (4-column grid layout)
+
+## Add SEIRD Facilities to Directory
+- [x] Add Batesville Recycle Center (IN)
+- [x] Add Franklin County Recycle Center (IN)
+- [x] Add Jefferson County Recycling Center (IN)
+- [x] Add Jennings County Recycle Center (IN)
+- [x] Add Ohio County Recycle Center (IN)
+- [x] Add Ripley County Recycle Center (IN)
+- [x] Add Scott County Recycle Center (IN)
+- [x] Add Switzerland County Recycle Center (IN)
+- [x] Verify facilities appear correctly in directory
