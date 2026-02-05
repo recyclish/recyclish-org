@@ -417,3 +417,9 @@
 - [x] Geocode ZIP codes using Google Geocoder API
 - [x] Show search button or allow Enter key to trigger ZIP search
 - [x] Test with ZIP code 47265 (Indiana) - Found Jennings County SEIRD at 1302 ft away
+
+## Bug Fix: Distance Filtering Not Working
+- [x] Investigate why facilities from other states appear in search results (660 facilities missing coordinates)
+- [x] Fix distance calculation to correctly filter by radius (exclude facilities without coords when distance filter active)
+- [x] Ensure only facilities within selected distance are shown
+- [x] Test with ZIP code 47265 - Now shows 4 SEIRD facilities within 25 miles, Jennings County at 1302 ft

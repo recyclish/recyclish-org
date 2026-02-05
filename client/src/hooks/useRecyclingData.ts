@@ -379,11 +379,17 @@ export function useRecyclingData(): UseRecyclingDataReturn {
 
         // Distance filter
         let matchesDistance = selectedDistance === "any";
-        if (!matchesDistance && facility.distance !== undefined) {
-          const maxDistance = parseInt(selectedDistance, 10);
-          matchesDistance = facility.distance <= maxDistance;
-        } else if (!matchesDistance && facility.distance === undefined) {
-          // If no distance calculated (no user location), include all
+        if (!matchesDistance && userLocation) {
+          // When user has selected a location and distance filter is active
+          if (facility.distance !== undefined) {
+            const maxDistance = parseInt(selectedDistance, 10);
+            matchesDistance = facility.distance <= maxDistance;
+          } else {
+            // Exclude facilities without coordinates when distance filtering is active
+            matchesDistance = false;
+          }
+        } else if (!matchesDistance && !userLocation) {
+          // If no user location set, include all (distance filter not applicable)
           matchesDistance = true;
         }
 
