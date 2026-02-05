@@ -27,7 +27,7 @@ export default function Home() {
         />
         <meta 
           name="keywords" 
-          content="recycling centers, recycling near me, electronics recycling, hazardous waste disposal, sharps disposal, e-waste recycling, plastic recycling, glass recycling, paper recycling, recycling directory, recycling locations, where to recycle, free recycling" 
+          content="recycling centers near me, recycling directory, electronics recycling, hazardous waste disposal, free recycling drop-off, where to recycle" 
         />
         <link rel="canonical" href="https://recycling.recyclish.com/" />
         

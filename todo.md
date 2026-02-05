@@ -408,3 +408,6 @@
 - [x] Add quick filter buttons below search bar (Household Drop-off, Free, Municipal)
 - [x] Improve copy/messaging ("Search X Recycling Centers", "I'm looking for...")
 - [x] Test new homepage layout and search flow (Denver, CO verified)
+
+## SEO Fixes
+- [x] Reduce homepage keywords from 13 to 6 focused keywords
