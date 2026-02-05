@@ -390,3 +390,14 @@
 - [x] Research all other states' government recycling programs (558 facilities added)
 - [x] Add verified facilities to CSV with complete information (660 total new facilities)
 - [x] Verify all new facilities appear correctly in directory (2,695 total facilities)
+
+## Improve Search/Filter Experience for Consumers
+- [x] Replace generic search with city-based location search
+- [x] Add city autocomplete with geocoding for distance calculations (Google Places JS API)
+- [x] Sort results by distance from entered city/location ("Sorted by distance" badge)
+- [x] Add prominent "Household Drop-off" filter for mixed recyclables
+- [x] Create "Accepts Mixed Recyclables" indicator for facilities (Municipal Recycling badge)
+- [x] Simplify facility type filter to consumer-friendly categories (Quick Filters)
+- [x] Add distance display on facility cards (e.g., "1.2 miles away")
+- [x] Update search placeholder to "Enter your city or ZIP code"
+- [x] Test new search experience across different cities (Austin, TX verified)

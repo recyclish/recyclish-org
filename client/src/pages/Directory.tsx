@@ -37,7 +37,12 @@ export default function Directory() {
     setSelectedDropoff,
     selectedFee,
     setSelectedFee,
+    householdDropoff,
+    setHouseholdDropoff,
     userLocation,
+    setUserLocation,
+    locationDisplayName,
+    setLocationDisplayName,
     isLocating,
     locationError,
     requestLocation,
@@ -52,6 +57,7 @@ export default function Directory() {
     const stateParam = params.get('state');
     const categoryParam = params.get('category');
     const nearMe = params.get('nearme');
+    const household = params.get('household');
     
     if (stateParam) {
       setSelectedState(stateParam);
@@ -61,6 +67,9 @@ export default function Directory() {
     }
     if (nearMe === 'true') {
       requestLocation();
+    }
+    if (household === 'true') {
+      setHouseholdDropoff(true);
     }
   }, []);
 
@@ -83,7 +92,7 @@ export default function Directory() {
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(ITEMS_PER_PAGE);
-  }, [searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, selectedDropoff, selectedFee]);
+  }, [searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, selectedDropoff, selectedFee, householdDropoff, userLocation]);
 
   return (
     <>
@@ -91,7 +100,7 @@ export default function Directory() {
         <title>Browse All Recycling Centers | National Directory</title>
         <meta 
           name="description" 
-          content="Search and browse 2,000+ recycling centers across all 50 US states. Filter by location, material type, and more. Free directory for electronics, plastics, hazardous waste, and sharps disposal." 
+          content="Search and browse 2,600+ recycling centers across all 50 US states. Filter by location, material type, and more. Free directory for electronics, plastics, hazardous waste, and sharps disposal." 
         />
         <meta 
           name="keywords" 
@@ -101,7 +110,7 @@ export default function Directory() {
         
         {/* Open Graph */}
         <meta property="og:title" content="Browse All Recycling Centers | National Directory" />
-        <meta property="og:description" content="Search and browse 2,000+ recycling centers across all 50 US states." />
+        <meta property="og:description" content="Search and browse 2,600+ recycling centers across all 50 US states." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://recycling.recyclish.com/directory" />
         <meta property="og:image" content="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/MHnZhwLgCpRxIMdo.png" />
@@ -145,12 +154,17 @@ export default function Directory() {
             setSelectedDropoff={setSelectedDropoff}
             selectedFee={selectedFee}
             setSelectedFee={setSelectedFee}
+            householdDropoff={householdDropoff}
+            setHouseholdDropoff={setHouseholdDropoff}
             states={states}
             categories={categories}
             onClear={clearFilters}
             totalResults={filteredFacilities.length}
             activeFilterCount={activeFilterCount}
             userLocation={userLocation}
+            setUserLocation={setUserLocation}
+            locationDisplayName={locationDisplayName}
+            setLocationDisplayName={setLocationDisplayName}
             isLocating={isLocating}
             locationError={locationError}
             requestLocation={requestLocation}

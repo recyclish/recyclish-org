@@ -99,9 +99,14 @@ export default function StatePage() {
     selectedFee,
     setSelectedFee,
     userLocation,
+    setUserLocation,
+    locationDisplayName,
+    setLocationDisplayName,
     isLocating,
     locationError,
     requestLocation,
+    householdDropoff,
+    setHouseholdDropoff,
     clearFilters,
     activeFilterCount,
   } = useRecyclingData();
@@ -357,6 +362,8 @@ export default function StatePage() {
             setSelectedDropoff={setSelectedDropoff}
             selectedFee={selectedFee}
             setSelectedFee={setSelectedFee}
+            householdDropoff={householdDropoff}
+            setHouseholdDropoff={setHouseholdDropoff}
             states={[]}
             categories={stateCategories}
             onClear={() => {
@@ -364,15 +371,20 @@ export default function StatePage() {
               setSelectedCategory("all");
               setSelectedDropoff("all");
               setSelectedFee("all");
+              setHouseholdDropoff(false);
             }}
             totalResults={filteredFacilities.length}
             activeFilterCount={
               (searchTerm ? 1 : 0) +
               (selectedCategory !== "all" ? 1 : 0) +
               (selectedDropoff !== "all" ? 1 : 0) +
-              (selectedFee !== "all" ? 1 : 0)
+              (selectedFee !== "all" ? 1 : 0) +
+              (householdDropoff ? 1 : 0)
             }
             userLocation={userLocation}
+            setUserLocation={setUserLocation}
+            locationDisplayName={locationDisplayName}
+            setLocationDisplayName={setLocationDisplayName}
             isLocating={isLocating}
             locationError={locationError}
             requestLocation={requestLocation}

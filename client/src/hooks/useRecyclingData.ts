@@ -40,6 +40,12 @@ export const FEE_OPTIONS = [
   { value: "pays", label: "Pays for Materials" },
 ];
 
+// Household recyclable materials - common items consumers want to drop off
+const HOUSEHOLD_MATERIALS = [
+  "paper", "cardboard", "plastic", "glass", "aluminum", "steel", "cans",
+  "newspaper", "magazines", "mixed paper", "bottles", "containers"
+];
+
 interface UserLocation {
   latitude: number;
   longitude: number;
@@ -69,7 +75,12 @@ interface UseRecyclingDataReturn {
   setSelectedDropoff: (value: string) => void;
   selectedFee: string;
   setSelectedFee: (value: string) => void;
+  householdDropoff: boolean;
+  setHouseholdDropoff: (value: boolean) => void;
   userLocation: UserLocation | null;
+  setUserLocation: (location: UserLocation | null) => void;
+  locationDisplayName: string;
+  setLocationDisplayName: (name: string) => void;
   isLocating: boolean;
   locationError: string | null;
   requestLocation: () => void;
@@ -211,6 +222,25 @@ function normalizeState(state: string): string {
   return US_STATES[trimmed] || '';
 }
 
+// Check if facility accepts household recyclables
+function acceptsHouseholdRecyclables(facility: RecyclingFacility): boolean {
+  const feedstockLower = (facility.Feedstock || "").toLowerCase();
+  const categoryLower = (facility.Category || "").toLowerCase();
+  
+  // Municipal recycling centers typically accept household items
+  if (categoryLower.includes("municipal")) {
+    return true;
+  }
+  
+  // Check if feedstock mentions common household materials
+  const matchCount = HOUSEHOLD_MATERIALS.filter(
+    material => feedstockLower.includes(material)
+  ).length;
+  
+  // If it accepts 3+ household materials, consider it a household drop-off
+  return matchCount >= 3;
+}
+
 export function useRecyclingData(): UseRecyclingDataReturn {
   const [facilities, setFacilities] = useState<RecyclingFacility[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -222,7 +252,9 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   const [selectedDistance, setSelectedDistance] = useState("any");
   const [selectedDropoff, setSelectedDropoff] = useState("all");
   const [selectedFee, setSelectedFee] = useState("all");
+  const [householdDropoff, setHouseholdDropoff] = useState(false);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [locationDisplayName, setLocationDisplayName] = useState("");
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
@@ -260,7 +292,12 @@ export function useRecyclingData(): UseRecyclingDataReturn {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
+        setLocationDisplayName("Your Location");
         setIsLocating(false);
+        // Auto-set distance when location is obtained
+        if (selectedDistance === "any") {
+          setSelectedDistance("25");
+        }
       },
       (error) => {
         let message = "Unable to get your location";
@@ -280,7 +317,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
     );
-  }, []);
+  }, [selectedDistance]);
 
   const states = useMemo(() => {
     // Normalize and filter to only valid US states
@@ -366,7 +403,15 @@ export function useRecyclingData(): UseRecyclingDataReturn {
           }
         }
 
-        return matchesSearch && matchesState && matchesCategory && matchesMaterial && matchesDistance && matchesDropoff && matchesFee;
+        // Household drop-off filter
+        let matchesHousehold = !householdDropoff;
+        if (householdDropoff) {
+          matchesHousehold = acceptsHouseholdRecyclables(facility) && 
+            (facility.Accepts_Dropoff === "Yes" || facility.Accepts_Dropoff === "By Appointment");
+        }
+
+        return matchesSearch && matchesState && matchesCategory && matchesMaterial && 
+               matchesDistance && matchesDropoff && matchesFee && matchesHousehold;
       })
       .sort((a, b) => {
         // Sort by distance if available
@@ -375,7 +420,8 @@ export function useRecyclingData(): UseRecyclingDataReturn {
         }
         return 0;
       });
-  }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, selectedDropoff, selectedFee, userLocation]);
+  }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, 
+      selectedDistance, selectedDropoff, selectedFee, householdDropoff, userLocation]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -386,8 +432,11 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     if (selectedDistance !== "any") count++;
     if (selectedDropoff !== "all") count++;
     if (selectedFee !== "all") count++;
+    if (householdDropoff) count++;
+    if (userLocation) count++;
     return count;
-  }, [searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, selectedDropoff, selectedFee]);
+  }, [searchTerm, selectedState, selectedCategory, selectedMaterial, 
+      selectedDistance, selectedDropoff, selectedFee, householdDropoff, userLocation]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -397,6 +446,9 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedDistance("any");
     setSelectedDropoff("all");
     setSelectedFee("all");
+    setHouseholdDropoff(false);
+    setUserLocation(null);
+    setLocationDisplayName("");
   };
 
   return {
@@ -423,7 +475,12 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedDropoff,
     selectedFee,
     setSelectedFee,
+    householdDropoff,
+    setHouseholdDropoff,
     userLocation,
+    setUserLocation,
+    locationDisplayName,
+    setLocationDisplayName,
     isLocating,
     locationError,
     requestLocation,
