@@ -434,3 +434,10 @@
 - [x] Run geocoding process - geocoded 662 facilities successfully
 - [x] Update CSV with new coordinates (2,690 of 2,695 now have coordinates)
 - [x] Only 5 facilities remain without coordinates (malformed data entries)
+
+## Fix 5 Malformed Facility Entries
+- [x] Identify the 5 facilities with missing coordinates
+- [x] Research and fix 2 valid facilities (O & M Electronic, Veolia ES Technical Solutions)
+- [x] Remove 3 corrupted data entries (notes/hours parsed as facility names)
+- [x] Geocode the corrected addresses
+- [x] Verify 100% geocoding coverage (2,692 facilities, all with coordinates)
