@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Home, Package, Recycle, ArrowRight, Navigation, Loader2 } from "lucide-react";
+import { Home, Recycle, ArrowRight, Navigation, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -65,6 +65,11 @@ function loadMapsScript(): Promise<void> {
   return mapsScriptPromise;
 }
 
+// Check if input is a valid US ZIP code (5 digits)
+function isZipCode(value: string): boolean {
+  return /^\d{5}$/.test(value.trim());
+}
+
 interface HeroSearchProps {
   states: string[];
   totalFacilities: number;
@@ -85,6 +90,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
   const [isLocating, setIsLocating] = useState(false);
   const [selectedState, setSelectedState] = useState("all");
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [isGeocodingZip, setIsGeocodingZip] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -105,8 +111,52 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       });
   }, []);
 
-  // Fetch predictions
+  // Geocode ZIP code
+  const geocodeZipCode = useCallback((zipCode: string) => {
+    if (!geocoderRef.current) return;
+
+    setIsGeocodingZip(true);
+    geocoderRef.current.geocode(
+      { address: zipCode, componentRestrictions: { country: "us" } },
+      (results, status) => {
+        setIsGeocodingZip(false);
+        if (status === "OK" && results?.[0]) {
+          const location = results[0].geometry.location;
+          // Extract city/state from address components
+          let cityName = zipCode;
+          const addressComponents = results[0].address_components;
+          const locality = addressComponents?.find(c => c.types.includes("locality"));
+          const adminArea = addressComponents?.find(c => c.types.includes("administrative_area_level_1"));
+          if (locality && adminArea) {
+            cityName = `${locality.short_name}, ${adminArea.short_name} ${zipCode}`;
+          } else if (adminArea) {
+            cityName = `${adminArea.short_name} ${zipCode}`;
+          }
+          
+          setSelectedLocation({
+            lat: location.lat(),
+            lng: location.lng(),
+            name: cityName,
+          });
+          setInputValue("");
+          setPredictions([]);
+          setShowDropdown(false);
+        } else {
+          console.error("ZIP code geocoding failed:", status);
+        }
+      }
+    );
+  }, []);
+
+  // Fetch predictions (for city search)
   const fetchPredictions = useCallback(async (query: string) => {
+    // Don't fetch predictions for ZIP codes
+    if (isZipCode(query)) {
+      setPredictions([]);
+      setIsSearching(false);
+      return;
+    }
+    
     if (query.length < 2 || !autocompleteServiceRef.current) {
       setPredictions([]);
       return;
@@ -143,7 +193,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     }
   }, []);
 
-  // Geocode place
+  // Geocode place (for city selection)
   const geocodePlace = useCallback((placeId: string, description: string) => {
     if (!geocoderRef.current) return;
 
@@ -165,7 +215,14 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
   // Handle input change
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    setShowDropdown(true);
+    
+    // Only show dropdown for non-ZIP inputs
+    if (!isZipCode(value)) {
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+      setPredictions([]);
+    }
 
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -174,6 +231,19 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     debounceRef.current = setTimeout(() => {
       fetchPredictions(value);
     }, 300);
+  };
+
+  // Handle Enter key press for ZIP code search
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (isZipCode(inputValue)) {
+        geocodeZipCode(inputValue.trim());
+      } else if (predictions.length > 0) {
+        // Select first prediction if available
+        handleSelectPrediction(predictions[0]);
+      }
+    }
   };
 
   // Handle prediction selection
@@ -208,6 +278,13 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     );
   };
 
+  // Handle ZIP code search button click
+  const handleZipSearch = () => {
+    if (isZipCode(inputValue)) {
+      geocodeZipCode(inputValue.trim());
+    }
+  };
+
   // Handle click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -227,6 +304,12 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
 
   // Handle search submission
   const handleSearch = () => {
+    // If user has typed a ZIP code but hasn't geocoded it yet, do that first
+    if (isZipCode(inputValue) && !selectedLocation) {
+      geocodeZipCode(inputValue.trim());
+      return;
+    }
+    
     const params = new URLSearchParams();
     
     if (selectedLocation) {
@@ -251,6 +334,9 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     setLocation(`/directory?${params.toString()}`);
   };
 
+  // Check if current input is a valid ZIP code
+  const showZipSearchButton = isZipCode(inputValue) && !selectedLocation;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -262,7 +348,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
         Search {totalFacilities.toLocaleString()} Recycling Centers
       </h2>
       <p className="text-muted-foreground font-body text-sm mb-6">
-        Enter your city to find drop-off locations for household recyclables, electronics, hazardous waste, and more.
+        Enter your city or ZIP code to find drop-off locations for household recyclables, electronics, hazardous waste, and more.
       </p>
 
       {/* Search Row */}
@@ -297,12 +383,13 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
                     type="text"
                     value={inputValue}
                     onChange={(e) => handleInputChange(e.target.value)}
-                    onFocus={() => inputValue && setShowDropdown(true)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
                     placeholder="Enter city or ZIP code"
-                    className="pl-9 font-body"
+                    className="pl-9 pr-10 font-body"
                     disabled={!mapsReady}
                   />
-                  {isSearching && (
+                  {(isSearching || isGeocodingZip) && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
                   )}
                 </>
@@ -333,10 +420,35 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
                   ))}
                 </div>
               )}
+              
+              {/* ZIP code hint */}
+              {showZipSearchButton && (
+                <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      <span className="text-sm">Search ZIP code <strong>{inputValue}</strong></span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={handleZipSearch}
+                      disabled={isGeocodingZip}
+                      className="font-label"
+                    >
+                      {isGeocodingZip ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Search"
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Press Enter or click Search</p>
+                </div>
+              )}
             </div>
 
             {/* Use My Location button */}
-            {!selectedLocation && (
+            {!selectedLocation && !showZipSearchButton && (
               <Button
                 variant="outline"
                 size="icon"

@@ -411,3 +411,9 @@
 
 ## SEO Fixes
 - [x] Reduce homepage keywords from 13 to 6 focused keywords
+
+## ZIP Code Search Support
+- [x] Detect when user enters a 5-digit ZIP code
+- [x] Geocode ZIP codes using Google Geocoder API
+- [x] Show search button or allow Enter key to trigger ZIP search
+- [x] Test with ZIP code 47265 (Indiana) - Found Jennings County SEIRD at 1302 ft away

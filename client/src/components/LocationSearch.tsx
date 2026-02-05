@@ -29,6 +29,11 @@ interface PlacePrediction {
   secondary_text: string;
 }
 
+// Check if input is a valid US ZIP code (5 digits)
+function isZipCode(value: string): boolean {
+  return /^\d{5}$/.test(value.trim());
+}
+
 // Load Google Maps script if not already loaded
 let mapsScriptLoaded = false;
 let mapsScriptPromise: Promise<void> | null = null;
@@ -81,6 +86,7 @@ export function LocationSearch({
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedLocationName, setSelectedLocationName] = useState<string | null>(null);
   const [mapsReady, setMapsReady] = useState(false);
+  const [isGeocodingZip, setIsGeocodingZip] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,8 +106,53 @@ export function LocationSearch({
       });
   }, []);
 
+  // Geocode ZIP code
+  const geocodeZipCode = useCallback((zipCode: string) => {
+    if (!geocoderRef.current) return;
+
+    setIsGeocodingZip(true);
+    geocoderRef.current.geocode(
+      { address: zipCode, componentRestrictions: { country: "us" } },
+      (results, status) => {
+        setIsGeocodingZip(false);
+        if (status === "OK" && results?.[0]) {
+          const location = results[0].geometry.location;
+          // Extract city/state from address components
+          let cityName = zipCode;
+          const addressComponents = results[0].address_components;
+          const locality = addressComponents?.find(c => c.types.includes("locality"));
+          const adminArea = addressComponents?.find(c => c.types.includes("administrative_area_level_1"));
+          if (locality && adminArea) {
+            cityName = `${locality.short_name}, ${adminArea.short_name} ${zipCode}`;
+          } else if (adminArea) {
+            cityName = `${adminArea.short_name} ${zipCode}`;
+          }
+          
+          onLocationSelect({
+            latitude: location.lat(),
+            longitude: location.lng(),
+            displayName: cityName,
+          });
+          setSelectedLocationName(cityName);
+          setInputValue("");
+          setPredictions([]);
+          setShowDropdown(false);
+        } else {
+          console.error("ZIP code geocoding failed:", status);
+        }
+      }
+    );
+  }, [onLocationSelect]);
+
   // Fetch place predictions using Google Places Autocomplete Service
   const fetchPredictions = useCallback(async (query: string) => {
+    // Don't fetch predictions for ZIP codes
+    if (isZipCode(query)) {
+      setPredictions([]);
+      setIsSearching(false);
+      return;
+    }
+    
     if (query.length < 2 || !autocompleteServiceRef.current) {
       setPredictions([]);
       return;
@@ -168,7 +219,14 @@ export function LocationSearch({
   // Debounced input handler
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    setShowDropdown(true);
+    
+    // Only show dropdown for non-ZIP inputs
+    if (!isZipCode(value)) {
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+      setPredictions([]);
+    }
 
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -179,9 +237,29 @@ export function LocationSearch({
     }, 300);
   };
 
+  // Handle Enter key press for ZIP code search
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (isZipCode(inputValue)) {
+        geocodeZipCode(inputValue.trim());
+      } else if (predictions.length > 0) {
+        // Select first prediction if available
+        handleSelectPrediction(predictions[0]);
+      }
+    }
+  };
+
   // Handle prediction selection
   const handleSelectPrediction = (prediction: PlacePrediction) => {
     geocodePlace(prediction.place_id, prediction.description);
+  };
+
+  // Handle ZIP code search button click
+  const handleZipSearch = () => {
+    if (isZipCode(inputValue)) {
+      geocodeZipCode(inputValue.trim());
+    }
   };
 
   // Clear location
@@ -220,6 +298,9 @@ export function LocationSearch({
     }
   }, [currentLocation, selectedLocationName]);
 
+  // Check if current input is a valid ZIP code
+  const showZipSearchButton = isZipCode(inputValue) && !selectedLocationName;
+
   return (
     <div className={cn("relative", className)}>
       <label className="text-sm font-label text-muted-foreground mb-1.5 block">
@@ -251,12 +332,13 @@ export function LocationSearch({
                 type="text"
                 value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
-                onFocus={() => inputValue && setShowDropdown(true)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
                 placeholder="e.g., Austin, TX or 78701"
-                className="pl-9 font-body"
+                className="pl-9 pr-10 font-body"
                 disabled={!mapsReady}
               />
-              {isSearching && (
+              {(isSearching || isGeocodingZip) && (
                 <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
               )}
             </>
@@ -287,10 +369,35 @@ export function LocationSearch({
               ))}
             </div>
           )}
+
+          {/* ZIP code hint */}
+          {showZipSearchButton && (
+            <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span className="text-sm">Search ZIP code <strong>{inputValue}</strong></span>
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={handleZipSearch}
+                  disabled={isGeocodingZip}
+                  className="font-label"
+                >
+                  {isGeocodingZip ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Search"
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Press Enter or click Search</p>
+            </div>
+          )}
         </div>
 
         {/* Use My Location button */}
-        {!selectedLocationName && (
+        {!selectedLocationName && !showZipSearchButton && (
           <Button
             variant="outline"
             size="icon"
