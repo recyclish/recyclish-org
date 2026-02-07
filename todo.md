@@ -506,3 +506,6 @@
 
 ## Bug Fix: Duplicate React Keys for Tier Separators
 - [x] Fix duplicate key error when same tier appears multiple times in distance-sorted results
+
+## Reposition Value Proposition Badges
+- [x] Move Verified Data, Updated Regularly, Mobile Friendly badges down to center on the light panel above the lower section

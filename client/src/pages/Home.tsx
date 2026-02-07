@@ -149,7 +149,7 @@ export default function Home() {
         </section>
 
         {/* Value Propositions Section */}
-        <section className="container -mt-4 relative z-10 mb-8">
+        <section className="container relative z-10 py-6">
           <Stats />
         </section>
 
