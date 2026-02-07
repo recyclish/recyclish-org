@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, MapPin, Home, Syringe, Store, Search } from "lucide-react";
+import { X, Filter, MapPin, Home, Syringe, Store, Search, Cpu, Battery, CircleDot, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { MATERIAL_TYPES, DISTANCE_OPTIONS, DROPOFF_OPTIONS, FEE_OPTIONS } from "@/hooks/useRecyclingData";
 import { LocationSearch } from "./LocationSearch";
@@ -102,6 +102,24 @@ export function SearchFilters({
       .replace("Recyclers", "Recycling")
       .replace("(MRFs)", "")
       .trim();
+  };
+
+  // Material shortcut tags
+  const MATERIAL_SHORTCUTS = [
+    { value: "electronics", label: "Electronics", icon: Cpu, activeClass: "bg-blue-600 text-white hover:bg-blue-700", inactiveClass: "border-blue-200 text-blue-700 hover:bg-blue-50" },
+    { value: "batteries", label: "Batteries", icon: Battery, activeClass: "bg-amber-600 text-white hover:bg-amber-700", inactiveClass: "border-amber-200 text-amber-700 hover:bg-amber-50" },
+    { value: "tires", label: "Tires", icon: CircleDot, activeClass: "bg-gray-700 text-white hover:bg-gray-800", inactiveClass: "border-gray-300 text-gray-700 hover:bg-gray-50" },
+    { value: "cardboard", label: "Cardboard", icon: Package, activeClass: "bg-yellow-700 text-white hover:bg-yellow-800", inactiveClass: "border-yellow-300 text-yellow-800 hover:bg-yellow-50" },
+  ] as const;
+
+  const activeMaterialShortcut = MATERIAL_SHORTCUTS.find(m => selectedMaterial === m.value);
+
+  const toggleMaterialShortcut = (value: string) => {
+    if (selectedMaterial === value) {
+      setSelectedMaterial("all");
+    } else {
+      setSelectedMaterial(value);
+    }
   };
 
   // Count currently active quick filters
@@ -276,6 +294,29 @@ export function SearchFilters({
             <Store className="h-4 w-4 mr-1.5" />
             Retail Take-Back
           </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <span className="text-xs text-muted-foreground self-center mr-1">By material:</span>
+          {MATERIAL_SHORTCUTS.map((shortcut) => {
+            const Icon = shortcut.icon;
+            const isActive = selectedMaterial === shortcut.value;
+            return (
+              <Button
+                key={shortcut.value}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleMaterialShortcut(shortcut.value)}
+                className={cn(
+                  "font-label text-xs h-7 px-2.5",
+                  isActive && shortcut.activeClass,
+                  !isActive && shortcut.inactiveClass
+                )}
+              >
+                <Icon className="h-3.5 w-3.5 mr-1" />
+                {shortcut.label}
+              </Button>
+            );
+          })}
         </div>
       </div>
 

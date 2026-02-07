@@ -91,6 +91,10 @@ export default function Directory() {
     if (retailParam === 'true') {
       setRetailTakeBack(true);
     }
+    const materialParam = params.get('material');
+    if (materialParam) {
+      setSelectedMaterial(materialParam);
+    }
     // Handle location from HeroSearch
     if (latParam && lngParam) {
       const lat = parseFloat(latParam);

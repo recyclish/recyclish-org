@@ -9,6 +9,8 @@ export const MATERIAL_TYPES = [
   { value: "plastic", label: "Plastic", keywords: ["plastic"] },
   { value: "glass", label: "Glass", keywords: ["glass"] },
   { value: "paper", label: "Paper", keywords: ["paper"] },
+  { value: "cardboard", label: "Cardboard", keywords: ["cardboard"] },
+  { value: "tires", label: "Tires", keywords: ["tires", "tire"] },
   { value: "textiles", label: "Textiles", keywords: ["textiles", "clothing", "fabric"] },
   { value: "wood", label: "Wood", keywords: ["wood"] },
   { value: "ink", label: "Ink & Toner", keywords: ["ink", "toner", "cartridges"] },

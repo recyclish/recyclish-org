@@ -483,3 +483,11 @@
 - [x] Prioritize quick filter categories (household drop-off, free, sharps, retail take-back) at top of results when no filters selected
 - [x] Push commercial recyclers and electronics recyclers to bottom of results
 - [x] Add visible orange "Search" button to directory page filter tile
+
+## Material Shortcut Tags in Quick Filters
+- [x] Add Electronics shortcut tag to quick filters on homepage and directory
+- [x] Add Batteries shortcut tag to quick filters on homepage and directory
+- [x] Add Tires shortcut tag to quick filters on homepage and directory
+- [x] Add Cardboard shortcut tag to quick filters on homepage and directory
+- [x] Pass material shortcuts through URL params from homepage to directory
+- [x] Update useRecyclingData to support material shortcut filtering

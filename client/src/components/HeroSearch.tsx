@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, ArrowRight, Loader2, Syringe, Store } from "lucide-react";
+import { Home, ArrowRight, Loader2, Syringe, Store, Cpu, Battery, CircleDot, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ function isZipCode(value: string): boolean {
 
 const MAX_FILTERS = 2;
 
-type FilterKey = "household" | "free" | "sharps" | "retail";
+type FilterKey = "household" | "free" | "sharps" | "retail" | "electronics" | "batteries" | "tires" | "cardboard";
 
 interface HeroSearchProps {
   states: string[];
@@ -318,6 +318,12 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     if (selectedFilters.has("retail")) {
       params.set("retail", "true");
     }
+    // Material shortcut tags
+    const materialShortcuts: FilterKey[] = ["electronics", "batteries", "tires", "cardboard"];
+    const activeMaterial = materialShortcuts.find(m => selectedFilters.has(m));
+    if (activeMaterial) {
+      params.set("material", activeMaterial);
+    }
     
     setLocation(`/directory?${params.toString()}`);
   };
@@ -503,6 +509,61 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
           >
             <Store className="h-4 w-4 mr-1.5" />
             Retail Take-Back
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <span className="text-xs text-muted-foreground self-center mr-1">By material:</span>
+          <Button
+            variant={selectedFilters.has("electronics") ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleFilter("electronics")}
+            className={cn(
+              "font-label text-xs h-7 px-2.5",
+              selectedFilters.has("electronics") && "bg-blue-600 text-white hover:bg-blue-700",
+              !selectedFilters.has("electronics") && "border-blue-200 text-blue-700 hover:bg-blue-50"
+            )}
+          >
+            <Cpu className="h-3.5 w-3.5 mr-1" />
+            Electronics
+          </Button>
+          <Button
+            variant={selectedFilters.has("batteries") ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleFilter("batteries")}
+            className={cn(
+              "font-label text-xs h-7 px-2.5",
+              selectedFilters.has("batteries") && "bg-amber-600 text-white hover:bg-amber-700",
+              !selectedFilters.has("batteries") && "border-amber-200 text-amber-700 hover:bg-amber-50"
+            )}
+          >
+            <Battery className="h-3.5 w-3.5 mr-1" />
+            Batteries
+          </Button>
+          <Button
+            variant={selectedFilters.has("tires") ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleFilter("tires")}
+            className={cn(
+              "font-label text-xs h-7 px-2.5",
+              selectedFilters.has("tires") && "bg-gray-700 text-white hover:bg-gray-800",
+              !selectedFilters.has("tires") && "border-gray-300 text-gray-700 hover:bg-gray-50"
+            )}
+          >
+            <CircleDot className="h-3.5 w-3.5 mr-1" />
+            Tires
+          </Button>
+          <Button
+            variant={selectedFilters.has("cardboard") ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleFilter("cardboard")}
+            className={cn(
+              "font-label text-xs h-7 px-2.5",
+              selectedFilters.has("cardboard") && "bg-yellow-700 text-white hover:bg-yellow-800",
+              !selectedFilters.has("cardboard") && "border-yellow-300 text-yellow-800 hover:bg-yellow-50"
+            )}
+          >
+            <Package className="h-3.5 w-3.5 mr-1" />
+            Cardboard
           </Button>
         </div>
       </div>
