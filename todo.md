@@ -445,3 +445,8 @@
 ## Cache-Busting for CSV Data
 - [x] Add version parameter to CSV URL to force browser cache refresh (v=20260205-2692)
 - [x] Test that new data loads correctly after version change (verified in network logs)
+
+## Simplify Value Tiles on Homepage
+- [x] Remove "Free Drop-offs" tile (redundant with filter above)
+- [x] Convert remaining 3 tiles into compact inline list (no card/tile styling)
+- [x] Reduce whitespace and size, especially on mobile (icon + title + description inline)
