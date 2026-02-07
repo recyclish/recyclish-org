@@ -533,29 +533,18 @@ export function useRecyclingData(): UseRecyclingDataReturn {
                matchesDistance && matchesDropoff && matchesFee && matchesHousehold && matchesSharps && matchesRetail;
       })
       .sort((a, b) => {
-        // When distance is available, use distance as primary sort
-        // with priority as secondary sort for facilities at similar distances
-        if (a.distance !== undefined && b.distance !== undefined) {
-          const distDiff = a.distance - b.distance;
-          // If distances are meaningfully different (>0.5 miles apart), sort by distance
-          if (Math.abs(distDiff) > 0.5) {
-            return distDiff;
-          }
-          // For facilities at similar distances, use priority as tiebreaker
-          const priorityA = getFacilityPriority(a);
-          const priorityB = getFacilityPriority(b);
-          if (priorityA !== priorityB) {
-            return priorityA - priorityB;
-          }
-          return distDiff;
-        }
-        
-        // When no distance sorting available, always apply priority sorting
-        // This ensures consumer-friendly facilities appear first by default
+        // ALWAYS sort by priority tier first (consumer-friendly facilities at top,
+        // electronics/commercial at bottom), regardless of distance.
+        // Within each tier, sort by distance if available, otherwise alphabetical.
         const priorityA = getFacilityPriority(a);
         const priorityB = getFacilityPriority(b);
         if (priorityA !== priorityB) {
           return priorityA - priorityB;
+        }
+        
+        // Within the same priority tier, sort by distance if available
+        if (a.distance !== undefined && b.distance !== undefined) {
+          return a.distance - b.distance;
         }
         
         // Final tiebreaker: alphabetical by name

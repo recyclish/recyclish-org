@@ -509,3 +509,8 @@
 
 ## Reposition Value Proposition Badges
 - [x] Move Verified Data, Updated Regularly, Mobile Friendly badges down to center on the light panel above the lower section
+
+## CRITICAL: Fix Facility Sort Order (Electronics at top, Municipal at bottom - WRONG)
+- [x] Investigate and fix why electronics still appear at top and free municipal/household at bottom
+- [x] Root cause: distance was PRIMARY sort, priority only tiebreaker within 0.5mi — now priority is ALWAYS primary
+- [ ] Add unit test to prevent regression of sort order
