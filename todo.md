@@ -450,3 +450,6 @@
 - [x] Remove "Free Drop-offs" tile (redundant with filter above)
 - [x] Convert remaining 3 tiles into compact inline list (no card/tile styling)
 - [x] Reduce whitespace and size, especially on mobile (icon + title + description inline)
+
+## Bug Fix: Stats component missing key prop
+- [x] Fix React "key" prop warning in Stats component map render (used Fragment with key)
