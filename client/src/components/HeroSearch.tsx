@@ -1,12 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Home, Recycle, ArrowRight, Navigation, Loader2 } from "lucide-react";
+import { Home, Recycle, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -87,8 +80,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     name: string;
   } | null>(null);
   const [mapsReady, setMapsReady] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
-  const [selectedState, setSelectedState] = useState("all");
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [isGeocodingZip, setIsGeocodingZip] = useState(false);
   
@@ -148,7 +139,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     );
   }, []);
 
-  // Fetch predictions (for city search)
+  // Fetch predictions (for city/state search)
   const fetchPredictions = useCallback(async (query: string) => {
     // Don't fetch predictions for ZIP codes
     if (isZipCode(query)) {
@@ -258,26 +249,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     setPredictions([]);
   };
 
-  // Use browser geolocation
-  const handleUseMyLocation = () => {
-    if (!navigator.geolocation) return;
-    
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setSelectedLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          name: "Your Location",
-        });
-        setIsLocating(false);
-      },
-      () => {
-        setIsLocating(false);
-      }
-    );
-  };
-
   // Handle ZIP code search button click
   const handleZipSearch = () => {
     if (isZipCode(inputValue)) {
@@ -319,10 +290,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       params.set("distance", "25");
     }
     
-    if (selectedState !== "all") {
-      params.set("state", selectedState);
-    }
-    
     if (selectedFilter === "household") {
       params.set("household", "true");
     } else if (selectedFilter === "free") {
@@ -348,143 +315,103 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
         Search {totalFacilities.toLocaleString()} Recycling Centers
       </h2>
       <p className="text-muted-foreground font-body text-sm mb-6">
-        Enter your city or ZIP code to find drop-off locations for household recyclables, electronics, hazardous waste, and more.
+        Enter your city, state or ZIP code to find drop-off locations for household recyclables, electronics, hazardous waste, and more.
       </p>
 
       {/* Search Row */}
       <div className="grid gap-4 md:grid-cols-12">
         {/* Location Input */}
-        <div className="md:col-span-5 relative">
+        <div className="md:col-span-8 relative">
           <label className="text-sm font-label text-muted-foreground mb-1.5 block">
             Your Location
           </label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              {selectedLocation ? (
-                <div className="flex items-center gap-2 h-10 px-3 bg-green-50 border border-green-200 rounded-md">
-                  <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-                  <span className="text-sm text-green-700 font-medium truncate">
-                    {selectedLocation.name}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 ml-auto hover:bg-green-100"
-                    onClick={handleClearLocation}
+          <div className="relative">
+            {selectedLocation ? (
+              <div className="flex items-center gap-2 h-10 px-3 bg-green-50 border border-green-200 rounded-md">
+                <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                <span className="text-sm text-green-700 font-medium truncate">
+                  {selectedLocation.name}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 ml-auto hover:bg-green-100"
+                  onClick={handleClearLocation}
+                >
+                  <X className="h-4 w-4 text-green-600" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
+                  placeholder="Enter city, state or ZIP"
+                  className="pl-9 pr-10 font-body"
+                  disabled={!mapsReady}
+                />
+                {(isSearching || isGeocodingZip) && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </>
+            )}
+
+            {/* Predictions dropdown */}
+            {showDropdown && predictions.length > 0 && !selectedLocation && (
+              <div
+                ref={dropdownRef}
+                className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-auto"
+              >
+                {predictions.map((prediction) => (
+                  <button
+                    key={prediction.place_id}
+                    className="w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors flex items-start gap-3 border-b border-border/50 last:border-0"
+                    onClick={() => handleSelectPrediction(prediction)}
                   >
-                    <X className="h-4 w-4 text-green-600" />
+                    <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="font-medium text-sm">
+                        {prediction.main_text}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {prediction.secondary_text}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {/* ZIP code hint */}
+            {showZipSearchButton && (
+              <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span className="text-sm">Search ZIP code <strong>{inputValue}</strong></span>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    onClick={handleZipSearch}
+                    disabled={isGeocodingZip}
+                    className="font-label"
+                  >
+                    {isGeocodingZip ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Search"
+                    )}
                   </Button>
                 </div>
-              ) : (
-                <>
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    ref={inputRef}
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
-                    placeholder="Enter city or ZIP code"
-                    className="pl-9 pr-10 font-body"
-                    disabled={!mapsReady}
-                  />
-                  {(isSearching || isGeocodingZip) && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                </>
-              )}
-
-              {/* Predictions dropdown */}
-              {showDropdown && predictions.length > 0 && !selectedLocation && (
-                <div
-                  ref={dropdownRef}
-                  className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-auto"
-                >
-                  {predictions.map((prediction) => (
-                    <button
-                      key={prediction.place_id}
-                      className="w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors flex items-start gap-3 border-b border-border/50 last:border-0"
-                      onClick={() => handleSelectPrediction(prediction)}
-                    >
-                      <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <div className="font-medium text-sm">
-                          {prediction.main_text}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {prediction.secondary_text}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-              
-              {/* ZIP code hint */}
-              {showZipSearchButton && (
-                <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Search ZIP code <strong>{inputValue}</strong></span>
-                    </div>
-                    <Button 
-                      size="sm" 
-                      onClick={handleZipSearch}
-                      disabled={isGeocodingZip}
-                      className="font-label"
-                    >
-                      {isGeocodingZip ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Search"
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Press Enter or click Search</p>
-                </div>
-              )}
-            </div>
-
-            {/* Use My Location button */}
-            {!selectedLocation && !showZipSearchButton && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleUseMyLocation}
-                disabled={isLocating}
-                className="flex-shrink-0"
-                title="Use my current location"
-              >
-                {isLocating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Navigation className="h-4 w-4" />
-                )}
-              </Button>
+                <p className="text-xs text-muted-foreground mt-1">Press Enter or click Search</p>
+              </div>
             )}
           </div>
-        </div>
-
-        {/* State Filter */}
-        <div className="md:col-span-3">
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            State (Optional)
-          </label>
-          <Select value={selectedState} onValueChange={setSelectedState}>
-            <SelectTrigger className="font-body">
-              <SelectValue placeholder="All States" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All States</SelectItem>
-              {states.map((state) => (
-                <SelectItem key={state} value={state}>
-                  {state}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Search Button */}

@@ -304,7 +304,7 @@ export function LocationSearch({
   return (
     <div className={cn("relative", className)}>
       <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-        Enter your city or ZIP code
+        Your Location
       </label>
 
       <div className="flex gap-2">
@@ -334,7 +334,7 @@ export function LocationSearch({
                 onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
-                placeholder="e.g., Austin, TX or 78701"
+                placeholder="Enter city, state or ZIP"
                 className="pl-9 pr-10 font-body"
                 disabled={!mapsReady}
               />
@@ -396,23 +396,6 @@ export function LocationSearch({
           )}
         </div>
 
-        {/* Use My Location button */}
-        {!selectedLocationName && !showZipSearchButton && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onUseMyLocation}
-            disabled={isLocating}
-            className="flex-shrink-0"
-            title="Use my current location"
-          >
-            {isLocating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Navigation className="h-4 w-4" />
-            )}
-          </Button>
-        )}
       </div>
     </div>
   );

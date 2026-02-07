@@ -453,3 +453,9 @@
 
 ## Bug Fix: Stats component missing key prop
 - [x] Fix React "key" prop warning in Stats component map render (used Fragment with key)
+
+## Simplify Search Bar
+- [x] Remove "Use my current location" button from HeroSearch
+- [x] Remove "State (Optional)" dropdown from HeroSearch
+- [x] Update placeholder to "Enter city, state or ZIP"
+- [x] Update LocationSearch on Directory page similarly (placeholder + removed location button)
