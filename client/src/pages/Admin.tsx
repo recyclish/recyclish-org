@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
 import { StarRating } from "@/components/StarRating";
+import { Input } from "@/components/ui/input";
 import { 
   CheckCircle, 
   XCircle, 
@@ -26,7 +27,11 @@ import {
   Flag,
   AlertTriangle,
   Star,
-  MessageSquare
+  MessageSquare,
+  Users,
+  Search,
+  UserX,
+  UserCheck
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -35,7 +40,7 @@ import { toast } from "sonner";
 type SubmissionStatus = "pending" | "approved" | "rejected";
 type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
 type ReviewStatus = "pending" | "approved" | "rejected";
-type AdminView = "submissions" | "reports" | "reviews";
+type AdminView = "submissions" | "reports" | "reviews" | "newsletter";
 
 interface Submission {
   id: number;
@@ -156,6 +161,8 @@ export default function Admin() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [reportDetailDialogOpen, setReportDetailDialogOpen] = useState(false);
   const [reviewDetailDialogOpen, setReviewDetailDialogOpen] = useState(false);
+  const [subscriberSearch, setSubscriberSearch] = useState("");
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   const utils = trpc.useUtils();
 
@@ -182,6 +189,14 @@ export default function Admin() {
 
   // Fetch review stats
   const { data: reviewStats } = trpc.reviews.adminStats.useQuery();
+
+  // Fetch newsletter subscribers
+  const { data: subscribers, isLoading: subscribersLoading } = trpc.newsletter.list.useQuery(
+    { activeOnly: showActiveOnly }
+  );
+
+  // Fetch newsletter stats
+  const { data: newsletterStats } = trpc.newsletter.stats.useQuery();
 
   // Update status mutation
   const updateStatusMutation = trpc.facility.updateStatus.useMutation({
@@ -267,6 +282,47 @@ export default function Admin() {
   // Export approved facilities
   const { refetch: refetchExport } = trpc.facility.exportApproved.useQuery(undefined, {
     enabled: false
+  });
+
+  // Export newsletter subscribers as CSV
+  const handleExportSubscribers = () => {
+    if (!filteredSubscribers || filteredSubscribers.length === 0) {
+      toast.info("No subscribers to export");
+      return;
+    }
+    const headers = ["Email", "Zip Code", "Age", "Gender", "Status", "Subscribed Date"];
+    const csvContent = [
+      headers.join(","),
+      ...filteredSubscribers.map(sub => [
+        `"${sub.email}"`,
+        `"${sub.zipCode}"`,
+        `"${sub.age || ''}"`,
+        `"${sub.gender || ''}"`,
+        sub.isActive ? "Active" : "Inactive",
+        `"${new Date(sub.createdAt).toLocaleDateString()}"`
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `newsletter_subscribers_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredSubscribers.length} subscribers`);
+  };
+
+  // Filter subscribers by search term
+  const filteredSubscribers = (subscribers || []).filter(sub => {
+    if (!subscriberSearch) return true;
+    const search = subscriberSearch.toLowerCase();
+    return (
+      sub.email.toLowerCase().includes(search) ||
+      sub.zipCode.toLowerCase().includes(search) ||
+      (sub.age || "").toLowerCase().includes(search) ||
+      (sub.gender || "").toLowerCase().includes(search)
+    );
   });
 
   const handleExport = async () => {
@@ -427,13 +483,19 @@ export default function Admin() {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-                <p className="text-sm text-muted-foreground">Manage submissions, reports, and reviews</p>
+                <p className="text-sm text-muted-foreground">Manage submissions, reports, reviews, and subscribers</p>
               </div>
             </div>
             {adminView === "submissions" && (
               <Button onClick={handleExport} variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export Approved
+              </Button>
+            )}
+            {adminView === "newsletter" && (
+              <Button onClick={handleExportSubscribers} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export Subscribers
               </Button>
             )}
           </div>
@@ -474,6 +536,17 @@ export default function Admin() {
             Reviews
             {getTotalPendingReviews() > 0 && (
               <Badge variant="secondary" className="ml-1 bg-yellow-100 text-yellow-800">{getTotalPendingReviews()}</Badge>
+            )}
+          </Button>
+          <Button
+            variant={adminView === "newsletter" ? "default" : "outline"}
+            onClick={() => setAdminView("newsletter")}
+            className="gap-2"
+          >
+            <Mail className="h-4 w-4" />
+            Newsletter
+            {newsletterStats && (
+              <Badge variant="secondary" className="ml-1 bg-emerald-100 text-emerald-800">{newsletterStats.active}</Badge>
             )}
           </Button>
         </div>
@@ -666,6 +739,136 @@ export default function Admin() {
                 )}
               </TabsContent>
             </Tabs>
+          </>
+        ) : adminView === "newsletter" ? (
+          <>
+            {/* Newsletter Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Active Subscribers</p>
+                      <p className="text-3xl font-bold text-emerald-600">{newsletterStats?.active ?? 0}</p>
+                    </div>
+                    <UserCheck className="h-10 w-10 text-emerald-600/20" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Signups</p>
+                      <p className="text-3xl font-bold text-blue-600">{newsletterStats?.total ?? 0}</p>
+                    </div>
+                    <Users className="h-10 w-10 text-blue-600/20" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Unsubscribed</p>
+                      <p className="text-3xl font-bold text-gray-500">{(newsletterStats?.total ?? 0) - (newsletterStats?.active ?? 0)}</p>
+                    </div>
+                    <UserX className="h-10 w-10 text-gray-500/20" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Search and Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by email, zip code, age..."
+                  value={subscriberSearch}
+                  onChange={(e) => setSubscriberSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant={showActiveOnly ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowActiveOnly(true)}
+                >
+                  Active Only
+                </Button>
+                <Button
+                  variant={!showActiveOnly ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowActiveOnly(false)}
+                >
+                  All Subscribers
+                </Button>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4">
+              Showing {filteredSubscribers.length} of {subscribers?.length ?? 0} subscribers
+            </p>
+
+            {/* Subscriber List */}
+            {subscribersLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredSubscribers.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Mail className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    {subscriberSearch ? "No subscribers match your search" : "No subscribers yet"}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">Email</th>
+                        <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">Zip Code</th>
+                        <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3 hidden md:table-cell">Age</th>
+                        <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3 hidden md:table-cell">Gender</th>
+                        <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3">Status</th>
+                        <th className="text-left text-sm font-medium text-muted-foreground px-4 py-3 hidden sm:table-cell">Subscribed</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {filteredSubscribers.map((sub) => (
+                        <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <a href={`mailto:${sub.email}`} className="text-sm font-medium text-primary hover:underline truncate max-w-[250px]">
+                                {sub.email}
+                              </a>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm">{sub.zipCode}</td>
+                          <td className="px-4 py-3 text-sm hidden md:table-cell text-muted-foreground">{sub.age || "—"}</td>
+                          <td className="px-4 py-3 text-sm hidden md:table-cell text-muted-foreground">{sub.gender || "—"}</td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline" className={sub.isActive ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
+                              {sub.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">
+                            {new Date(sub.createdAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </>
         ) : adminView === "reports" ? (
           <>

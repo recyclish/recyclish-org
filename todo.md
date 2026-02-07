@@ -514,3 +514,10 @@
 - [x] Investigate and fix why electronics still appear at top and free municipal/household at bottom
 - [x] Root cause: distance was PRIMARY sort, priority only tiebreaker within 0.5mi — now priority is ALWAYS primary
 - [ ] Add unit test to prevent regression of sort order
+
+## Newsletter Subscribers Tab in Admin Dashboard
+- [x] Add "Newsletter" tab to Admin Dashboard view switcher
+- [x] Display subscriber list with email, zip code, age, gender, status, signup date
+- [x] Add search/filter functionality for subscribers
+- [x] Add CSV export button for subscriber emails
+- [x] Show subscriber stats (total, active, inactive)
