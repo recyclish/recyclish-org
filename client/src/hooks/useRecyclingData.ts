@@ -250,6 +250,9 @@ function acceptsHouseholdRecyclables(facility: RecyclingFacility): boolean {
 
 // Priority ranking for default sort order (lower = higher priority)
 // Prioritizes consumer-friendly drop-off locations, pushes commercial/electronics to bottom
+// IMPORTANT: Electronics and commercial checks MUST come first, before any drop-off/fee
+// checks, because most electronics recyclers have Dropoff=Yes which would otherwise
+// place them above sharps and retail facilities.
 function getFacilityPriority(facility: RecyclingFacility): number {
   const categoryLower = (facility.Category || "").toLowerCase();
   const nameLower = (facility.Name || "").toLowerCase();
@@ -257,13 +260,27 @@ function getFacilityPriority(facility: RecyclingFacility): number {
   const dropoff = facility.Accepts_Dropoff || "";
   const fee = facility.Fee_Structure || "";
   
+  // === BOTTOM-TIER CHECKS FIRST (always push these down) ===
+  
+  // Tier 8: Electronics recyclers (pushed to bottom, regardless of drop-off/fee)
+  if (categoryLower.includes("electronics")) {
+    return 8;
+  }
+  
+  // Tier 9: Commercial/secondary recyclers (pushed to very bottom)
+  if (categoryLower.includes("commercial") || categoryLower.includes("secondary")) {
+    return 9;
+  }
+  
+  // === CONSUMER-FRIENDLY TIERS (these should appear at the top) ===
+  
   // Tier 1: Free municipal/household drop-off sites (most consumer-friendly)
   if ((categoryLower.includes("municipal") || acceptsHouseholdRecyclables(facility)) &&
       dropoff === "Yes" && fee === "Free") {
     return 1;
   }
   
-  // Tier 2: Free drop-off sites (any type)
+  // Tier 2: Free drop-off sites (any type, excluding electronics/commercial already filtered)
   if (dropoff === "Yes" && fee === "Free") {
     return 2;
   }
@@ -287,19 +304,13 @@ function getFacilityPriority(facility: RecyclingFacility): number {
     return 5;
   }
   
-  // Tier 6: General recycling facilities
-  if (!categoryLower.includes("commercial") && !categoryLower.includes("secondary") &&
-      !categoryLower.includes("electronics")) {
+  // Tier 6: Paid municipal/household facilities
+  if (categoryLower.includes("municipal") || acceptsHouseholdRecyclables(facility)) {
     return 6;
   }
   
-  // Tier 7: Electronics recyclers (pushed lower)
-  if (categoryLower.includes("electronics")) {
-    return 7;
-  }
-  
-  // Tier 8: Commercial/secondary recyclers (pushed to bottom)
-  return 8;
+  // Tier 7: General recycling facilities
+  return 7;
 }
 
 export function useRecyclingData(): UseRecyclingDataReturn {

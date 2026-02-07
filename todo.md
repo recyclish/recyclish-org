@@ -491,3 +491,8 @@
 - [x] Add Cardboard shortcut tag to quick filters on homepage and directory
 - [x] Pass material shortcuts through URL params from homepage to directory
 - [x] Update useRecyclingData to support material shortcut filtering
+
+## Fix Default Result Ordering (Consumer-Friendly First)
+- [x] Ensure household drop-off, free, sharps, and retail take-back facilities appear at top of default results
+- [x] Push electronics recyclers and commercial recyclers to bottom of default results
+- [x] Verify priority sorting matches quick filter categories for consumer-first experience
