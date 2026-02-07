@@ -7,9 +7,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, MapPin, ChevronDown, ChevronUp, Home, Package, Syringe } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { X, Filter, MapPin, Home, Syringe, Store } from "lucide-react";
+import { motion } from "framer-motion";
 import { MATERIAL_TYPES, DISTANCE_OPTIONS, DROPOFF_OPTIONS, FEE_OPTIONS } from "@/hooks/useRecyclingData";
 import { LocationSearch } from "./LocationSearch";
 import { cn } from "@/lib/utils";
@@ -40,6 +39,8 @@ interface SearchFiltersProps {
   setHouseholdDropoff: (value: boolean) => void;
   sharpsFilter: boolean;
   setSharpsFilter: (value: boolean) => void;
+  retailTakeBack: boolean;
+  setRetailTakeBack: (value: boolean) => void;
   states: string[];
   categories: string[];
   onClear: () => void;
@@ -76,6 +77,8 @@ export function SearchFilters({
   setHouseholdDropoff,
   sharpsFilter,
   setSharpsFilter,
+  retailTakeBack,
+  setRetailTakeBack,
   states,
   categories,
   onClear,
@@ -90,7 +93,6 @@ export function SearchFilters({
   requestLocation,
   facilities = [],
 }: SearchFiltersProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const hasFilters = activeFilterCount > 0;
 
   const formatCategory = (cat: string) => {
@@ -107,6 +109,7 @@ export function SearchFilters({
     householdDropoff,
     selectedFee === "Free",
     sharpsFilter,
+    retailTakeBack,
   ].filter(Boolean).length;
 
   // Toggle a quick filter, respecting the max of 2
@@ -115,12 +118,10 @@ export function SearchFilters({
     setter: (value: boolean) => void
   ) => {
     if (currentValue) {
-      // Always allow deselecting
       setter(false);
     } else if (activeQuickFilterCount < MAX_QUICK_FILTERS) {
       setter(true);
     }
-    // If at max, do nothing
   };
 
   const toggleFeeFilter = () => {
@@ -141,7 +142,6 @@ export function SearchFilters({
     if (location.latitude && location.longitude) {
       setUserLocation({ latitude: location.latitude, longitude: location.longitude });
       setLocationDisplayName(location.displayName);
-      // Auto-set distance filter when location is selected
       if (selectedDistance === "any") {
         setSelectedDistance("25");
       }
@@ -175,29 +175,10 @@ export function SearchFilters({
             </Badge>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="text-muted-foreground hover:text-foreground font-label"
-        >
-          {showAdvanced ? (
-            <>
-              <ChevronUp className="h-4 w-4 mr-1" />
-              Less Filters
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 mr-1" />
-              More Filters
-            </>
-          )}
-        </Button>
       </div>
       
-      {/* Primary Search Row - Location-based */}
+      {/* Primary Search Row - Location + Distance */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Location Search - Primary */}
         <div>
           <LocationSearch
             onLocationSelect={handleLocationSelect}
@@ -210,7 +191,6 @@ export function SearchFilters({
           )}
         </div>
         
-        {/* Distance Filter */}
         <div>
           <label className="text-sm font-label text-muted-foreground mb-1.5 block">
             Distance
@@ -237,7 +217,7 @@ export function SearchFilters({
         </div>
       </div>
 
-      {/* Quick Filter Buttons - Consumer-friendly, up to 2 selectable */}
+      {/* Quick Filter Buttons - up to 2 selectable */}
       <div className="mt-4 pt-4 border-t border-border/50">
         <label className="text-sm font-label text-muted-foreground mb-2 block">
           Quick Filters
@@ -283,99 +263,100 @@ export function SearchFilters({
             <Syringe className="h-4 w-4 mr-1.5" />
             Needles / Sharps
           </Button>
+          <Button
+            variant={retailTakeBack ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleQuickFilter(retailTakeBack, setRetailTakeBack)}
+            className={cn(
+              "font-label",
+              retailTakeBack && "bg-primary text-primary-foreground",
+              !retailTakeBack && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <Store className="h-4 w-4 mr-1.5" />
+            Retail Take-Back
+          </Button>
         </div>
       </div>
 
-      {/* Advanced Filters */}
-      <AnimatePresence>
-        {showAdvanced && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="grid gap-4 md:grid-cols-3 mt-4 pt-4 border-t border-border/50">
-              <div>
-                <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-                  Facility Type
-                </label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="font-body">
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Facility Types</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {formatCategory(category)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* All Dropdown Filters - Always visible */}
+      <div className="grid gap-4 md:grid-cols-3 mt-4 pt-4 border-t border-border/50">
+        <div>
+          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
+            Facility Type
+          </label>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="font-body">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Facility Types</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {formatCategory(category)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-              <div>
-                <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-                  Material Type
-                </label>
-                <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
-                  <SelectTrigger className="font-body">
-                    <SelectValue placeholder="All Materials" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Materials</SelectItem>
-                    {MATERIAL_TYPES.map((material) => (
-                      <SelectItem key={material.value} value={material.value}>
-                        {material.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <div>
+          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
+            Material Type
+          </label>
+          <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
+            <SelectTrigger className="font-body">
+              <SelectValue placeholder="All Materials" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Materials</SelectItem>
+              {MATERIAL_TYPES.map((material) => (
+                <SelectItem key={material.value} value={material.value}>
+                  {material.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-              <div>
-                <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-                  Drop-off Availability
-                </label>
-                <Select value={selectedDropoff} onValueChange={setSelectedDropoff}>
-                  <SelectTrigger className="font-body">
-                    <SelectValue placeholder="All Facilities" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DROPOFF_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <div>
+          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
+            Drop-off Availability
+          </label>
+          <Select value={selectedDropoff} onValueChange={setSelectedDropoff}>
+            <SelectTrigger className="font-body">
+              <SelectValue placeholder="All Facilities" />
+            </SelectTrigger>
+            <SelectContent>
+              {DROPOFF_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-            <div className="grid gap-4 md:grid-cols-3 mt-4">
-              <div>
-                <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-                  Fee Structure
-                </label>
-                <Select value={selectedFee} onValueChange={setSelectedFee}>
-                  <SelectTrigger className="font-body">
-                    <SelectValue placeholder="Any Fee Structure" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FEE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="grid gap-4 md:grid-cols-3 mt-4">
+        <div>
+          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
+            Fee Structure
+          </label>
+          <Select value={selectedFee} onValueChange={setSelectedFee}>
+            <SelectTrigger className="font-body">
+              <SelectValue placeholder="Any Fee Structure" />
+            </SelectTrigger>
+            <SelectContent>
+              {FEE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       
       {/* Results and Clear */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">

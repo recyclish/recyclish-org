@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, ArrowRight, Loader2, Syringe } from "lucide-react";
+import { Home, ArrowRight, Loader2, Syringe, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ function isZipCode(value: string): boolean {
 
 const MAX_FILTERS = 2;
 
-type FilterKey = "household" | "free" | "sharps";
+type FilterKey = "household" | "free" | "sharps" | "retail";
 
 interface HeroSearchProps {
   states: string[];
@@ -315,6 +315,9 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     if (selectedFilters.has("sharps")) {
       params.set("sharps", "true");
     }
+    if (selectedFilters.has("retail")) {
+      params.set("retail", "true");
+    }
     
     setLocation(`/directory?${params.toString()}`);
   };
@@ -488,6 +491,18 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
           >
             <Syringe className="h-4 w-4 mr-1.5" />
             Needles / Sharps
+          </Button>
+          <Button
+            variant={selectedFilters.has("retail") ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleFilter("retail")}
+            className={cn(
+              "font-label",
+              selectedFilters.has("retail") && "bg-primary text-primary-foreground"
+            )}
+          >
+            <Store className="h-4 w-4 mr-1.5" />
+            Retail Take-Back
           </Button>
         </div>
       </div>

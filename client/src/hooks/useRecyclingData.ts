@@ -80,6 +80,8 @@ interface UseRecyclingDataReturn {
   setHouseholdDropoff: (value: boolean) => void;
   sharpsFilter: boolean;
   setSharpsFilter: (value: boolean) => void;
+  retailTakeBack: boolean;
+  setRetailTakeBack: (value: boolean) => void;
   userLocation: UserLocation | null;
   setUserLocation: (location: UserLocation | null) => void;
   locationDisplayName: string;
@@ -257,6 +259,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   const [selectedFee, setSelectedFee] = useState("all");
   const [householdDropoff, setHouseholdDropoff] = useState(false);
   const [sharpsFilter, setSharpsFilter] = useState(false);
+  const [retailTakeBack, setRetailTakeBack] = useState(false);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationDisplayName, setLocationDisplayName] = useState("");
   const [isLocating, setIsLocating] = useState(false);
@@ -435,8 +438,32 @@ export function useRecyclingData(): UseRecyclingDataReturn {
             nameLower.includes("needle");
         }
 
+        // Retail Take-Back filter
+        let matchesRetail = !retailTakeBack;
+        if (retailTakeBack) {
+          const nameLower = (facility.Name || "").toLowerCase();
+          const categoryLower = (facility.Category || "").toLowerCase();
+          const typeLower = (facility.Facility_Type || "").toLowerCase();
+          matchesRetail = nameLower.includes("best buy") ||
+            nameLower.includes("staples") ||
+            nameLower.includes("home depot") ||
+            nameLower.includes("lowe") ||
+            nameLower.includes("walmart") ||
+            nameLower.includes("target") ||
+            nameLower.includes("batteries plus") ||
+            nameLower.includes("office depot") ||
+            nameLower.includes("goodwill") ||
+            nameLower.includes("salvation army") ||
+            categoryLower.includes("retail") ||
+            categoryLower.includes("take-back") ||
+            categoryLower.includes("takeback") ||
+            typeLower.includes("retail") ||
+            typeLower.includes("take-back") ||
+            typeLower.includes("store");
+        }
+
         return matchesSearch && matchesState && matchesCategory && matchesMaterial && 
-               matchesDistance && matchesDropoff && matchesFee && matchesHousehold && matchesSharps;
+               matchesDistance && matchesDropoff && matchesFee && matchesHousehold && matchesSharps && matchesRetail;
       })
       .sort((a, b) => {
         // Sort by distance if available
@@ -446,7 +473,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
         return 0;
       });
   }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, 
-      selectedDistance, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, userLocation]);
+      selectedDistance, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, retailTakeBack, userLocation]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -459,10 +486,11 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     if (selectedFee !== "all") count++;
     if (householdDropoff) count++;
     if (sharpsFilter) count++;
+    if (retailTakeBack) count++;
     if (userLocation) count++;
     return count;
   }, [searchTerm, selectedState, selectedCategory, selectedMaterial, 
-      selectedDistance, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, userLocation]);
+      selectedDistance, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, retailTakeBack, userLocation]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -474,6 +502,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedFee("all");
     setHouseholdDropoff(false);
     setSharpsFilter(false);
+    setRetailTakeBack(false);
     setUserLocation(null);
     setLocationDisplayName("");
   };
@@ -506,6 +535,8 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setHouseholdDropoff,
     sharpsFilter,
     setSharpsFilter,
+    retailTakeBack,
+    setRetailTakeBack,
     userLocation,
     setUserLocation,
     locationDisplayName,

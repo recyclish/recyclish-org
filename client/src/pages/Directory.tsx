@@ -41,6 +41,8 @@ export default function Directory() {
     setHouseholdDropoff,
     sharpsFilter,
     setSharpsFilter,
+    retailTakeBack,
+    setRetailTakeBack,
     userLocation,
     setUserLocation,
     locationDisplayName,
@@ -84,6 +86,10 @@ export default function Directory() {
     const sharpsParam = params.get('sharps');
     if (sharpsParam === 'true') {
       setSharpsFilter(true);
+    }
+    const retailParam = params.get('retail');
+    if (retailParam === 'true') {
+      setRetailTakeBack(true);
     }
     // Handle location from HeroSearch
     if (latParam && lngParam) {
@@ -184,6 +190,8 @@ export default function Directory() {
             setHouseholdDropoff={setHouseholdDropoff}
             sharpsFilter={sharpsFilter}
             setSharpsFilter={setSharpsFilter}
+            retailTakeBack={retailTakeBack}
+            setRetailTakeBack={setRetailTakeBack}
             states={states}
             categories={categories}
             onClear={clearFilters}

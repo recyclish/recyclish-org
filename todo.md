@@ -471,3 +471,10 @@
 ## Remove State Dropdown from Directory Filters
 - [x] Remove state dropdown from SearchFilters component (state is now in the search bar)
 - [x] Updated grid layout from 3 columns to 2 columns (Location + Distance only)
+
+## Filter Improvements
+- [x] Add "Retail Take-Back" to quick filters on homepage and directory
+- [x] Remove "More Filters" / "Less Filters" toggle from SearchFilters
+- [x] Show all dropdown filters by default (no hidden advanced section)
+- [x] Add retail take-back filtering logic in useRecyclingData
+- [x] Pass retail filter through URL params from homepage to directory
