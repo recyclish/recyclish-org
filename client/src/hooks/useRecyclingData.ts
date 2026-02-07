@@ -246,6 +246,60 @@ function acceptsHouseholdRecyclables(facility: RecyclingFacility): boolean {
   return matchCount >= 3;
 }
 
+// Priority ranking for default sort order (lower = higher priority)
+// Prioritizes consumer-friendly drop-off locations, pushes commercial/electronics to bottom
+function getFacilityPriority(facility: RecyclingFacility): number {
+  const categoryLower = (facility.Category || "").toLowerCase();
+  const nameLower = (facility.Name || "").toLowerCase();
+  const feedstockLower = (facility.Feedstock || "").toLowerCase();
+  const dropoff = facility.Accepts_Dropoff || "";
+  const fee = facility.Fee_Structure || "";
+  
+  // Tier 1: Free municipal/household drop-off sites (most consumer-friendly)
+  if ((categoryLower.includes("municipal") || acceptsHouseholdRecyclables(facility)) &&
+      dropoff === "Yes" && fee === "Free") {
+    return 1;
+  }
+  
+  // Tier 2: Free drop-off sites (any type)
+  if (dropoff === "Yes" && fee === "Free") {
+    return 2;
+  }
+  
+  // Tier 3: Sharps/needles disposal (important for health/safety)
+  if (categoryLower.includes("sharps") || feedstockLower.includes("sharps") ||
+      feedstockLower.includes("needle") || nameLower.includes("sharps")) {
+    return 3;
+  }
+  
+  // Tier 4: Retail take-back programs (convenient for consumers)
+  if (categoryLower.includes("retail") || categoryLower.includes("take-back") ||
+      nameLower.includes("best buy") || nameLower.includes("staples") ||
+      nameLower.includes("home depot") || nameLower.includes("goodwill") ||
+      nameLower.includes("salvation army")) {
+    return 4;
+  }
+  
+  // Tier 5: Other drop-off accepting facilities
+  if (dropoff === "Yes") {
+    return 5;
+  }
+  
+  // Tier 6: General recycling facilities
+  if (!categoryLower.includes("commercial") && !categoryLower.includes("secondary") &&
+      !categoryLower.includes("electronics")) {
+    return 6;
+  }
+  
+  // Tier 7: Electronics recyclers (pushed lower)
+  if (categoryLower.includes("electronics")) {
+    return 7;
+  }
+  
+  // Tier 8: Commercial/secondary recyclers (pushed to bottom)
+  return 8;
+}
+
 export function useRecyclingData(): UseRecyclingDataReturn {
   const [facilities, setFacilities] = useState<RecyclingFacility[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -466,11 +520,33 @@ export function useRecyclingData(): UseRecyclingDataReturn {
                matchesDistance && matchesDropoff && matchesFee && matchesHousehold && matchesSharps && matchesRetail;
       })
       .sort((a, b) => {
-        // Sort by distance if available
+        // When distance is available, use distance as primary sort
+        // with priority as secondary sort for facilities at similar distances
         if (a.distance !== undefined && b.distance !== undefined) {
-          return a.distance - b.distance;
+          const distDiff = a.distance - b.distance;
+          // If distances are meaningfully different (>0.5 miles apart), sort by distance
+          if (Math.abs(distDiff) > 0.5) {
+            return distDiff;
+          }
+          // For facilities at similar distances, use priority as tiebreaker
+          const priorityA = getFacilityPriority(a);
+          const priorityB = getFacilityPriority(b);
+          if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+          }
+          return distDiff;
         }
-        return 0;
+        
+        // When no distance sorting available, always apply priority sorting
+        // This ensures consumer-friendly facilities appear first by default
+        const priorityA = getFacilityPriority(a);
+        const priorityB = getFacilityPriority(b);
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+        
+        // Final tiebreaker: alphabetical by name
+        return (a.Name || "").localeCompare(b.Name || "");
       });
   }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, 
       selectedDistance, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, retailTakeBack, userLocation]);

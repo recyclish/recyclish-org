@@ -478,3 +478,8 @@
 - [x] Show all dropdown filters by default (no hidden advanced section)
 - [x] Add retail take-back filtering logic in useRecyclingData
 - [x] Pass retail filter through URL params from homepage to directory
+
+## Result Prioritization and Search Button
+- [x] Prioritize quick filter categories (household drop-off, free, sharps, retail take-back) at top of results when no filters selected
+- [x] Push commercial recyclers and electronics recyclers to bottom of results
+- [x] Add visible orange "Search" button to directory page filter tile

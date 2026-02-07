@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, MapPin, Home, Syringe, Store } from "lucide-react";
+import { X, Filter, MapPin, Home, Syringe, Store, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { MATERIAL_TYPES, DISTANCE_OPTIONS, DROPOFF_OPTIONS, FEE_OPTIONS } from "@/hooks/useRecyclingData";
 import { LocationSearch } from "./LocationSearch";
@@ -358,8 +358,34 @@ export function SearchFilters({
         </div>
       </div>
       
-      {/* Results and Clear */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+      {/* Search Button and Results */}
+      <div className="mt-4 pt-4 border-t border-border/50">
+        <div className="flex items-center gap-3 mb-3">
+          <Button
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-label px-6 py-2"
+            onClick={() => {
+              // Scroll to results
+              const resultsEl = document.getElementById('facility-results');
+              if (resultsEl) {
+                resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Search
+          </Button>
+          {hasFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClear}
+              className="text-muted-foreground hover:text-foreground font-label"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Clear all filters
+            </Button>
+          )}
+        </div>
         <div className="flex items-center gap-4">
           <p className="text-sm font-body text-muted-foreground">
             Showing <span className="font-semibold text-foreground">{totalResults.toLocaleString()}</span> recycling facilities
@@ -371,18 +397,6 @@ export function SearchFilters({
             </Badge>
           )}
         </div>
-        
-        {hasFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClear}
-            className="text-muted-foreground hover:text-foreground font-label"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Clear all filters
-          </Button>
-        )}
       </div>
     </motion.div>
   );

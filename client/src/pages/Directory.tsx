@@ -231,7 +231,7 @@ export default function Directory() {
             </div>
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-8">
+              <div id="facility-results" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-8">
                 {displayedFacilities.map((facility, index) => {
                   const facilityId = generateFacilityId(facility.Name, facility.Address);
                   return (
