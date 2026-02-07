@@ -496,3 +496,10 @@
 - [x] Ensure household drop-off, free, sharps, and retail take-back facilities appear at top of default results
 - [x] Push electronics recyclers and commercial recyclers to bottom of default results
 - [x] Verify priority sorting matches quick filter categories for consumer-first experience
+
+## Tier Label / Visual Separators in Search Results
+- [x] Create tier label component with icon, title, and description for each facility group
+- [x] Integrate tier separators into Directory results grid between facility groups
+- [x] Ensure separators only show when no type-narrowing filter is active (show for state/location/search)
+- [x] Handle edge cases: distance-based search, filtered results, Load More pagination
+- [x] Style separators to be visually distinct but not overwhelming

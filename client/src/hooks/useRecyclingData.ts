@@ -253,7 +253,7 @@ function acceptsHouseholdRecyclables(facility: RecyclingFacility): boolean {
 // IMPORTANT: Electronics and commercial checks MUST come first, before any drop-off/fee
 // checks, because most electronics recyclers have Dropoff=Yes which would otherwise
 // place them above sharps and retail facilities.
-function getFacilityPriority(facility: RecyclingFacility): number {
+export function getFacilityPriority(facility: RecyclingFacility): number {
   const categoryLower = (facility.Category || "").toLowerCase();
   const nameLower = (facility.Name || "").toLowerCase();
   const feedstockLower = (facility.Feedstock || "").toLowerCase();

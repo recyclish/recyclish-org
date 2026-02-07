@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SearchFilters } from "@/components/SearchFilters";
 import { RecyclingCard, generateFacilityId } from "@/components/RecyclingCard";
-import { useRecyclingData } from "@/hooks/useRecyclingData";
+import { useRecyclingData, getFacilityPriority } from "@/hooks/useRecyclingData";
+import { TierSeparator } from "@/components/TierSeparator";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronDown, MapPin, ArrowLeft } from "lucide-react";
 import { Link, useSearch } from "wouter";
@@ -130,6 +131,73 @@ export default function Directory() {
     setDisplayCount(ITEMS_PER_PAGE);
   }, [searchTerm, selectedState, selectedCategory, selectedMaterial, selectedDistance, selectedDropoff, selectedFee, householdDropoff, userLocation]);
 
+  // Determine if we should show tier separators:
+  // Show separators in general browsing (including state, location, distance, and text search).
+  // Hide separators only when a type-narrowing filter is active (category, material, quick filters,
+  // drop-off, or fee) because those already scope results to a specific type.
+  const showTierSeparators = useMemo(() => {
+    const hasNoTypeFilters = 
+      selectedCategory === "all" && 
+      selectedMaterial === "all" &&
+      selectedDropoff === "all" &&
+      selectedFee === "all" &&
+      !householdDropoff &&
+      !sharpsFilter &&
+      !retailTakeBack;
+    return hasNoTypeFilters;
+  }, [selectedCategory, selectedMaterial, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, retailTakeBack]);
+
+  // Compute tier counts for the full filtered list (for badge counts)
+  const tierCounts = useMemo(() => {
+    if (!showTierSeparators) return {};
+    const counts: Record<number, number> = {};
+    for (const facility of filteredFacilities) {
+      const tier = getFacilityPriority(facility);
+      counts[tier] = (counts[tier] || 0) + 1;
+    }
+    return counts;
+  }, [filteredFacilities, showTierSeparators]);
+
+  // Build the display list with tier separators inserted
+  const displayItems = useMemo(() => {
+    if (!showTierSeparators || displayedFacilities.length === 0) {
+      return displayedFacilities.map((facility, index) => ({
+        type: "facility" as const,
+        facility,
+        index,
+      }));
+    }
+
+    const items: Array<
+      | { type: "separator"; tier: number; count: number }
+      | { type: "facility"; facility: typeof displayedFacilities[0]; index: number }
+    > = [];
+
+    let lastTier: number | null = null;
+
+    for (let i = 0; i < displayedFacilities.length; i++) {
+      const facility = displayedFacilities[i];
+      const tier = getFacilityPriority(facility);
+
+      if (tier !== lastTier) {
+        items.push({
+          type: "separator",
+          tier,
+          count: tierCounts[tier] || 0,
+        });
+        lastTier = tier;
+      }
+
+      items.push({
+        type: "facility",
+        facility,
+        index: i,
+      });
+    }
+
+    return items;
+  }, [displayedFacilities, showTierSeparators, tierCounts]);
+
   return (
     <>
       <Helmet>
@@ -236,13 +304,24 @@ export default function Directory() {
           ) : (
             <>
               <div id="facility-results" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-8">
-                {displayedFacilities.map((facility, index) => {
+                {displayItems.map((item, idx) => {
+                  if (item.type === "separator") {
+                    return (
+                      <TierSeparator
+                        key={`tier-${item.tier}`}
+                        tier={item.tier}
+                        count={item.count}
+                      />
+                    );
+                  }
+
+                  const facility = item.facility;
                   const facilityId = generateFacilityId(facility.Name, facility.Address);
                   return (
                     <RecyclingCard
-                      key={`${facility.Name}-${facility.Address}-${index}`}
+                      key={`${facility.Name}-${facility.Address}-${item.index}`}
                       facility={facility}
-                      index={index % ITEMS_PER_PAGE}
+                      index={item.index % ITEMS_PER_PAGE}
                       isFavorite={favoriteIdSet.has(facilityId)}
                       onFavoriteChange={() => refetchFavorites()}
                     />
