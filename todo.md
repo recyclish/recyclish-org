@@ -459,3 +459,11 @@
 - [x] Remove "State (Optional)" dropdown from HeroSearch
 - [x] Update placeholder to "Enter city, state or ZIP"
 - [x] Update LocationSearch on Directory page similarly (placeholder + removed location button)
+
+## Update Quick Filters
+- [x] Replace "Municipal/Government Centers" with "Needles/Sharps" filter
+- [x] Allow up to 2 filters to be selected simultaneously on homepage (HeroSearch)
+- [x] Allow up to 2 filters to be selected simultaneously on directory page (SearchFilters)
+- [x] Add sharps filtering logic in useRecyclingData (matches feedstock, category, name)
+- [x] Pass multiple filters through URL params to directory page
+- [x] Test multi-filter selection on both pages

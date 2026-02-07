@@ -78,6 +78,8 @@ interface UseRecyclingDataReturn {
   setSelectedFee: (value: string) => void;
   householdDropoff: boolean;
   setHouseholdDropoff: (value: boolean) => void;
+  sharpsFilter: boolean;
+  setSharpsFilter: (value: boolean) => void;
   userLocation: UserLocation | null;
   setUserLocation: (location: UserLocation | null) => void;
   locationDisplayName: string;
@@ -254,6 +256,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   const [selectedDropoff, setSelectedDropoff] = useState("all");
   const [selectedFee, setSelectedFee] = useState("all");
   const [householdDropoff, setHouseholdDropoff] = useState(false);
+  const [sharpsFilter, setSharpsFilter] = useState(false);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationDisplayName, setLocationDisplayName] = useState("");
   const [isLocating, setIsLocating] = useState(false);
@@ -417,8 +420,23 @@ export function useRecyclingData(): UseRecyclingDataReturn {
             (facility.Accepts_Dropoff === "Yes" || facility.Accepts_Dropoff === "By Appointment");
         }
 
+        // Sharps/Needles filter
+        let matchesSharps = !sharpsFilter;
+        if (sharpsFilter) {
+          const feedstockLower = (facility.Feedstock || "").toLowerCase();
+          const categoryLower = (facility.Category || "").toLowerCase();
+          const nameLower = (facility.Name || "").toLowerCase();
+          matchesSharps = feedstockLower.includes("sharps") || 
+            feedstockLower.includes("needle") || 
+            feedstockLower.includes("syringe") ||
+            categoryLower.includes("sharps") ||
+            categoryLower.includes("needle") ||
+            nameLower.includes("sharps") ||
+            nameLower.includes("needle");
+        }
+
         return matchesSearch && matchesState && matchesCategory && matchesMaterial && 
-               matchesDistance && matchesDropoff && matchesFee && matchesHousehold;
+               matchesDistance && matchesDropoff && matchesFee && matchesHousehold && matchesSharps;
       })
       .sort((a, b) => {
         // Sort by distance if available
@@ -428,7 +446,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
         return 0;
       });
   }, [facilities, searchTerm, selectedState, selectedCategory, selectedMaterial, 
-      selectedDistance, selectedDropoff, selectedFee, householdDropoff, userLocation]);
+      selectedDistance, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, userLocation]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -440,10 +458,11 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     if (selectedDropoff !== "all") count++;
     if (selectedFee !== "all") count++;
     if (householdDropoff) count++;
+    if (sharpsFilter) count++;
     if (userLocation) count++;
     return count;
   }, [searchTerm, selectedState, selectedCategory, selectedMaterial, 
-      selectedDistance, selectedDropoff, selectedFee, householdDropoff, userLocation]);
+      selectedDistance, selectedDropoff, selectedFee, householdDropoff, sharpsFilter, userLocation]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -454,6 +473,7 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedDropoff("all");
     setSelectedFee("all");
     setHouseholdDropoff(false);
+    setSharpsFilter(false);
     setUserLocation(null);
     setLocationDisplayName("");
   };
@@ -484,6 +504,8 @@ export function useRecyclingData(): UseRecyclingDataReturn {
     setSelectedFee,
     householdDropoff,
     setHouseholdDropoff,
+    sharpsFilter,
+    setSharpsFilter,
     userLocation,
     setUserLocation,
     locationDisplayName,

@@ -39,6 +39,8 @@ export default function Directory() {
     setSelectedFee,
     householdDropoff,
     setHouseholdDropoff,
+    sharpsFilter,
+    setSharpsFilter,
     userLocation,
     setUserLocation,
     locationDisplayName,
@@ -78,6 +80,10 @@ export default function Directory() {
     }
     if (feeParam) {
       setSelectedFee(feeParam);
+    }
+    const sharpsParam = params.get('sharps');
+    if (sharpsParam === 'true') {
+      setSharpsFilter(true);
     }
     // Handle location from HeroSearch
     if (latParam && lngParam) {
@@ -176,6 +182,8 @@ export default function Directory() {
             setSelectedFee={setSelectedFee}
             householdDropoff={householdDropoff}
             setHouseholdDropoff={setHouseholdDropoff}
+            sharpsFilter={sharpsFilter}
+            setSharpsFilter={setSharpsFilter}
             states={states}
             categories={categories}
             onClear={clearFilters}

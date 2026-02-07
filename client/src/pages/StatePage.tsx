@@ -107,6 +107,8 @@ export default function StatePage() {
     requestLocation,
     householdDropoff,
     setHouseholdDropoff,
+    sharpsFilter,
+    setSharpsFilter,
     clearFilters,
     activeFilterCount,
   } = useRecyclingData();
@@ -364,6 +366,8 @@ export default function StatePage() {
             setSelectedFee={setSelectedFee}
             householdDropoff={householdDropoff}
             setHouseholdDropoff={setHouseholdDropoff}
+            sharpsFilter={sharpsFilter}
+            setSharpsFilter={setSharpsFilter}
             states={[]}
             categories={stateCategories}
             onClear={() => {
@@ -379,7 +383,8 @@ export default function StatePage() {
               (selectedCategory !== "all" ? 1 : 0) +
               (selectedDropoff !== "all" ? 1 : 0) +
               (selectedFee !== "all" ? 1 : 0) +
-              (householdDropoff ? 1 : 0)
+              (householdDropoff ? 1 : 0) +
+              (sharpsFilter ? 1 : 0)
             }
             userLocation={userLocation}
             setUserLocation={setUserLocation}

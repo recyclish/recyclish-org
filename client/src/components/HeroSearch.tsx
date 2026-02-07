@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, Recycle, ArrowRight, Loader2 } from "lucide-react";
+import { Home, ArrowRight, Loader2, Syringe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,10 @@ function isZipCode(value: string): boolean {
   return /^\d{5}$/.test(value.trim());
 }
 
+const MAX_FILTERS = 2;
+
+type FilterKey = "household" | "free" | "sharps";
+
 interface HeroSearchProps {
   states: string[];
   totalFacilities: number;
@@ -80,7 +84,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     name: string;
   } | null>(null);
   const [mapsReady, setMapsReady] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [selectedFilters, setSelectedFilters] = useState<Set<FilterKey>>(new Set());
   const [isGeocodingZip, setIsGeocodingZip] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
@@ -102,6 +106,22 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       });
   }, []);
 
+  // Toggle a filter (up to MAX_FILTERS)
+  const toggleFilter = (filter: FilterKey) => {
+    setSelectedFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(filter)) {
+        next.delete(filter);
+      } else if (next.size < MAX_FILTERS) {
+        next.add(filter);
+      } else {
+        // Already at max, do nothing (or optionally replace oldest)
+        return prev;
+      }
+      return next;
+    });
+  };
+
   // Geocode ZIP code
   const geocodeZipCode = useCallback((zipCode: string) => {
     if (!geocoderRef.current) return;
@@ -113,7 +133,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
         setIsGeocodingZip(false);
         if (status === "OK" && results?.[0]) {
           const location = results[0].geometry.location;
-          // Extract city/state from address components
           let cityName = zipCode;
           const addressComponents = results[0].address_components;
           const locality = addressComponents?.find(c => c.types.includes("locality"));
@@ -141,7 +160,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
 
   // Fetch predictions (for city/state search)
   const fetchPredictions = useCallback(async (query: string) => {
-    // Don't fetch predictions for ZIP codes
     if (isZipCode(query)) {
       setPredictions([]);
       setIsSearching(false);
@@ -207,7 +225,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
   const handleInputChange = (value: string) => {
     setInputValue(value);
     
-    // Only show dropdown for non-ZIP inputs
     if (!isZipCode(value)) {
       setShowDropdown(true);
     } else {
@@ -231,7 +248,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       if (isZipCode(inputValue)) {
         geocodeZipCode(inputValue.trim());
       } else if (predictions.length > 0) {
-        // Select first prediction if available
         handleSelectPrediction(predictions[0]);
       }
     }
@@ -290,12 +306,14 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       params.set("distance", "25");
     }
     
-    if (selectedFilter === "household") {
+    if (selectedFilters.has("household")) {
       params.set("household", "true");
-    } else if (selectedFilter === "free") {
+    }
+    if (selectedFilters.has("free")) {
       params.set("fee", "Free");
-    } else if (selectedFilter === "municipal") {
-      params.set("category", "Municipal Recycling");
+    }
+    if (selectedFilters.has("sharps")) {
+      params.set("sharps", "true");
     }
     
     setLocation(`/directory?${params.toString()}`);
@@ -427,19 +445,20 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
         </div>
       </div>
 
-      {/* Quick Filter Chips */}
+      {/* Quick Filter Chips - up to 2 selectable */}
       <div className="mt-5 pt-5 border-t border-border/50">
         <label className="text-sm font-label text-muted-foreground mb-3 block">
           I'm looking for...
+          <span className="ml-2 text-xs opacity-70">(select up to 2)</span>
         </label>
         <div className="flex flex-wrap gap-2">
           <Button
-            variant={selectedFilter === "household" ? "default" : "outline"}
+            variant={selectedFilters.has("household") ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedFilter(selectedFilter === "household" ? null : "household")}
+            onClick={() => toggleFilter("household")}
             className={cn(
               "font-label",
-              selectedFilter === "household" && "bg-primary text-primary-foreground"
+              selectedFilters.has("household") && "bg-primary text-primary-foreground"
             )}
           >
             <Home className="h-4 w-4 mr-1.5" />
@@ -447,28 +466,28 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
             <span className="ml-1.5 text-xs opacity-70">(Paper, Plastic, Glass)</span>
           </Button>
           <Button
-            variant={selectedFilter === "free" ? "default" : "outline"}
+            variant={selectedFilters.has("free") ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedFilter(selectedFilter === "free" ? null : "free")}
+            onClick={() => toggleFilter("free")}
             className={cn(
               "font-label",
-              selectedFilter === "free" && "bg-primary text-primary-foreground"
+              selectedFilters.has("free") && "bg-primary text-primary-foreground"
             )}
           >
             <span className="mr-1.5">$0</span>
             Free Drop-off Only
           </Button>
           <Button
-            variant={selectedFilter === "municipal" ? "default" : "outline"}
+            variant={selectedFilters.has("sharps") ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedFilter(selectedFilter === "municipal" ? null : "municipal")}
+            onClick={() => toggleFilter("sharps")}
             className={cn(
               "font-label",
-              selectedFilter === "municipal" && "bg-primary text-primary-foreground"
+              selectedFilters.has("sharps") && "bg-primary text-primary-foreground"
             )}
           >
-            <Recycle className="h-4 w-4 mr-1.5" />
-            Municipal/Government Centers
+            <Syringe className="h-4 w-4 mr-1.5" />
+            Needles / Sharps
           </Button>
         </div>
       </div>

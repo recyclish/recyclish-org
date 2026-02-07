@@ -7,11 +7,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, MapPin, Loader2, ChevronDown, ChevronUp, Home, Recycle, Package } from "lucide-react";
+import { X, Filter, MapPin, ChevronDown, ChevronUp, Home, Package, Syringe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { MATERIAL_TYPES, DISTANCE_OPTIONS, DROPOFF_OPTIONS, FEE_OPTIONS } from "@/hooks/useRecyclingData";
 import { LocationSearch } from "./LocationSearch";
+import { cn } from "@/lib/utils";
 
 interface Facility {
   Name: string;
@@ -37,6 +38,8 @@ interface SearchFiltersProps {
   setSelectedFee: (value: string) => void;
   householdDropoff: boolean;
   setHouseholdDropoff: (value: boolean) => void;
+  sharpsFilter: boolean;
+  setSharpsFilter: (value: boolean) => void;
   states: string[];
   categories: string[];
   onClear: () => void;
@@ -51,6 +54,8 @@ interface SearchFiltersProps {
   requestLocation: () => void;
   facilities?: Facility[];
 }
+
+const MAX_QUICK_FILTERS = 2;
 
 export function SearchFilters({
   searchTerm,
@@ -69,6 +74,8 @@ export function SearchFilters({
   setSelectedFee,
   householdDropoff,
   setHouseholdDropoff,
+  sharpsFilter,
+  setSharpsFilter,
   states,
   categories,
   onClear,
@@ -93,6 +100,36 @@ export function SearchFilters({
       .replace("Recyclers", "Recycling")
       .replace("(MRFs)", "")
       .trim();
+  };
+
+  // Count currently active quick filters
+  const activeQuickFilterCount = [
+    householdDropoff,
+    selectedFee === "Free",
+    sharpsFilter,
+  ].filter(Boolean).length;
+
+  // Toggle a quick filter, respecting the max of 2
+  const toggleQuickFilter = (
+    currentValue: boolean,
+    setter: (value: boolean) => void
+  ) => {
+    if (currentValue) {
+      // Always allow deselecting
+      setter(false);
+    } else if (activeQuickFilterCount < MAX_QUICK_FILTERS) {
+      setter(true);
+    }
+    // If at max, do nothing
+  };
+
+  const toggleFeeFilter = () => {
+    const isActive = selectedFee === "Free";
+    if (isActive) {
+      setSelectedFee("all");
+    } else if (activeQuickFilterCount < MAX_QUICK_FILTERS) {
+      setSelectedFee("Free");
+    }
   };
 
   // Handle location selection from LocationSearch
@@ -220,47 +257,51 @@ export function SearchFilters({
         </div>
       </div>
 
-      {/* Quick Filter Buttons - Consumer-friendly */}
+      {/* Quick Filter Buttons - Consumer-friendly, up to 2 selectable */}
       <div className="mt-4 pt-4 border-t border-border/50">
         <label className="text-sm font-label text-muted-foreground mb-2 block">
           Quick Filters
+          <span className="ml-2 text-xs opacity-70">(select up to 2)</span>
         </label>
         <div className="flex flex-wrap gap-2">
           <Button
             variant={householdDropoff ? "default" : "outline"}
             size="sm"
-            onClick={() => setHouseholdDropoff(!householdDropoff)}
-            className={`font-label ${householdDropoff ? 'bg-primary text-primary-foreground' : ''}`}
+            onClick={() => toggleQuickFilter(householdDropoff, setHouseholdDropoff)}
+            className={cn(
+              "font-label",
+              householdDropoff && "bg-primary text-primary-foreground",
+              !householdDropoff && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
+            )}
           >
             <Home className="h-4 w-4 mr-1.5" />
             Household Drop-off
           </Button>
           <Button
-            variant={selectedDropoff === "Yes" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedDropoff(selectedDropoff === "Yes" ? "all" : "Yes")}
-            className={`font-label ${selectedDropoff === "Yes" ? 'bg-primary text-primary-foreground' : ''}`}
-          >
-            <Package className="h-4 w-4 mr-1.5" />
-            Accepts Drop-offs
-          </Button>
-          <Button
             variant={selectedFee === "Free" ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedFee(selectedFee === "Free" ? "all" : "Free")}
-            className={`font-label ${selectedFee === "Free" ? 'bg-primary text-primary-foreground' : ''}`}
+            onClick={toggleFeeFilter}
+            className={cn(
+              "font-label",
+              selectedFee === "Free" && "bg-primary text-primary-foreground",
+              selectedFee !== "Free" && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
+            )}
           >
             <span className="mr-1.5">$0</span>
             Free Only
           </Button>
           <Button
-            variant={selectedCategory === "Municipal Recycling" ? "default" : "outline"}
+            variant={sharpsFilter ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedCategory(selectedCategory === "Municipal Recycling" ? "all" : "Municipal Recycling")}
-            className={`font-label ${selectedCategory === "Municipal Recycling" ? 'bg-primary text-primary-foreground' : ''}`}
+            onClick={() => toggleQuickFilter(sharpsFilter, setSharpsFilter)}
+            className={cn(
+              "font-label",
+              sharpsFilter && "bg-primary text-primary-foreground",
+              !sharpsFilter && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
+            )}
           >
-            <Recycle className="h-4 w-4 mr-1.5" />
-            Municipal Centers
+            <Syringe className="h-4 w-4 mr-1.5" />
+            Needles / Sharps
           </Button>
         </div>
       </div>
