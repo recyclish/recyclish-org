@@ -308,7 +308,7 @@ export default function Directory() {
                   if (item.type === "separator") {
                     return (
                       <TierSeparator
-                        key={`tier-${item.tier}`}
+                        key={`tier-${item.tier}-${idx}`}
                         tier={item.tier}
                         count={item.count}
                       />

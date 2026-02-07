@@ -503,3 +503,6 @@
 - [x] Ensure separators only show when no type-narrowing filter is active (show for state/location/search)
 - [x] Handle edge cases: distance-based search, filtered results, Load More pagination
 - [x] Style separators to be visually distinct but not overwhelming
+
+## Bug Fix: Duplicate React Keys for Tier Separators
+- [x] Fix duplicate key error when same tier appears multiple times in distance-sorted results
