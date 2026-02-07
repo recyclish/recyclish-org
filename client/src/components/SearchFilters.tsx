@@ -196,9 +196,9 @@ export function SearchFilters({
       </div>
       
       {/* Primary Search Row - Location-based */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Location Search - Primary */}
-        <div className="md:col-span-1">
+        <div>
           <LocationSearch
             onLocationSelect={handleLocationSelect}
             currentLocation={userLocation}
@@ -234,26 +234,6 @@ export function SearchFilters({
           {!userLocation && (
             <p className="text-xs text-muted-foreground mt-1">Enter location to filter by distance</p>
           )}
-        </div>
-        
-        {/* State Filter */}
-        <div>
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            State
-          </label>
-          <Select value={selectedState} onValueChange={setSelectedState}>
-            <SelectTrigger className="font-body">
-              <SelectValue placeholder="All States" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All States</SelectItem>
-              {states.map((state) => (
-                <SelectItem key={state} value={state}>
-                  {state}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 

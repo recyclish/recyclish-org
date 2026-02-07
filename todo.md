@@ -467,3 +467,7 @@
 - [x] Add sharps filtering logic in useRecyclingData (matches feedstock, category, name)
 - [x] Pass multiple filters through URL params to directory page
 - [x] Test multi-filter selection on both pages
+
+## Remove State Dropdown from Directory Filters
+- [x] Remove state dropdown from SearchFilters component (state is now in the search bar)
+- [x] Updated grid layout from 3 columns to 2 columns (Location + Distance only)
