@@ -1,6 +1,6 @@
 import { and, desc, eq, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite, newsletterSubscribers, InsertNewsletterSubscriber } from "../drizzle/schema";
+import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite, newsletterSubscribers, InsertNewsletterSubscriber, facilities, InsertFacility, Facility } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -751,4 +751,138 @@ export async function unsubscribeNewsletter(email: string) {
   await db.update(newsletterSubscribers)
     .set({ isActive: 0 })
     .where(eq(newsletterSubscribers.email, email));
+}
+
+
+// ============================================================
+// Facilities (live directory) database operations
+// ============================================================
+
+import { like, or } from "drizzle-orm";
+
+export interface FacilityQueryParams {
+  search?: string;
+  state?: string;
+  category?: string;
+  limit?: number;
+  offset?: number;
+  activeOnly?: boolean;
+}
+
+/**
+ * Get all active facilities from the database.
+ * Returns the full list for client-side filtering/sorting (matching current CSV behavior).
+ */
+export async function getAllFacilities(activeOnly: boolean = true): Promise<Facility[]> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const conditions = [];
+  if (activeOnly) {
+    conditions.push(eq(facilities.isActive, 1));
+  }
+
+  const result = await db.select()
+    .from(facilities)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+  return result;
+}
+
+/**
+ * Get facility count and basic stats.
+ */
+export async function getFacilityStats() {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const [totalResult] = await db.select({ count: sql<number>`COUNT(*)` })
+    .from(facilities)
+    .where(eq(facilities.isActive, 1));
+
+  const stateResult = await db.select({ 
+    state: facilities.state, 
+    count: sql<number>`COUNT(*)` 
+  })
+    .from(facilities)
+    .where(eq(facilities.isActive, 1))
+    .groupBy(facilities.state)
+    .orderBy(desc(sql`COUNT(*)`));
+
+  const categoryResult = await db.select({ 
+    category: facilities.category, 
+    count: sql<number>`COUNT(*)` 
+  })
+    .from(facilities)
+    .where(eq(facilities.isActive, 1))
+    .groupBy(facilities.category)
+    .orderBy(desc(sql`COUNT(*)`));
+
+  return {
+    total: Number(totalResult?.count || 0),
+    byState: stateResult.map(r => ({ state: r.state, count: Number(r.count) })),
+    byCategory: categoryResult.map(r => ({ category: r.category, count: Number(r.count) })),
+  };
+}
+
+/**
+ * Add a new facility to the database (e.g., from an approved submission).
+ */
+export async function addFacility(data: Omit<InsertFacility, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ id: number }> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.insert(facilities).values(data);
+  return { id: Number(result[0].insertId) };
+}
+
+/**
+ * Update an existing facility.
+ */
+export async function updateFacility(id: number, data: Partial<InsertFacility>) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(facilities)
+    .set(data)
+    .where(eq(facilities.id, id));
+}
+
+/**
+ * Deactivate (soft-delete) a facility.
+ */
+export async function deactivateFacility(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(facilities)
+    .set({ isActive: 0 })
+    .where(eq(facilities.id, id));
+}
+
+/**
+ * Get a single facility by ID.
+ */
+export async function getFacilityById(id: number): Promise<Facility | null> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select()
+    .from(facilities)
+    .where(eq(facilities.id, id))
+    .limit(1);
+
+  return result[0] || null;
 }

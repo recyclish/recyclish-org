@@ -18,6 +18,22 @@ vi.mock("./db", () => ({
     },
   ]),
   updateFacilitySubmissionStatus: vi.fn().mockResolvedValue(undefined),
+  getFacilitySubmissionById: vi.fn().mockResolvedValue({
+    id: 1,
+    name: "Test Recycling Center",
+    address: "123 Test St",
+    city: "Test City",
+    state: "California",
+    category: "Electronics Recyclers",
+    status: "approved",
+    materialsAccepted: "Electronics, Batteries",
+    phone: "555-0100",
+    email: "test@recycling.com",
+    website: "https://test-recycling.com",
+    zipCode: "90001",
+    createdAt: new Date(),
+  }),
+  addFacility: vi.fn().mockResolvedValue({ insertId: 100 }),
 }));
 
 // Mock the notification function

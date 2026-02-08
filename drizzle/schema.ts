@@ -216,3 +216,52 @@ export const newsletterSubscribers = mysqlTable("newsletter_subscribers", {
 
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
 export type InsertNewsletterSubscriber = typeof newsletterSubscribers.$inferInsert;
+
+/**
+ * Main facilities table - the live directory of recycling locations.
+ * Migrated from static CSV and continuously updated via admin approvals.
+ */
+export const facilities = mysqlTable("facilities", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // Core facility info
+  name: varchar("name", { length: 255 }).notNull(),
+  address: varchar("address", { length: 500 }).notNull(),
+  state: varchar("state", { length: 100 }).notNull(),
+  county: varchar("county", { length: 100 }),
+  phone: varchar("phone", { length: 100 }),
+  email: varchar("email", { length: 320 }),
+  website: varchar("website", { length: 500 }),
+  
+  // Classification
+  category: varchar("category", { length: 150 }).notNull(),
+  facilityType: varchar("facilityType", { length: 150 }),
+  feedstock: text("feedstock"),
+  naicsCode: varchar("naicsCode", { length: 20 }),
+  
+  // Location
+  latitude: varchar("latitude", { length: 30 }),
+  longitude: varchar("longitude", { length: 30 }),
+  
+  // Operating details
+  hours: varchar("hours", { length: 500 }),
+  acceptsDropoff: varchar("acceptsDropoff", { length: 50 }),
+  feeStructure: varchar("feeStructure", { length: 50 }),
+  feeDetails: text("feeDetails"),
+  offersPayment: varchar("offersPayment", { length: 50 }),
+  paymentDetails: text("paymentDetails"),
+  
+  // Data source tracking
+  source: varchar("source", { length: 50 }).default("csv_import").notNull(), // csv_import, user_submission, admin_added
+  submissionId: int("submissionId"), // Link back to facilitySubmissions if from a submission
+  
+  // Status
+  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive/removed
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Facility = typeof facilities.$inferSelect;
+export type InsertFacility = typeof facilities.$inferInsert;

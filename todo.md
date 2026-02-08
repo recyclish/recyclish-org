@@ -526,3 +526,16 @@
 - [x] Fix value statements (Verified Data, Updated Regularly, Mobile Friendly) alignment on mobile - center-align consistently
 - [x] Remove Community Favorites / Highest Rated Recycling Centers section from homepage entirely
 - [x] Keep stars/reviews on individual facility cards within their geographic areas
+
+## Migrate Facility Data to Live Database
+- [x] Analyze CSV structure and map columns to database schema
+- [x] Create facilities table in drizzle schema with all necessary columns
+- [x] Run database migration (pnpm db:push)
+- [x] Write and execute migration script to import 2,861 CSV records into database
+- [x] Create tRPC procedures for querying facilities (list, stats, getById, add, deactivate)
+- [x] Update frontend useRecyclingData hook to fetch from database via tRPC instead of CSV
+- [x] Preserve all existing filtering, sorting, and priority logic
+- [x] Connect admin facility approval to auto-insert into live facilities table
+- [x] Write 9 vitest tests for new database facility queries (all pass)
+- [x] Test end-to-end: search, filters, distance, tier separators verified
+- [x] Frontend now queries live database — CSV no longer used at runtime

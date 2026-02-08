@@ -37,7 +37,13 @@ import {
   getTopRatedFacilities,
   createNewsletterSubscription,
   getNewsletterSubscribers,
-  getNewsletterStats
+  getNewsletterStats,
+  getAllFacilities,
+  getFacilityStats,
+  addFacility,
+  updateFacility,
+  deactivateFacility,
+  getFacilityById,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { generateWelcomeEmailContent, formatWelcomeEmailHtml, formatWelcomeEmailText } from "./welcomeEmail";
@@ -181,6 +187,7 @@ export const appRouter = router({
       }),
 
     // Admin-only endpoint - update submission status
+    // When a submission is approved, it is automatically added to the live facilities table.
     updateStatus: adminProcedure
       .input(z.object({
         id: z.number(),
@@ -189,6 +196,37 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await updateFacilitySubmissionStatus(input.id, input.status, input.reviewNotes);
+
+        // When approved, automatically add to the live facilities directory
+        if (input.status === "approved") {
+          const submission = await getFacilitySubmissionById(input.id);
+          if (submission) {
+            await addFacility({
+              name: submission.name,
+              address: `${submission.address}, ${submission.city}, ${submission.state}${submission.zipCode ? ' ' + submission.zipCode : ''}`,
+              state: submission.state,
+              county: null,
+              phone: submission.phone || null,
+              email: submission.email || null,
+              website: submission.website || null,
+              category: submission.category,
+              facilityType: "User Submitted",
+              feedstock: submission.materialsAccepted || null,
+              naicsCode: null,
+              latitude: null,
+              longitude: null,
+              hours: null,
+              acceptsDropoff: null,
+              feeStructure: null,
+              feeDetails: null,
+              offersPayment: null,
+              paymentDetails: null,
+              source: 'user_submission',
+              submissionId: submission.id,
+            });
+          }
+        }
+
         return { success: true };
       }),
 
@@ -636,6 +674,88 @@ export const appRouter = router({
       .query(async () => {
         const stats = await getNewsletterStats();
         return stats;
+      }),
+  }),
+
+  // Live directory routes - facility data from database
+  directory: router({
+    // Public endpoint - get all active facilities
+    list: publicProcedure
+      .query(async () => {
+        const allFacilities = await getAllFacilities(true);
+        return allFacilities;
+      }),
+
+    // Public endpoint - get directory stats
+    stats: publicProcedure
+      .query(async () => {
+        const stats = await getFacilityStats();
+        return stats;
+      }),
+
+    // Public endpoint - get a single facility by ID
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const facility = await getFacilityById(input.id);
+        if (!facility) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Facility not found' });
+        }
+        return facility;
+      }),
+
+    // Admin endpoint - add a facility directly
+    add: adminProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        address: z.string().min(1).max(500),
+        state: z.string().min(1).max(100),
+        county: z.string().max(100).optional(),
+        phone: z.string().max(100).optional(),
+        email: z.string().max(320).optional(),
+        website: z.string().max(500).optional(),
+        category: z.string().min(1).max(150),
+        facilityType: z.string().max(150).optional(),
+        feedstock: z.string().optional(),
+        naicsCode: z.string().max(20).optional(),
+        latitude: z.string().max(30).optional(),
+        longitude: z.string().max(30).optional(),
+        hours: z.string().max(500).optional(),
+        acceptsDropoff: z.string().max(50).optional(),
+        feeStructure: z.string().max(50).optional(),
+        feeDetails: z.string().optional(),
+        offersPayment: z.string().max(50).optional(),
+        paymentDetails: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await addFacility({
+          ...input,
+          county: input.county || null,
+          phone: input.phone || null,
+          email: input.email || null,
+          website: input.website || null,
+          facilityType: input.facilityType || null,
+          feedstock: input.feedstock || null,
+          naicsCode: input.naicsCode || null,
+          latitude: input.latitude || null,
+          longitude: input.longitude || null,
+          hours: input.hours || null,
+          acceptsDropoff: input.acceptsDropoff || null,
+          feeStructure: input.feeStructure || null,
+          feeDetails: input.feeDetails || null,
+          offersPayment: input.offersPayment || null,
+          paymentDetails: input.paymentDetails || null,
+          source: 'admin_added',
+        });
+        return { success: true, id: result.id };
+      }),
+
+    // Admin endpoint - deactivate a facility
+    deactivate: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deactivateFacility(input.id);
+        return { success: true };
       }),
   }),
 });

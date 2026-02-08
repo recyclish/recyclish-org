@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { RecyclingFacility } from "@/components/RecyclingCard";
-import { getDataUrl } from "@/lib/dataVersion";
+import { trpc } from "@/lib/trpc";
 
 // Common material types extracted from Feedstock field
 export const MATERIAL_TYPES = [
@@ -332,24 +332,44 @@ export function useRecyclingData(): UseRecyclingDataReturn {
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // Fetch facilities from the live database via tRPC
+  const { data: dbFacilities, isLoading: dbLoading, error: dbError } = trpc.directory.list.useQuery(
+    undefined,
+    { staleTime: 5 * 60 * 1000 } // Cache for 5 minutes
+  );
+
   useEffect(() => {
-    async function loadData() {
-      try {
-        const response = await fetch(getDataUrl());
-        if (!response.ok) {
-          throw new Error("Failed to load recycling data");
-        }
-        const text = await response.text();
-        const parsed = parseCSV(text);
-        setFacilities(parsed);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setIsLoading(false);
-      }
+    if (dbFacilities) {
+      // Map database columns to RecyclingFacility interface
+      const mapped: RecyclingFacility[] = dbFacilities.map((f) => ({
+        Name: f.name || "",
+        Address: f.address || "",
+        State: f.state || "",
+        County: f.county || "",
+        Phone: f.phone || "",
+        Email: f.email || "",
+        Website: f.website || "",
+        Category: f.category || "",
+        Facility_Type: f.facilityType || "",
+        Feedstock: f.feedstock || "",
+        Latitude: f.latitude ? parseFloat(f.latitude) : 0,
+        Longitude: f.longitude ? parseFloat(f.longitude) : 0,
+        NAICS_Code: f.naicsCode || "",
+        Hours: f.hours || "",
+        Accepts_Dropoff: f.acceptsDropoff || "",
+        Fee_Structure: f.feeStructure || "",
+        Fee_Details: f.feeDetails || "",
+        Offers_Payment: f.offersPayment || "",
+        Payment_Details: f.paymentDetails || "",
+      }));
+      setFacilities(mapped);
+      setIsLoading(false);
     }
-    loadData();
-  }, []);
+    if (dbError) {
+      setError(dbError.message || "Failed to load recycling data");
+      setIsLoading(false);
+    }
+  }, [dbFacilities, dbError]);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
