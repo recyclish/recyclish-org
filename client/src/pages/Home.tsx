@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Stats } from "@/components/Stats";
-import { HighestRated } from "@/components/HighestRated";
+
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { HeroSearch } from "@/components/HeroSearch";
 import { useRecyclingData } from "@/hooks/useRecyclingData";
@@ -152,9 +152,6 @@ export default function Home() {
         <section className="container relative z-10 py-6">
           <Stats />
         </section>
-
-        {/* Highest Rated Section */}
-        <HighestRated />
 
         {/* Newsletter Signup Section */}
         <NewsletterSignup />

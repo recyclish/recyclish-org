@@ -521,3 +521,8 @@
 - [x] Add search/filter functionality for subscribers
 - [x] Add CSV export button for subscriber emails
 - [x] Show subscriber stats (total, active, inactive)
+
+## Mobile Value Statement Alignment & Remove Highest Rated
+- [x] Fix value statements (Verified Data, Updated Regularly, Mobile Friendly) alignment on mobile - center-align consistently
+- [x] Remove Community Favorites / Highest Rated Recycling Centers section from homepage entirely
+- [x] Keep stars/reviews on individual facility cards within their geographic areas

@@ -21,14 +21,14 @@ export function Stats() {
   ];
 
   return (
-    <div className="flex flex-wrap items-start justify-center gap-x-6 gap-y-2 text-center">
+    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6 sm:gap-y-2 text-center">
       {valueProps.map((prop, index) => (
         <Fragment key={prop.title}>
           {index > 0 && (
             <div className="hidden sm:block w-px h-8 bg-border/60 self-center" />
           )}
-          <div className="flex items-center gap-2 py-1">
-            <prop.icon className="h-4 w-4 text-primary shrink-0" />
+          <div className="flex items-center gap-2.5 py-1">
+            <prop.icon className="h-5 w-5 sm:h-4 sm:w-4 text-primary shrink-0" />
             <div className="text-left">
               <span className="text-sm font-semibold text-foreground">{prop.title}</span>
               <span className="text-xs text-muted-foreground ml-1.5 hidden sm:inline">— {prop.description}</span>
