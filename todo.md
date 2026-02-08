@@ -539,3 +539,7 @@
 - [x] Write 9 vitest tests for new database facility queries (all pass)
 - [x] Test end-to-end: search, filters, distance, tier separators verified
 - [x] Frontend now queries live database — CSV no longer used at runtime
+
+## SECOND REQUEST: Fix Mobile Value Statement Icon Alignment
+- [x] Fix icons not aligned with text on mobile for Verified Data, Updated Regularly, Mobile Friendly
+- [x] Ensure all three items have identical left-alignment on mobile screens (separate desktop/mobile layouts with fixed-width icon column)
