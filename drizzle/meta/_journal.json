@@ -1,61 +1,12 @@
 {
   "version": "7",
-  "dialect": "mysql",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "5",
-      "when": 1770002154004,
-      "tag": "0000_black_the_call",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1770002233722,
-      "tag": "0001_condemned_loners",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1770004706103,
-      "tag": "0002_blushing_argent",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1770005619822,
-      "tag": "0003_same_risque",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1770006520895,
-      "tag": "0004_tense_ultragirl",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1770012367353,
-      "tag": "0005_colorful_lenny_balinger",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1770039532085,
-      "tag": "0006_tense_timeslip",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "5",
-      "when": 1770511376467,
-      "tag": "0007_perfect_nightmare",
+      "version": "7",
+      "when": 1771990779946,
+      "tag": "0000_zippy_komodo",
       "breakpoints": true
     }
   ]

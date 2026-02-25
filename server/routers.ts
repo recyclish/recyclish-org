@@ -45,6 +45,11 @@ import {
   deactivateFacility,
   getFacilityById,
   getShelters,
+  getShelterById,
+  addShelter,
+  updateShelter,
+  deactivateShelter,
+  getShelterStats,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { generateWelcomeEmailContent, formatWelcomeEmailHtml, formatWelcomeEmailText } from "./welcomeEmail";
@@ -61,9 +66,9 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
-// Validation schema for facility submission
+// Validation schema for shelter submission
 const facilitySubmissionSchema = z.object({
-  name: z.string().min(1, "Facility name is required").max(255),
+  name: z.string().min(1, "Organization name is required").max(255),
   address: z.string().min(1, "Address is required").max(500),
   city: z.string().min(1, "City is required").max(100),
   state: z.string().min(1, "State is required").max(100),
@@ -71,8 +76,8 @@ const facilitySubmissionSchema = z.object({
   phone: z.string().max(50).optional(),
   email: z.string().email().max(320).optional().or(z.literal("")),
   website: z.string().url().max(500).optional().or(z.literal("")),
-  category: z.string().min(1, "Category is required").max(100),
-  materialsAccepted: z.string().max(1000).optional(),
+  category: z.enum(['shelter', 'rescue', 'sanctuary', 'foster_network', 'community_resource']),
+  materialsAccepted: z.string().max(1000).optional(), // Used for Species Served in submission
   additionalNotes: z.string().max(2000).optional(),
   submitterName: z.string().max(255).optional(),
   submitterEmail: z.string().email().max(320).optional().or(z.literal("")),
@@ -91,7 +96,7 @@ const addFavoriteSchema = z.object({
   facilityLongitude: z.string().max(20).optional(),
 });
 
-// Validation schema for facility report
+// Validation schema for shelter report
 const facilityReportSchema = z.object({
   facilityId: z.string().min(1).max(64),
   facilityName: z.string().min(1).max(255),
@@ -102,7 +107,7 @@ const facilityReportSchema = z.object({
     "wrong_address",
     "wrong_phone",
     "wrong_hours",
-    "wrong_materials",
+    "information_outdated",
     "duplicate_listing",
     "other"
   ]),
@@ -170,11 +175,11 @@ export const appRouter = router({
 
         // Notify owner about new submission
         await notifyOwner({
-          title: "New Facility Submission",
-          content: `A new recycling facility has been submitted for review:\n\n**${input.name}**\n${input.address}, ${input.city}, ${input.state}\nCategory: ${input.category}\n\nPlease review in the admin panel.`,
+          title: "New Shelter Submission",
+          content: `A new shelter/rescue has been submitted for review:\n\n**${input.name}**\n${input.address}, ${input.city}, ${input.state}\nCategory: ${input.category}\n\nPlease review in the admin panel.`,
         });
 
-        return { success: true, message: "Thank you! Your submission has been received and will be reviewed." };
+        return { success: true, message: "Thank you! Your submission has been received and will be reviewed by our community team." };
       }),
 
     // Protected endpoint - list submissions (admin sees all, users see their own)
@@ -198,32 +203,24 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await updateFacilitySubmissionStatus(input.id, input.status, input.reviewNotes);
 
-        // When approved, automatically add to the live facilities directory
+        // When approved, automatically add to the live shelters directory
         if (input.status === "approved") {
           const submission = await getFacilitySubmissionById(input.id);
           if (submission) {
             await addFacility({
               name: submission.name,
-              address: `${submission.address}, ${submission.city}, ${submission.state}${submission.zipCode ? ' ' + submission.zipCode : ''}`,
+              slug: submission.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+              addressLine1: submission.address,
+              city: submission.city,
               state: submission.state,
-              county: null,
+              zip: submission.zipCode || "00000",
               phone: submission.phone || null,
               email: submission.email || null,
               website: submission.website || null,
-              category: submission.category,
-              facilityType: "User Submitted",
-              feedstock: submission.materialsAccepted || null,
-              naicsCode: null,
-              latitude: null,
-              longitude: null,
-              hours: null,
-              acceptsDropoff: null,
-              feeStructure: null,
-              feeDetails: null,
-              offersPayment: null,
-              paymentDetails: null,
-              source: 'user_submission',
-              submissionId: submission.id,
+              shelterType: submission.category as any,
+              speciesServed: submission.materialsAccepted ? submission.materialsAccepted.split(',').map(s => s.trim()) : [],
+              active: true,
+              verified: true,
             });
           }
         }
@@ -713,9 +710,20 @@ export const appRouter = router({
         return stats;
       }),
 
-    // Public endpoint - get a single facility by ID
+    // Public endpoint - get a single shelter by ID (UUID)
+    getShelter: publicProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ input }) => {
+        const shelter = await getShelterById(input.id);
+        if (!shelter) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Shelter not found' });
+        }
+        return shelter;
+      }),
+
+    // Public endpoint - get a single facility by ID (Legacy support for numeric, but mostly UUID now)
     getById: publicProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.string() }))
       .query(async ({ input }) => {
         const facility = await getFacilityById(input.id);
         if (!facility) {
@@ -748,31 +756,28 @@ export const appRouter = router({
         paymentDetails: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const result = await addFacility({
+        const result = await addShelter({
           ...input,
-          county: input.county || null,
+          addressLine1: input.address,
+          city: "Unknown", // Added missing required field
+          state: "US", // Added missing required field
+          zip: "00000", // Default or map if available
+          shelterType: input.category as any,
+          speciesServed: input.feedstock ? input.feedstock.split(',') : [],
           phone: input.phone || null,
           email: input.email || null,
           website: input.website || null,
-          facilityType: input.facilityType || null,
-          feedstock: input.feedstock || null,
-          naicsCode: input.naicsCode || null,
-          latitude: input.latitude || null,
-          longitude: input.longitude || null,
-          hours: input.hours || null,
-          acceptsDropoff: input.acceptsDropoff || null,
-          feeStructure: input.feeStructure || null,
-          feeDetails: input.feeDetails || null,
-          offersPayment: input.offersPayment || null,
-          paymentDetails: input.paymentDetails || null,
-          source: 'admin_added',
+          latitude: input.latitude ? parseFloat(input.latitude) : null,
+          longitude: input.longitude ? parseFloat(input.longitude) : null,
+          active: true,
+          slug: input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         });
         return { success: true, id: result.id };
       }),
 
     // Admin endpoint - deactivate a facility
     deactivate: adminProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await deactivateFacility(input.id);
         return { success: true };

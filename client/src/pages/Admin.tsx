@@ -52,7 +52,7 @@ const issueTypeLabels: Record<string, string> = {
   wrong_address: "Wrong Address",
   wrong_phone: "Wrong Phone Number",
   wrong_hours: "Wrong Hours",
-  wrong_materials: "Wrong Materials Accepted",
+  information_outdated: "Information Outdated",
   duplicate_listing: "Duplicate Listing",
   other: "Other Issue",
 };
@@ -247,7 +247,7 @@ export default function Admin() {
         `"${sub.age || ''}"`,
         `"${sub.gender || ''}"`,
         sub.isActive ? "Active" : "Inactive",
-        `"${new Date(sub.createdAt).toLocaleDateString()}"`
+        `"${sub.createdAt ? new Date(sub.createdAt).toLocaleDateString() : 'N/A'}"`
       ].join(","))
     ].join("\n");
 
@@ -430,8 +430,8 @@ export default function Admin() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-                <p className="text-sm text-muted-foreground">Manage submissions, reports, reviews, and subscribers</p>
+                <h1 className="text-2xl font-bold text-ocean">Shelter Directory Admin</h1>
+                <p className="text-sm text-muted-foreground">Manage organization submissions, issue reports, reviews, and subscribers</p>
               </div>
             </div>
             {adminView === "submissions" && (
@@ -507,10 +507,10 @@ export default function Admin() {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Pending Review</p>
-                      <p className="text-3xl font-bold text-amber-600">{getStatCount("pending")}</p>
+                      <p className="text-sm text-muted-foreground">Awaiting Review</p>
+                      <p className="text-3xl font-bold text-terracotta">{getStatCount("pending")}</p>
                     </div>
-                    <Clock className="h-10 w-10 text-amber-600/20" />
+                    <Clock className="h-10 w-10 text-terracotta/20" />
                   </div>
                 </CardContent>
               </Card>
@@ -581,13 +581,13 @@ export default function Admin() {
                               <div className="flex items-start justify-between mb-4">
                                 <div>
                                   <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-semibold">{submission.name}</h3>
-                                    <StatusBadge status={submission.status} />
+                                    <h3 className="text-lg font-semibold text-ocean">{submission.name}</h3>
+                                    <StatusBadge status={(submission.status || 'pending') as SubmissionStatus} />
                                   </div>
-                                  <p className="text-sm text-muted-foreground">{submission.category}</p>
+                                  <p className="text-sm text-muted-foreground capitalize">{submission.category.replace('_', ' ')}</p>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                  {new Date(submission.createdAt).toLocaleDateString()}
+                                  {submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : '—'}
                                 </p>
                               </div>
 
@@ -619,8 +619,8 @@ export default function Admin() {
                               </div>
 
                               {submission.materialsAccepted && (
-                                <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                                  <p className="text-xs font-medium text-muted-foreground mb-1">Materials Accepted</p>
+                                <div className="mt-3 p-3 bg-ocean/5 rounded-lg border border-ocean/10">
+                                  <p className="text-xs font-medium text-ocean mb-1">Species Served</p>
                                   <p className="text-sm">{submission.materialsAccepted}</p>
                                 </div>
                               )}
@@ -808,7 +808,7 @@ export default function Admin() {
                             </Badge>
                           </td>
                           <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">
-                            {new Date(sub.createdAt).toLocaleDateString()}
+                            {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString() : "—"}
                           </td>
                         </tr>
                       ))}
@@ -916,7 +916,7 @@ export default function Admin() {
                                 <div>
                                   <div className="flex items-center gap-2 mb-1">
                                     <h3 className="text-lg font-semibold">{report.facilityName}</h3>
-                                    <ReportStatusBadge status={report.status} />
+                                    <ReportStatusBadge status={(report.status || 'pending') as ReportStatus} />
                                   </div>
                                   <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                                     <AlertTriangle className="h-3 w-3 mr-1" />
@@ -924,7 +924,7 @@ export default function Admin() {
                                   </Badge>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                  {new Date(report.createdAt).toLocaleDateString()}
+                                  {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : '—'}
                                 </p>
                               </div>
 
@@ -1095,7 +1095,7 @@ export default function Admin() {
                                 <div>
                                   <div className="flex items-center gap-2 mb-1">
                                     <h3 className="text-lg font-semibold">{review.facilityName}</h3>
-                                    <ReviewStatusBadge status={review.status} />
+                                    <ReviewStatusBadge status={(review.status || 'pending') as ReviewStatus} />
                                   </div>
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <span>by {review.userName || 'Anonymous'}</span>
@@ -1104,7 +1104,7 @@ export default function Admin() {
                                   </div>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                  {new Date(review.createdAt).toLocaleDateString()}
+                                  {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '—'}
                                 </p>
                               </div>
 

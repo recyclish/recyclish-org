@@ -12,12 +12,11 @@ import Admin from "./pages/Admin";
 import Favorites from "./pages/Favorites";
 import FacilityDetail from "./pages/FacilityDetail";
 import StatesIndex from "./pages/StatesIndex";
+import ShelterDetail from "./pages/ShelterDetail";
 import StatePage from "./pages/StatePage";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import Directory from "./pages/Directory";
-import UnderConstruction from "./pages/UnderConstruction";
-import { RecyclingChatbot } from "./components/RecyclingChatbot";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 import { BottomNav } from "./components/BottomNav";
 
@@ -27,6 +26,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/directory" component={Directory} />
       <Route path="/map" component={MapViewPage} />
+      <Route path="/shelter/:id" component={ShelterDetail} />
+      <Route path="/submit-rescue" component={SubmitFacility} />
       <Route path="/about" component={About} />
       <Route path="/submit" component={SubmitFacility} />
       <Route path="/admin" component={Admin} />

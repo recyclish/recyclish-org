@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { PawPrint, Heart, Shield, Globe, Mail, ArrowRight, Search, Info, Recycle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { HeroSearch } from '@/components/HeroSearch';
 
 const UnderConstruction = () => {
     return (
@@ -21,8 +22,8 @@ const UnderConstruction = () => {
                         <Recycle className="w-7 h-7 text-cream" />
                     </div>
                     <div>
-                        <span className="font-display text-2xl font-bold text-ocean block leading-none underline decoration-terracotta/30 decoration-2 underline-offset-4">Animal Shelter Directory</span>
-                        <span className="text-[10px] font-label uppercase tracking-widest text-terracotta font-bold">A Recyclish Initiative</span>
+                        <span className="font-display text-2xl font-bold text-ocean block leading-none">Animal Shelter Directory</span>
+                        <span className="text-[10px] font-label uppercase tracking-[0.2em] text-terracotta font-black mt-1 block">A RECYCLISH INITIATIVE</span>
                     </div>
                 </div>
                 <div className="hidden md:flex items-center gap-6">
@@ -47,14 +48,14 @@ const UnderConstruction = () => {
                     >
                         <div className="space-y-4">
                             <h1 className="text-6xl md:text-8xl font-display text-ocean font-bold leading-[1.05] text-balance">
-                                Finding <span className="text-terracotta italic underline decoration-terracotta/30 underline-offset-8">Rescues</span> & Homes.
+                                Finding <span className="text-terracotta italic">Rescues</span> & Homes.
                             </h1>
                             <p className="text-xl md:text-2xl text-ocean/80 leading-relaxed max-w-xl font-medium">
                                 The ultimate platform for discovering <span className="font-bold text-ocean border-b-2 border-terracotta/20">8,500+ Verified Shelters & Rescues</span> is coming soon.
                             </p>
                         </div>
 
-                        {/* Mock Search Bar - Preview of where the engine will be */}
+                        {/* Functional Search Bar */}
                         <div className="pt-2 max-w-xl group">
                             <div className="flex items-center gap-2 mb-3">
                                 <div className="p-1.5 bg-ocean/10 rounded-lg">
@@ -64,23 +65,30 @@ const UnderConstruction = () => {
                                     Search Engine Sneak Peek
                                 </p>
                             </div>
-                            <div className="bg-white/80 backdrop-blur-xl p-2 rounded-3xl border-2 border-ocean/10 shadow-2xl shadow-ocean/5 transition-all group-hover:border-terracotta/20 group-hover:shadow-terracotta/5">
-                                <div className="flex flex-col sm:flex-row gap-2 p-1">
-                                    <div className="flex-grow flex items-center px-4 gap-3 bg-cream/70 rounded-2xl border border-ocean/5">
+                            <div className="bg-white/80 backdrop-blur-xl p-2 rounded-[2.5rem] border-2 border-ocean/10 shadow-2xl shadow-ocean/5 transition-all group-hover:border-terracotta/20 group-hover:shadow-terracotta/5">
+                                <form
+                                    className="flex flex-col sm:flex-row gap-2 p-1"
+                                    onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const val = e.target.search.value;
+                                        window.location.href = `/directory?q=${encodeURIComponent(val)}`;
+                                    }}
+                                >
+                                    <div className="flex-grow flex items-center px-6 gap-3 bg-cream/70 rounded-[1.5rem] border border-ocean/5">
                                         <Search className="w-5 h-5 text-ocean/30" />
                                         <Input
-                                            disabled
+                                            name="search"
                                             placeholder="Find a shelter or rescue near you..."
-                                            className="bg-transparent border-none text-ocean placeholder:text-ocean/20 h-14 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-lg italic"
+                                            className="bg-transparent border-none text-ocean placeholder:text-ocean/20 h-14 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-lg italic shadow-none"
                                         />
                                     </div>
-                                    <Button className="bg-ocean hover:bg-ocean-light text-cream h-14 px-10 font-bold rounded-2xl transition-all flex items-center gap-2 opacity-60 cursor-not-allowed">
+                                    <Button type="submit" className="bg-ocean hover:bg-ocean-light text-cream h-14 px-10 font-bold rounded-[1.5rem] transition-all flex items-center gap-2">
                                         Launching Soon
                                         <ArrowRight className="w-4 h-4" />
                                     </Button>
-                                </div>
+                                </form>
                             </div>
-                            <p className="mt-4 text-[11px] text-ocean/40 font-medium italic">
+                            <p className="mt-6 text-[11px] text-ocean/40 font-medium italic">
                                 * Our high-performance search engine will feature intelligent filters for pet types, rescue size, and verification status.
                             </p>
                         </div>
@@ -92,7 +100,7 @@ const UnderConstruction = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-ocean leading-tight">Get Notified</p>
-                                    <button className="text-xs text-ocean/40 font-label uppercase tracking-widest hover:text-terracotta transition-colors font-bold">Join the local list</button>
+                                    <p className="text-[10px] text-ocean/40 font-label uppercase tracking-widest font-black mt-0.5">JOIN THE LOCAL LIST</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4 group">
@@ -101,7 +109,7 @@ const UnderConstruction = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-ocean leading-tight">Recyclish Mission</p>
-                                    <button className="text-xs text-ocean/40 font-label uppercase tracking-widest hover:text-ocean transition-colors font-bold">Turning Knowledge into Action</button>
+                                    <p className="text-[10px] text-ocean/40 font-label uppercase tracking-widest font-black mt-0.5">TURNING KNOWLEDGE INTO ACTION</p>
                                 </div>
                             </div>
                         </div>
@@ -128,7 +136,7 @@ const UnderConstruction = () => {
                                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                                 className="absolute -bottom-24 -right-16 bg-white/90 backdrop-blur-md p-6 rounded-[2.5rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-4 min-w-[220px]"
                             >
-                                <div className="p-3 bg-ocean rounded-2xl group animate-bounce">
+                                <div className="p-3 bg-ocean rounded-full group animate-bounce">
                                     <Recycle className="w-6 h-6 text-cream group-hover:rotate-180 transition-transform duration-1000" />
                                 </div>
                                 <div>
@@ -151,11 +159,12 @@ const UnderConstruction = () => {
                 <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center relative z-10">
                     <div className="space-y-8">
                         <div className="space-y-4">
-                            <h2 className="text-5xl md:text-7xl font-display font-bold leading-tight">
+                            <h2 className="text-7xl md:text-9xl font-display font-bold leading-[0.9] tracking-tight">
                                 Empowering <br />
-                                <span className="text-terracotta italic text-[1.2rem] md:text-[1.2em]">Rescues Everywhere</span>
+                                <span className="text-terracotta italic">Rescues</span> <br />
+                                Everywhere
                             </h2>
-                            <p className="text-2xl text-cream/70 leading-relaxed max-w-xl font-medium">
+                            <p className="text-xl md:text-2xl text-cream/70 leading-relaxed max-w-xl font-medium">
                                 We're bringing the Recyclish standard of data excellence to the animal welfare world.
                                 Our platform synchronizes thousands of local **Private Rescues** and **City Shelters**.
                             </p>
@@ -185,17 +194,17 @@ const UnderConstruction = () => {
                         <div className="bg-white/5 border border-white/10 rounded-[5rem] p-16 backdrop-blur-md overflow-hidden relative group">
                             <div className="absolute inset-0 bg-gradient-to-tr from-terracotta/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                             <div className="text-center space-y-6 relative z-10">
-                                <div className="text-[10rem] md:text-[12rem] font-display font-bold text-terracotta leading-none drop-shadow-2xl">
+                                <div className="text-[10rem] md:text-[14rem] font-display font-bold text-terracotta leading-none tracking-tighter drop-shadow-2xl">
                                     8.5k
                                 </div>
-                                <div className="space-y-2">
-                                    <div className="text-3xl font-display font-semibold text-white">Locations Synced</div>
-                                    <div className="flex justify-center gap-2 items-center">
-                                        <span className="h-1 w-4 bg-terracotta rounded-full" />
-                                        <p className="text-terracotta font-label uppercase tracking-[0.3em] text-sm font-black">
+                                <div className="space-y-4">
+                                    <div className="text-3xl md:text-5xl font-display font-semibold text-white tracking-tight">Locations Synced</div>
+                                    <div className="flex justify-center gap-3 items-center">
+                                        <span className="h-1 w-6 bg-terracotta/50 rounded-full" />
+                                        <p className="text-terracotta font-label uppercase tracking-[0.4em] text-xs font-black">
                                             Shelters & Rescues
                                         </p>
-                                        <span className="h-1 w-4 bg-terracotta rounded-full" />
+                                        <span className="h-1 w-6 bg-terracotta/50 rounded-full" />
                                     </div>
                                 </div>
                             </div>
@@ -212,17 +221,17 @@ const UnderConstruction = () => {
                             <Recycle className="w-8 h-8 text-terracotta group-hover:rotate-180 transition-transform duration-700" />
                             <span className="font-display font-bold text-2xl text-ocean pt-1 tracking-tight">Recyclish Community</span>
                         </div>
-                        <p className="text-ocean/40 text-xs font-label uppercase tracking-widest text-center max-w-lg leading-loose font-bold">
-                            Connecting people to the causes they care about. <br />
-                            &copy; 2026 Animal Shelter Directory. A Recyclish Initiative.
+                        <p className="text-ocean/40 text-[10px] font-label uppercase tracking-[0.2em] text-center max-w-lg leading-loose font-bold">
+                            CONNECTING PEOPLE TO THE CAUSES THEY CARE ABOUT. <br />
+                            &copy; 2026 ANIMAL SHELTER DIRECTORY. A RECYCLISH INITIATIVE.
                         </p>
                     </div>
 
                     <nav className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[10px] font-label uppercase tracking-[0.2em] text-ocean/50 font-bold">
-                        <a href="#" className="hover:text-terracotta transition-colors">Privacy Policy</a>
-                        <a href="#" className="hover:text-terracotta transition-colors">Terms of Service</a>
-                        <a href="https://recyclish.com" target="_blank" className="hover:text-terracotta transition-colors border-b border-terracotta/20 pb-0.5">Back to Recyclish.com</a>
-                        <a href="#" className="hover:text-terracotta transition-colors">Support</a>
+                        <a href="#" className="hover:text-terracotta transition-colors">PRIVACY POLICY</a>
+                        <a href="#" className="hover:text-terracotta transition-colors">TERMS OF SERVICE</a>
+                        <a href="https://recyclish.com" target="_blank" className="hover:text-terracotta transition-colors border-b border-terracotta/20 pb-0.5">BACK TO RECYCLISH.COM</a>
+                        <a href="#" className="hover:text-terracotta transition-colors">SUPPORT</a>
                     </nav>
                 </div>
             </footer>

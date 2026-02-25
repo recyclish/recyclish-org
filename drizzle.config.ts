@@ -12,4 +12,16 @@ export default defineConfig({
   dbCredentials: {
     url: connectionString,
   },
+  schemaFilter: ["public"],
+  tablesFilter: [
+    "shelters",
+    "users",
+    "facility_submissions",
+    "user_favorites",
+    "newsletter_subscribers",
+    "facility_reports",
+    "facility_reviews",
+    "review_helpful_votes",
+    "shelter_corrections"
+  ],
 });

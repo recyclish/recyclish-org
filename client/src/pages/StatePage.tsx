@@ -2,13 +2,14 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "wouter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { RecyclingCard } from "@/components/RecyclingCard";
+import { ShelterCard } from "@/components/ShelterCard";
+import { generateFacilityId } from "@/components/RecyclingCard";
 import { SearchFilters } from "@/components/SearchFilters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ChevronDown, MapPin, ChevronRight, Building2, Recycle, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRecyclingData } from "@/hooks/useRecyclingData";
+import { useShelterData } from "@/hooks/useShelterData";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Helmet } from "react-helmet-async";
@@ -74,128 +75,69 @@ const ITEMS_PER_PAGE = 12;
 export default function StatePage() {
   const { stateSlug } = useParams<{ stateSlug: string }>();
   const { isAuthenticated } = useAuth();
-  
+
   const stateInfo = stateSlug ? STATE_DATA[stateSlug.toLowerCase()] : null;
-  
+
   const {
-    facilities,
-    filteredFacilities: allFilteredFacilities,
-    states,
-    categories,
+    shelters,
     isLoading,
     error: dataError,
     searchTerm,
     setSearchTerm,
     selectedState,
     setSelectedState,
-    selectedCategory,
-    setSelectedCategory,
-    selectedMaterial,
-    setSelectedMaterial,
-    selectedDistance,
-    setSelectedDistance,
-    selectedDropoff,
-    setSelectedDropoff,
-    selectedFee,
-    setSelectedFee,
+    selectedSpecies,
+    setSelectedSpecies,
+    isNoKill,
+    setIsNoKill,
     userLocation,
     setUserLocation,
-    locationDisplayName,
-    setLocationDisplayName,
-    isLocating,
-    locationError,
-    requestLocation,
-    householdDropoff,
-    setHouseholdDropoff,
-    sharpsFilter,
-    setSharpsFilter,
-    retailTakeBack,
-    setRetailTakeBack,
+    radius,
+    setRadius,
     clearFilters,
     activeFilterCount,
-  } = useRecyclingData();
+  } = useShelterData();
 
-  // Filter facilities for this state
-  const stateFacilities = useMemo(() => {
-    if (!stateInfo) return [];
-    return facilities.filter(f => 
-      f.State === stateInfo.name || 
-      f.State === stateInfo.abbreviation
-    );
-  }, [facilities, stateInfo]);
+  // Set initial state from slug
+  useEffect(() => {
+    if (stateInfo && selectedState !== stateInfo.name) {
+      setSelectedState(stateInfo.name);
+    }
+  }, [stateInfo, setSelectedState, selectedState]);
 
-  // Apply additional filters to state facilities
-  const filteredFacilities = useMemo(() => {
-    let filtered = stateFacilities;
-    
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(f =>
-        f.Name.toLowerCase().includes(term) ||
-        f.Address.toLowerCase().includes(term) ||
-        f.Category?.toLowerCase().includes(term) ||
-        f.Feedstock?.toLowerCase().includes(term)
-      );
-    }
-    
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(f => f.Category === selectedCategory);
-    }
-    
-    if (selectedDropoff !== "all") {
-      filtered = filtered.filter(f => f.Accepts_Dropoff === selectedDropoff);
-    }
-    
-    if (selectedFee !== "all") {
-      if (selectedFee === "pays") {
-        filtered = filtered.filter(f => f.Offers_Payment === "Yes");
-      } else {
-        filtered = filtered.filter(f => f.Fee_Structure === selectedFee);
-      }
-    }
-    
-    return filtered;
-  }, [stateFacilities, searchTerm, selectedCategory, selectedDropoff, selectedFee]);
-
-  // Get categories available in this state
-  const stateCategories = useMemo(() => {
-    const cats = new Set(stateFacilities.map(f => f.Category).filter(Boolean));
-    return Array.from(cats).sort();
-  }, [stateFacilities]);
-
-  // Fetch user's favorite IDs
   const { data: favoriteIds, refetch: refetchFavorites } = trpc.favorites.ids.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
-  const favoriteIdSet = new Set(favoriteIds || []);
-
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
 
-  const displayedFacilities = filteredFacilities.slice(0, displayCount);
-  const hasMore = displayCount < filteredFacilities.length;
+  const displayedShelters = shelters.slice(0, displayCount);
+  const hasMore = displayCount < shelters.length;
 
   const loadMore = () => {
     setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
   };
 
-  // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(ITEMS_PER_PAGE);
-  }, [searchTerm, selectedCategory, selectedDropoff, selectedFee]);
+  }, [searchTerm, selectedSpecies, isNoKill]);
 
-  // If state not found, show 404-like message
   if (!stateInfo) {
     return (
-      <div className="min-h-screen flex flex-col bg-topo-pattern">
+      <div className="min-h-screen flex flex-col bg-cream font-body">
         <Header />
-        <main className="flex-1 container py-16 text-center">
-          <h1 className="font-display text-3xl font-bold mb-4">State Not Found</h1>
-          <p className="text-muted-foreground mb-8">
-            We couldn't find recycling information for this state.
+        <main className="flex-1 container py-32 text-center">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-ocean/5 text-ocean/20 mb-8">
+            <MapPin className="h-12 w-12" />
+          </div>
+          <h1 className="font-display text-5xl font-bold text-ocean mb-6">Region Unmapped.</h1>
+          <p className="text-ocean/40 font-medium text-xl mb-12 max-w-lg mx-auto leading-relaxed">
+            We couldn't synchronize data for this specific state. It may be outside our current verification zone.
           </p>
           <Link href="/states">
-            <Button>View All States</Button>
+            <Button className="bg-ocean hover:bg-ocean-light text-cream rounded-2xl px-10 h-16 font-bold text-lg shadow-xl shadow-ocean/20">
+              View All States
+            </Button>
           </Link>
         </main>
         <Footer />
@@ -203,27 +145,24 @@ export default function StatePage() {
     );
   }
 
-  // SEO structured data for local business listings
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": `Recycling Centers in ${stateInfo.name}`,
-    "description": `Find ${stateFacilities.length} recycling centers and drop-off locations in ${stateInfo.name}. Free directory of electronics recyclers, hazardous waste facilities, and more.`,
-    "numberOfItems": stateFacilities.length,
-    "itemListElement": displayedFacilities.slice(0, 10).map((facility, index) => ({
+    "name": `Animal Rescues in ${stateInfo.name}`,
+    "description": `Find verified animal rescues and drop-off locations in ${stateInfo.name}.`,
+    "numberOfItems": shelters.length,
+    "itemListElement": displayedShelters.slice(0, 10).map((shelter, index) => ({
       "@type": "ListItem",
       "position": index + 1,
       "item": {
-        "@type": "RecyclingCenter",
-        "name": facility.Name,
+        "@type": "LocalBusiness",
+        "name": shelter.name,
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": facility.Address,
+          "streetAddress": shelter.addressLine1,
           "addressRegion": stateInfo.abbreviation,
           "addressCountry": "US"
-        },
-        ...(facility.Phone && { "telephone": facility.Phone }),
-        ...(facility.Website && { "url": facility.Website }),
+        }
       }
     }))
   };
@@ -231,265 +170,166 @@ export default function StatePage() {
   return (
     <>
       <Helmet>
-        <title>Recycling Centers in {stateInfo.name} | National Recycling Directory</title>
-        <meta 
-          name="description" 
-          content={`Find ${stateFacilities.length} recycling centers in ${stateInfo.name}. Free directory of electronics recyclers, hazardous waste facilities, sharps disposal, and more. Search by city or material type.`} 
+        <title>Rescues in {stateInfo.name} | Animal Rescue Directory</title>
+        <meta
+          name="description"
+          content={`Explore verified animal rescues in ${stateInfo.name}. Find shelters, no-kill sanctuaries, and welfare organizations near you.`}
         />
-        <meta name="keywords" content={`recycling ${stateInfo.name}, recycling centers ${stateInfo.abbreviation}, where to recycle ${stateInfo.name}, electronics recycling ${stateInfo.name}, hazardous waste ${stateInfo.name}`} />
-        <link rel="canonical" href={`https://recycling.recyclish.com/state/${stateSlug}`} />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content={`Recycling Centers in ${stateInfo.name} | National Recycling Directory`} />
-        <meta property="og:description" content={`Find ${stateFacilities.length} recycling centers in ${stateInfo.name}. Electronics, hazardous waste, sharps disposal, and more.`} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://recycling.recyclish.com/state/${stateSlug}`} />
-        <meta property="og:image" content="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/MHnZhwLgCpRxIMdo.png" />
-        <meta property="og:image:width" content="1456" />
-        <meta property="og:image:height" content="816" />
-        <meta property="og:image:alt" content={`Recycling Centers in ${stateInfo.name} - National Recycling Directory`} />
-        <meta property="og:site_name" content="National Recycling Directory" />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`Recycling Centers in ${stateInfo.name}`} />
-        <meta name="twitter:description" content={`Find ${stateFacilities.length} recycling centers in ${stateInfo.name}.`} />
-        <meta name="twitter:image" content="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/MHnZhwLgCpRxIMdo.png" />
-        
-        {/* Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify(structuredData)}
         </script>
       </Helmet>
 
-      <div className="min-h-screen flex flex-col bg-topo-pattern">
+      <div className="min-h-screen flex flex-col bg-cream font-body selection:bg-terracotta/20 selection:text-terracotta">
         <Header />
 
-        {/* Breadcrumb */}
-        <nav className="container py-4" aria-label="Breadcrumb">
-          <ol className="flex items-center gap-2 text-sm text-muted-foreground">
-            <li>
-              <Link href="/" className="hover:text-primary transition-colors">
-                Home
-              </Link>
-            </li>
-            <ChevronRight className="h-4 w-4" />
-            <li>
-              <Link href="/states" className="hover:text-primary transition-colors">
-                States
-              </Link>
-            </li>
-            <ChevronRight className="h-4 w-4" />
-            <li className="text-foreground font-medium">
-              {stateInfo.name}
-            </li>
-          </ol>
-        </nav>
+        {/* Hero Section - Ocean Palette */}
+        <section className="bg-ocean text-cream py-16 md:py-24 px-6 relative overflow-hidden">
+          {/* Brand Watermark */}
+          <div className="absolute top-1/2 right-10 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none hidden lg:block">
+            <span className="text-[15vw] font-display font-black leading-none tracking-tighter uppercase italic">{stateInfo.abbreviation}</span>
+          </div>
 
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 to-transparent">
-          <div className="container py-12 md:py-16">
+          <div className="container relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
               <Link href="/states">
-                <Button variant="ghost" size="sm" className="mb-4 -ml-2">
+                <Button variant="ghost" className="mb-8 -ml-4 text-cream/40 hover:text-cream hover:bg-white/5 font-label uppercase tracking-widest text-[10px] font-black">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  All States
+                  Back to Atlas
                 </Button>
               </Link>
-              
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <MapPin className="h-8 w-8 text-primary" />
+
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-4 rounded-2xl bg-terracotta shadow-xl shadow-terracotta/20">
+                  <MapPin className="h-8 w-8 text-cream" />
                 </div>
-                <div>
-                  <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-                    Recycling Centers in {stateInfo.name}
-                  </h1>
-                </div>
+                <h1 className="font-display text-5xl md:text-7xl font-bold leading-tight tracking-tight">
+                  Rescues in <br />
+                  <span className="text-terracotta italic underline decoration-terracotta/30 underline-offset-8">{stateInfo.name}</span>
+                </h1>
               </div>
-              
-              <p className="text-lg text-muted-foreground max-w-3xl mb-6">
-                Find {stateFacilities.length} recycling facilities across {stateInfo.name}. 
-                Search for electronics recyclers, hazardous waste drop-offs, sharps disposal, 
-                and more. All locations are free to use.
+
+              <p className="text-xl text-cream/60 font-medium leading-relaxed max-w-3xl mb-12">
+                We have logged verified animal welfare organizations across {stateInfo.name}.
+                Each facility listed meets our high-fidelity standards for active licensing and humane care.
               </p>
 
-              {/* State Stats */}
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-background border">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <span className="font-display font-bold text-xl">{stateFacilities.length}</span>
-                  <span className="text-muted-foreground">Facilities</span>
+              <div className="flex flex-wrap gap-12">
+                <div className="space-y-1">
+                  <p className="text-3xl font-display font-bold text-cream">{shelters.length}</p>
+                  <p className="text-[10px] font-label uppercase tracking-widest text-terracotta font-black">Logged Rescues</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-background border">
-                  <Recycle className="h-5 w-5 text-primary" />
-                  <span className="font-display font-bold text-xl">{stateCategories.length}</span>
-                  <span className="text-muted-foreground">Categories</span>
-                </div>
-              </div>
-
-              {/* Category Tags */}
-              <div className="flex flex-wrap gap-2 mt-6">
-                {stateCategories.slice(0, 8).map((cat) => (
-                  <Badge key={cat} variant="secondary" className="text-sm">
-                    {cat}
-                  </Badge>
-                ))}
-                {stateCategories.length > 8 && (
-                  <Badge variant="outline" className="text-sm">
-                    +{stateCategories.length - 8} more
-                  </Badge>
-                )}
               </div>
             </motion.div>
           </div>
         </section>
 
         {/* Search & Results Section */}
-        <section className="container pb-16">
-          <SearchFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedState="all"
-            setSelectedState={() => {}}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            selectedMaterial={selectedMaterial}
-            setSelectedMaterial={setSelectedMaterial}
-            selectedDistance={selectedDistance}
-            setSelectedDistance={setSelectedDistance}
-            selectedDropoff={selectedDropoff}
-            setSelectedDropoff={setSelectedDropoff}
-            selectedFee={selectedFee}
-            setSelectedFee={setSelectedFee}
-            householdDropoff={householdDropoff}
-            setHouseholdDropoff={setHouseholdDropoff}
-            sharpsFilter={sharpsFilter}
-            setSharpsFilter={setSharpsFilter}
-            retailTakeBack={retailTakeBack}
-            setRetailTakeBack={setRetailTakeBack}
-            states={[]}
-            categories={stateCategories}
-            onClear={() => {
-              setSearchTerm("");
-              setSelectedCategory("all");
-              setSelectedDropoff("all");
-              setSelectedFee("all");
-              setHouseholdDropoff(false);
-            }}
-            totalResults={filteredFacilities.length}
-            activeFilterCount={
-              (searchTerm ? 1 : 0) +
-              (selectedCategory !== "all" ? 1 : 0) +
-              (selectedDropoff !== "all" ? 1 : 0) +
-              (selectedFee !== "all" ? 1 : 0) +
-              (householdDropoff ? 1 : 0) +
-              (sharpsFilter ? 1 : 0) +
-              (retailTakeBack ? 1 : 0)
-            }
-            userLocation={userLocation}
-            setUserLocation={setUserLocation}
-            locationDisplayName={locationDisplayName}
-            setLocationDisplayName={setLocationDisplayName}
-            isLocating={isLocating}
-            locationError={locationError}
-            requestLocation={requestLocation}
-            facilities={stateFacilities}
-          />
+        <section className="relative py-20 px-6 overflow-hidden">
+          <div className="absolute inset-0 bg-topo-pattern opacity-[0.04] pointer-events-none" />
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-3 text-muted-foreground font-body">
-                Loading recycling facilities...
-              </span>
-            </div>
-          ) : dataError ? (
-            <div className="text-center py-20">
-              <p className="text-destructive font-body">{dataError}</p>
-            </div>
-          ) : filteredFacilities.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                <MapPin className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="font-display text-xl font-semibold mb-2">No facilities found</h3>
-              <p className="text-muted-foreground font-body mb-4">
-                Try adjusting your search or filters
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("all");
-                  setSelectedDropoff("all");
-                  setSelectedFee("all");
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
-                {displayedFacilities.map((facility, index) => (
-                  <motion.div
-                    key={`${facility.Name}-${facility.Address}-${index}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.3) }}
-                  >
-                    <RecyclingCard
-                      facility={facility}
-                      index={index}
-                      isFavorite={favoriteIdSet.has(`${facility.Name}-${facility.Address}`)}
-                      onFavoriteChange={() => refetchFavorites()}
-                    />
-                  </motion.div>
-                ))}
-              </div>
+          <div className="container relative z-10">
+            <SearchFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedState={selectedState}
+              setSelectedState={setSelectedState}
+              selectedSpecies={selectedSpecies}
+              setSelectedSpecies={setSelectedSpecies}
+              isNoKill={isNoKill}
+              setIsNoKill={setIsNoKill}
+              userLocation={userLocation}
+              setUserLocation={setUserLocation}
+              radius={radius}
+              setRadius={setRadius}
+              onClear={clearFilters}
+              totalResults={shelters.length}
+              activeFilterCount={activeFilterCount}
+            />
 
-              {hasMore && (
-                <div className="flex justify-center mt-10">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={loadMore}
-                    className="font-label"
-                  >
-                    <ChevronDown className="h-4 w-4 mr-2" />
-                    Load More ({filteredFacilities.length - displayCount} remaining)
-                  </Button>
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-32 gap-6">
+                <Loader2 className="h-12 w-12 animate-spin text-terracotta" />
+                <span className="text-ocean/30 font-label uppercase tracking-widest text-xs font-black">
+                  Synchronizing with Atlas...
+                </span>
+              </div>
+            ) : dataError ? (
+              <div className="text-center py-32">
+                <p className="text-terracotta font-bold text-xl">{dataError.message || "Error loading data"}</p>
+              </div>
+            ) : shelters.length === 0 ? (
+              <div className="text-center py-32 bg-white/40 backdrop-blur-xl rounded-[4rem] border border-ocean/5 mt-12">
+                <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-ocean/5 text-ocean/10 mb-8">
+                  <MapPin className="h-12 w-12" />
                 </div>
-              )}
-            </>
-          )}
+                <h3 className="font-display text-4xl font-bold text-ocean mb-4">No Rescues Found</h3>
+                <p className="text-ocean/40 font-medium text-lg mb-10 max-w-sm mx-auto">
+                  Try adjusting your filters or expanding your search parameters.
+                </p>
+                <Button
+                  variant="ghost"
+                  className="text-terracotta hover:text-terracotta-dark font-label uppercase tracking-widest text-[10px] font-black"
+                  onClick={clearFilters}
+                >
+                  Reset All Filters
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mt-12">
+                  {displayedShelters.map((shelter, index) => (
+                    <motion.div
+                      key={`${shelter.name}-${shelter.id}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
+                    >
+                      <ShelterCard
+                        shelter={shelter}
+                        index={index}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {hasMore && (
+                  <div className="flex justify-center mt-20">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={loadMore}
+                      className="h-16 px-12 rounded-2xl border-ocean/10 text-ocean hover:bg-ocean hover:text-cream transition-all font-bold text-lg"
+                    >
+                      <ChevronDown className="h-5 w-5 mr-3" />
+                      Load More ({shelters.length - displayCount} remain)
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </section>
 
-        {/* SEO Content Section */}
-        <section className="container pb-16">
-          <div className="bg-muted/30 rounded-2xl p-8">
-            <h2 className="font-display text-2xl font-bold mb-4">
-              About Recycling in {stateInfo.name}
-            </h2>
-            <div className="prose prose-gray max-w-none">
-              <p className="text-muted-foreground">
-                {stateInfo.name} offers {stateFacilities.length} recycling facilities to help 
-                residents properly dispose of various materials. From electronics and batteries 
-                to hazardous waste and sharps disposal, you can find the right recycling center 
-                for your needs. Many facilities accept drop-offs for free, while some specialize 
-                in specific materials like scrap metal or textiles.
-              </p>
-              <p className="text-muted-foreground mt-4">
-                Use the search filters above to find recycling centers near you in {stateInfo.name}. 
-                You can filter by material type, fee structure, and whether the facility accepts 
-                walk-in drop-offs. Click on any facility card to view detailed information including 
-                hours of operation, accepted materials, and contact information.
-              </p>
+        {/* SEO Narrative */}
+        <section className="py-24 px-6 bg-cream border-t border-ocean/5">
+          <div className="container">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-ocean mb-12">
+                About the {stateInfo.name} <span className="text-terracotta italic">Rescue Network.</span>
+              </h2>
+              <div className="prose prose-ocean max-w-none text-ocean/50 font-medium text-lg leading-relaxed space-y-8">
+                <p>
+                  Animal welfare in {stateInfo.name} is supported by a diverse network of {shelters.length} verified organizations. From specialized breed rescues to large municipal shelters, each facility plays a critical role in the community ecosystem.
+                </p>
+                <p>
+                  Our directory provides direct access to these resources, ensuring that potential adopters, volunteers, and donors can connect with transparency. Every listing in {stateInfo.name} is synchronized periodically via Mobi to guarantee the highest data fidelity.
+                </p>
+              </div>
             </div>
           </div>
         </section>

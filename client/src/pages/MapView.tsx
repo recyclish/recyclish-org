@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MapView } from "@/components/Map";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import {
   MapPin,
   Phone,
@@ -25,79 +24,69 @@ import {
   Loader2,
   Filter,
   Navigation,
+  ArrowLeft,
+  Heart,
+  ShieldCheck,
+  Compass
 } from "lucide-react";
-import { useRecyclingData, MATERIAL_TYPES, DISTANCE_OPTIONS } from "@/hooks/useRecyclingData";
-import type { RecyclingFacility } from "@/components/RecyclingCard";
+import { useShelterData } from "@/hooks/useShelterData";
+import type { Shelter } from "@/components/ShelterCard";
+import { motion, AnimatePresence } from "framer-motion";
 
-const categoryColors: Record<string, string> = {
-  "Electronics Recyclers": "#1e4a7a",
-  "Material Recovery Facilities (MRFs)": "#c4652a",
-  "PlasticRecycling Facilities": "#2a8a8a",
-  "GlassRecycling Facilities": "#3a7a9a",
-  "GlassSecondary Processors": "#2a6a8a",
-  "PaperRecycling Facilities": "#8a7a2a",
-  "TextilesRecycling Facilities": "#7a2a7a",
-  "WoodRecycling Facilities": "#6a5a2a",
-  "WoodSecondary Processors": "#5a4a2a",
-  "Retail Take-Back Program": "#e63946",
+const shelterTypeColors: Record<string, string> = {
+  "Public Shelter": "#1e4a7a",
+  "Private Rescue": "#c4652a",
+  "Sanctuary": "#2a8a8a",
+  "Humane Society": "#3a7a9a",
+  "Rescue": "#c4652a",
 };
 
 export default function MapViewPage() {
   const {
-    filteredFacilities,
-    states,
-    categories,
+    shelters,
     isLoading,
     error,
     searchTerm,
     setSearchTerm,
     selectedState,
     setSelectedState,
-    selectedCategory,
-    setSelectedCategory,
-    selectedMaterial,
-    setSelectedMaterial,
-    selectedDistance,
-    setSelectedDistance,
+    selectedSpecies,
+    setSelectedSpecies,
+    isNoKill,
+    setIsNoKill,
     userLocation,
-    isLocating,
-    locationError,
-    requestLocation,
+    setUserLocation,
+    radius,
+    setRadius,
     clearFilters,
     activeFilterCount,
-    facilities,
-  } = useRecyclingData();
+  } = useShelterData();
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const [selectedFacility, setSelectedFacility] = useState<RecyclingFacility | null>(null);
+  const [selectedShelter, setSelectedShelter] = useState<Shelter | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter facilities with valid coordinates
-  const facilitiesWithCoords = useMemo(() => {
-    return filteredFacilities.filter(
-      (f) => f.Latitude && f.Longitude && f.Latitude !== 0 && f.Longitude !== 0
+  // Filter shelters with valid coordinates
+  const sheltersWithCoords = useMemo(() => {
+    return shelters.filter(
+      (s) => s.latitude && s.longitude && s.latitude !== 0 && s.longitude !== 0
     );
-  }, [filteredFacilities]);
+  }, [shelters]);
 
-  // Calculate center based on user location or filtered facilities
+  // Calculate center based on user location or filtered shelters
   const mapCenter = useMemo(() => {
     if (userLocation) {
-      return { lat: userLocation.latitude, lng: userLocation.longitude };
+      return { lat: userLocation.lat, lng: userLocation.lng };
     }
-    if (facilitiesWithCoords.length === 0) {
+    if (sheltersWithCoords.length === 0) {
       return { lat: 39.8283, lng: -98.5795 }; // Center of US
     }
-    const avgLat =
-      facilitiesWithCoords.reduce((sum, f) => sum + f.Latitude, 0) /
-      facilitiesWithCoords.length;
-    const avgLng =
-      facilitiesWithCoords.reduce((sum, f) => sum + f.Longitude, 0) /
-      facilitiesWithCoords.length;
-    return { lat: avgLat, lng: avgLng };
-  }, [facilitiesWithCoords, userLocation]);
+    // Optimization: if many shelters, just center on the first few or a known good center
+    return { lat: sheltersWithCoords[0].latitude, lng: sheltersWithCoords[0].longitude };
+  }, [sheltersWithCoords, userLocation]);
 
   // Clear existing markers
   const clearMarkers = useCallback(() => {
@@ -108,7 +97,7 @@ export default function MapViewPage() {
   }, []);
 
   // Create user location marker
-  const createUserMarker = useCallback((map: google.maps.Map, location: { latitude: number; longitude: number }) => {
+  const createUserMarker = useCallback((map: google.maps.Map, location: { lat: number; lng: number }) => {
     if (userMarkerRef.current) {
       userMarkerRef.current.map = null;
     }
@@ -118,10 +107,10 @@ export default function MapViewPage() {
       <div style="
         width: 20px;
         height: 20px;
-        background-color: #4285f4;
+        background-color: #c4652a;
         border: 3px solid white;
         border-radius: 50%;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 12px rgba(196, 101, 42, 0.4);
         position: relative;
       ">
         <div style="
@@ -139,55 +128,61 @@ export default function MapViewPage() {
 
     userMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
       map,
-      position: { lat: location.latitude, lng: location.longitude },
-      title: "Your Location",
+      position: location,
+      title: "Your Sanctuary",
       content: markerContent,
     });
   }, []);
 
-  // Create markers for facilities
+  // Create markers for shelters
   const createMarkers = useCallback(
-    (map: google.maps.Map, facilities: RecyclingFacility[]) => {
+    (map: google.maps.Map, shelters: Shelter[]) => {
       clearMarkers();
 
-      facilities.forEach((facility) => {
-        if (!facility.Latitude || !facility.Longitude) return;
+      shelters.forEach((shelter) => {
+        if (!shelter.latitude || !shelter.longitude) return;
 
-        const color = categoryColors[facility.Category] || "#c4652a";
+        const color = shelterTypeColors[shelter.shelterType] || "#1e4a7a";
 
-        // Create custom marker element
         const markerContent = document.createElement("div");
         markerContent.innerHTML = `
           <div style="
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             background-color: ${color};
-            border: 2px solid white;
-            border-radius: 50%;
+            border: 3px solid white;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: rotate(45deg);
           ">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
+            <div style="transform: rotate(-45deg)">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+               </svg>
+            </div>
           </div>
         `;
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
           map,
-          position: { lat: facility.Latitude, lng: facility.Longitude },
-          title: facility.Name,
+          position: { lat: shelter.latitude, lng: shelter.longitude },
+          title: shelter.name,
           content: markerContent,
         });
 
         marker.addListener("click", () => {
-          setSelectedFacility(facility);
-          map.panTo({ lat: facility.Latitude, lng: facility.Longitude });
+          setSelectedShelter(shelter);
+          map.panTo({ lat: shelter.latitude, lng: shelter.longitude });
+          const currentZoom = map.getZoom();
+          if (currentZoom !== undefined && currentZoom < 12) {
+            map.setZoom(12);
+          }
         });
 
         markersRef.current.push(marker);
@@ -196,363 +191,316 @@ export default function MapViewPage() {
     [clearMarkers]
   );
 
-  // Handle map ready
   const handleMapReady = useCallback(
     (map: google.maps.Map) => {
       mapRef.current = map;
       setMapReady(true);
 
-      // Set initial zoom for US view
-      map.setZoom(4);
-
-      // Create markers
-      if (facilitiesWithCoords.length > 0) {
-        createMarkers(map, facilitiesWithCoords);
+      if (sheltersWithCoords.length > 0) {
+        createMarkers(map, sheltersWithCoords);
       }
 
-      // Create user location marker if available
       if (userLocation) {
         createUserMarker(map, userLocation);
-        map.setCenter({ lat: userLocation.latitude, lng: userLocation.longitude });
+        map.setCenter(userLocation);
         map.setZoom(10);
       }
     },
-    [facilitiesWithCoords, createMarkers, userLocation, createUserMarker]
+    [sheltersWithCoords, createMarkers, userLocation, createUserMarker]
   );
 
-  // Update markers when filtered facilities change
-  const updateMarkers = useCallback(() => {
-    if (mapRef.current && mapReady) {
-      createMarkers(mapRef.current, facilitiesWithCoords);
-    }
-  }, [mapReady, facilitiesWithCoords, createMarkers]);
-
-  // Effect to update markers when filters change
   useEffect(() => {
-    if (mapReady) {
-      updateMarkers();
+    if (mapReady && mapRef.current) {
+      createMarkers(mapRef.current, sheltersWithCoords);
     }
-  }, [mapReady, updateMarkers]);
+  }, [mapReady, sheltersWithCoords, createMarkers]);
 
-  // Effect to update user location marker when location changes
   useEffect(() => {
     if (mapRef.current && mapReady && userLocation) {
       createUserMarker(mapRef.current, userLocation);
-      mapRef.current.setCenter({ lat: userLocation.latitude, lng: userLocation.longitude });
+      mapRef.current.setCenter(userLocation);
       mapRef.current.setZoom(10);
     }
   }, [mapReady, userLocation, createUserMarker]);
 
-  const formatCategory = (cat: string) => {
-    return cat
-      .replace("Recycling ", "Recycling ")
-      .replace("Secondary ", "Secondary ")
-      .replace("Recyclers", "Recycling")
-      .replace("(MRFs)", "")
-      .trim();
-  };
-
-  const openMaps = (facility: RecyclingFacility) => {
-    const query = encodeURIComponent(facility.Address);
+  const openMaps = (shelter: Shelter) => {
+    const address = `${shelter.addressLine1}, ${shelter.city}, ${shelter.state}`;
+    const query = encodeURIComponent(address);
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-topo-pattern">
+    <div className="min-h-screen flex flex-col bg-cream font-body selection:bg-terracotta/20 selection:text-terracotta">
       <Header />
 
-      <main className="flex-1 flex flex-col">
-        {/* Map Header */}
-        <div className="bg-card border-b border-border/50 py-4">
-          <div className="container">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h1 className="font-display text-2xl font-bold text-foreground">
-                  Interactive Map
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {facilitiesWithCoords.length} facilities with location data
-                  {userLocation && selectedDistance !== "any" && " • Sorted by distance"}
-                </p>
-              </div>
+      <main className="flex-1 flex flex-col relative">
+        {/* Map Interface Overlay - Header */}
+        <div className="absolute top-6 left-6 right-6 z-20 pointer-events-none">
+          <div className="container px-0 flex flex-col gap-4">
+            <div className="flex items-center justify-between pointer-events-auto">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-ocean text-cream rounded-[2rem] p-6 shadow-2xl flex items-center gap-6 border border-white/10"
+              >
+                <div className="p-3 bg-terracotta rounded-xl shadow-lg">
+                  <Compass className="h-6 w-6" />
+                </div>
+                <div>
+                  <h1 className="font-display text-2xl font-bold leading-none mb-1">Rescue Atlas</h1>
+                  <p className="text-[10px] font-label uppercase tracking-widest text-cream/40 font-black">
+                    {sheltersWithCoords.length} Synchronized Nodes
+                  </p>
+                </div>
+              </motion.div>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={userLocation ? "default" : "outline"}
-                  size="sm"
-                  onClick={requestLocation}
-                  disabled={isLocating}
-                  className="font-label"
-                >
-                  {isLocating ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Navigation className="h-4 w-4 mr-2" />
-                  )}
-                  {userLocation ? "Located" : "Find Me"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="font-label"
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                  {activeFilterCount > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {activeFilterCount}
-                    </Badge>
-                  )}
-                </Button>
-                <Link href="/">
-                  <Button variant="outline" size="sm" className="font-label">
+              <div className="flex gap-3">
+                <Link href="/directory">
+                  <Button className="bg-white/80 backdrop-blur-xl text-ocean hover:bg-white rounded-2xl h-14 px-6 font-bold shadow-xl border border-ocean/5 transition-all">
                     <List className="h-4 w-4 mr-2" />
                     List View
                   </Button>
                 </Link>
+                <Button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`${showFilters ? 'bg-terracotta text-cream' : 'bg-white/80 backdrop-blur-xl text-ocean'} rounded-2xl h-14 px-6 font-bold shadow-xl border border-ocean/5 transition-all`}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <Badge className="ml-2 bg-ocean text-cream border-none h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Button>
               </div>
             </div>
 
-            {locationError && (
-              <p className="text-xs text-destructive mt-2">{locationError}</p>
-            )}
+            {/* Expanded Filters */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-white/90 backdrop-blur-2xl p-8 rounded-[2.5rem] shadow-2xl border border-ocean/5 pointer-events-auto"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Search Keywords</label>
+                      <div className="relative">
+                        <input
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Search by name..."
+                          className="w-full bg-cream/50 border-none rounded-2xl px-5 h-12 text-ocean placeholder:text-ocean/20 focus:ring-2 focus:ring-terracotta/20 font-medium"
+                        />
+                      </div>
+                    </div>
 
-            {/* Collapsible Filters */}
-            {showFilters && (
-              <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border/50">
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <div className="md:col-span-2">
-                    <SearchAutocomplete
-                      value={searchTerm}
-                      onChange={setSearchTerm}
-                      facilities={facilities}
-                      placeholder="Search facilities..."
-                    />
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Universal Search Radius</label>
+                      <Select value={radius.toString()} onValueChange={(v) => setRadius(parseInt(v))}>
+                        <SelectTrigger className="bg-cream/50 border-none rounded-2xl h-12 font-medium">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-ocean/5 shadow-2xl">
+                          <SelectItem value="10">Within 10 miles</SelectItem>
+                          <SelectItem value="25">Within 25 miles</SelectItem>
+                          <SelectItem value="50">Within 50 miles</SelectItem>
+                          <SelectItem value="100">Within 100 miles</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Sanctuary Type</label>
+                      <Select value={isNoKill === undefined ? "all" : isNoKill.toString()} onValueChange={(v) => setIsNoKill(v === "all" ? undefined : v === "true")}>
+                        <SelectTrigger className="bg-cream/50 border-none rounded-2xl h-12 font-medium">
+                          <SelectValue placeholder="All Ethics" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-ocean/5 shadow-2xl">
+                          <SelectItem value="all">All Ethics</SelectItem>
+                          <SelectItem value="true">No-Kill Only</SelectItem>
+                          <SelectItem value="false">Standard Shelters</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-end">
+                      <Button
+                        variant="ghost"
+                        onClick={clearFilters}
+                        className="w-full h-12 text-ocean/40 hover:text-terracotta font-label uppercase tracking-widest text-[10px] font-black"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Reset Atlas
+                      </Button>
+                    </div>
                   </div>
-
-                  <Select value={selectedState} onValueChange={setSelectedState}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All States" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All States</SelectItem>
-                      {states.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Facility Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Facility Types</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {formatCategory(category)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Materials" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Materials</SelectItem>
-                      {MATERIAL_TYPES.map((material) => (
-                        <SelectItem key={material.value} value={material.value}>
-                          {material.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedDistance} onValueChange={setSelectedDistance}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Any Distance" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DISTANCE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex justify-end mt-3">
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="font-label">
-                    <X className="h-4 w-4 mr-1" />
-                    Clear All Filters
-                  </Button>
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         {/* Map Container */}
-        <div className="flex-1 relative">
-          {isLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <span className="text-muted-foreground">Loading facilities...</span>
+        <div className="flex-1 min-h-[600px] h-[calc(100vh-80px)]">
+          {isLoading && !mapReady ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-cream z-30">
+              <div className="flex flex-col items-center gap-6">
+                <Loader2 className="h-12 w-12 animate-spin text-terracotta" />
+                <span className="text-ocean/30 font-label uppercase tracking-widest text-xs font-black">
+                  Synchronizing Mobi Geodata...
+                </span>
               </div>
             </div>
           ) : error ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
-              <p className="text-destructive">{error}</p>
-            </div>
-          ) : (
-            <MapView
-              className="w-full h-[calc(100vh-200px)] min-h-[500px]"
-              initialCenter={mapCenter}
-              initialZoom={userLocation ? 10 : 4}
-              onMapReady={handleMapReady}
-            />
-          )}
-
-          {/* Selected Facility Panel */}
-          {selectedFacility && (
-            <div className="absolute top-4 right-4 w-80 max-w-[calc(100%-2rem)] z-10">
-              <Card className="shadow-lg border-border/50">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg font-display leading-tight line-clamp-2">
-                      {selectedFacility.Name}
-                    </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0 -mt-1 -mr-2"
-                      onClick={() => setSelectedFacility(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <Badge
-                    className="w-fit text-xs font-label"
-                    style={{
-                      backgroundColor: categoryColors[selectedFacility.Category] || "#c4652a",
-                      color: "white",
-                    }}
-                  >
-                    {formatCategory(selectedFacility.Category)}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex items-start gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-                    <span className="line-clamp-2">{selectedFacility.Address}</span>
-                  </div>
-
-                  {selectedFacility.distance !== undefined && (
-                    <div className="flex items-center gap-1 text-primary font-medium">
-                      <Navigation className="h-3 w-3" />
-                      {selectedFacility.distance < 1
-                        ? "Less than 1 mile away"
-                        : `${selectedFacility.distance.toFixed(1)} miles away`}
-                    </div>
-                  )}
-
-                  {selectedFacility.Phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 shrink-0 text-accent" />
-                      <a
-                        href={`tel:${selectedFacility.Phone}`}
-                        className="hover:text-primary transition-colors"
-                      >
-                        {selectedFacility.Phone}
-                      </a>
-                    </div>
-                  )}
-
-                  {selectedFacility.Email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 shrink-0 text-accent" />
-                      <a
-                        href={`mailto:${selectedFacility.Email}`}
-                        className="hover:text-primary transition-colors truncate"
-                      >
-                        {selectedFacility.Email}
-                      </a>
-                    </div>
-                  )}
-
-                  {selectedFacility.Website && (
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4 shrink-0 text-accent" />
-                      <a
-                        href={
-                          selectedFacility.Website.startsWith("http")
-                            ? selectedFacility.Website
-                            : `https://${selectedFacility.Website}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-primary transition-colors truncate flex items-center gap-1"
-                      >
-                        Visit Website
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  )}
-
-                  {selectedFacility.Feedstock && (
-                    <div className="pt-2 border-t border-border/50">
-                      <span className="text-xs font-label text-muted-foreground">
-                        Accepts: <span className="text-foreground">{selectedFacility.Feedstock}</span>
-                      </span>
-                    </div>
-                  )}
-
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="w-full mt-2 font-label"
-                    onClick={() => openMaps(selectedFacility)}
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Get Directions
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50 max-w-xs">
-            <h4 className="font-label text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide">
-              Categories
-            </h4>
-            <div className="grid grid-cols-2 gap-1.5 text-xs">
-              {Object.entries(categoryColors).slice(0, 6).map(([category, color]) => (
-                <div key={category} className="flex items-center gap-1.5">
-                  <div
-                    className="w-3 h-3 rounded-full shrink-0"
-                    style={{ backgroundColor: color }}
-                  />
-                  <span className="truncate text-muted-foreground">
-                    {formatCategory(category).substring(0, 15)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            {userLocation && (
-              <div className="mt-2 pt-2 border-t border-border/50 flex items-center gap-1.5 text-xs">
-                <div className="w-3 h-3 rounded-full bg-[#4285f4] border-2 border-white shrink-0" />
-                <span className="text-muted-foreground">Your Location</span>
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center z-30">
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-terracotta/20 text-center max-w-sm">
+                <p className="text-terracotta font-bold text-lg mb-4">{error?.message || "An unexpected error occurred"}</p>
+                <Button onClick={() => window.location.reload()} variant="outline" className="rounded-xl">Retry Connection</Button>
               </div>
-            )}
+            </div>
+          ) : null}
+
+          <MapView
+            className="w-full h-full"
+            initialCenter={mapCenter}
+            initialZoom={userLocation ? 10 : 4}
+            onMapReady={handleMapReady}
+          />
+
+          {/* Legend Overlay */}
+          <div className="absolute bottom-10 left-10 z-20">
+            <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-ocean/5 w-64">
+              <h4 className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/30 mb-4">Atlas Legend</h4>
+              <div className="space-y-3">
+                {Object.entries(shelterTypeColors).map(([type, color]) => (
+                  <div key={type} className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }} />
+                    <span className="text-xs font-bold text-ocean/60">{type}</span>
+                  </div>
+                ))}
+                {userLocation && (
+                  <div className="flex items-center gap-3 pt-2 border-t border-ocean/5">
+                    <div className="w-3 h-3 rounded-full bg-terracotta border-2 border-white shadow-sm" />
+                    <span className="text-xs font-bold text-ocean/60">Your Sanctuary</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+
+          {/* Detail Side Panel */}
+          <AnimatePresence>
+            {selectedShelter && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="absolute top-6 bottom-6 right-6 w-96 z-30 pointer-events-none"
+              >
+                <Card className="h-full bg-white/95 backdrop-blur-2xl shadow-2xl border-none rounded-[3.5rem] overflow-hidden pointer-events-auto flex flex-col">
+                  <div className="h-2 bg-terracotta" />
+
+                  <div className="p-10 flex-1 overflow-y-auto custom-scrollbar">
+                    <div className="flex justify-between items-start mb-8">
+                      <Badge className="bg-ocean/5 text-ocean/40 border-none px-4 py-1.5 rounded-full text-[9px] font-label font-black uppercase tracking-widest">
+                        {selectedShelter.shelterType}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedShelter(null)}
+                        className="rounded-full hover:bg-ocean/5 text-ocean/20 hover:text-ocean"
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </div>
+
+                    <h2 className="font-display text-4xl font-bold text-ocean mb-8 leading-tight">
+                      {selectedShelter.name}
+                    </h2>
+
+                    <div className="space-y-8">
+                      <div className="space-y-6">
+                        <div className="flex items-start gap-4 p-5 rounded-[2rem] bg-cream/50 border border-ocean/5">
+                          <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0">
+                            <MapPin className="h-5 w-5 text-terracotta" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-1">Mapping Node</p>
+                            <p className="text-sm font-bold text-ocean leading-relaxed">{selectedShelter.addressLine1}</p>
+                            <p className="text-xs text-ocean/40 font-medium">{selectedShelter.city}, {selectedShelter.state}</p>
+                          </div>
+                        </div>
+
+                        {selectedShelter.phone && (
+                          <div className="flex items-center gap-4 p-5 rounded-[2rem] bg-white border border-ocean/5 shadow-sm">
+                            <div className="w-10 h-10 rounded-xl bg-ocean/5 flex items-center justify-center shrink-0">
+                              <Phone className="h-4 w-4 text-ocean" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-0.5">Primary Line</p>
+                              <p className="text-sm font-bold text-ocean">{selectedShelter.phone}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedShelter.website && (
+                          <a
+                            href={selectedShelter.website.startsWith('http') ? selectedShelter.website : `https://${selectedShelter.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-4 p-5 rounded-[2rem] bg-white border border-ocean/5 shadow-sm hover:border-terracotta/20 transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-ocean/5 flex items-center justify-center shrink-0 group-hover:bg-terracotta group-hover:text-cream transition-all">
+                              <Globe className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1 truncate">
+                              <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-0.5">Registry Link</p>
+                              <p className="text-sm font-bold text-ocean flex items-center gap-2">
+                                Open Website <ExternalLink className="h-3 w-3" />
+                              </p>
+                            </div>
+                          </a>
+                        )}
+                      </div>
+
+                      <div className="pt-8 border-t border-ocean/5">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-1 h-5 bg-terracotta rounded-full" />
+                          <h4 className="text-[10px] font-label uppercase tracking-widest text-ocean/40 font-black font-bold">Verification Standard</h4>
+                        </div>
+                        <div className="flex items-center gap-3 p-4 bg-ocean text-cream rounded-2xl shadow-xl shadow-ocean/20">
+                          <ShieldCheck className="h-5 w-5 text-terracotta" />
+                          <span className="text-[10px] font-label uppercase tracking-widest font-black">Mobi Certified Sync</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-8 bg-cream/30 border-t border-ocean/5">
+                    <div className="flex gap-4">
+                      <Button
+                        onClick={() => openMaps(selectedShelter)}
+                        className="flex-1 h-14 bg-ocean hover:bg-ocean-light text-cream rounded-2xl font-bold transition-all shadow-lg"
+                      >
+                        <Navigation className="h-4 w-4 mr-2" />
+                        Directions
+                      </Button>
+                      <Link href={`/shelter/${selectedShelter.id}`} className="flex-1">
+                        <Button variant="outline" className="w-full h-14 rounded-2xl border-ocean/10 text-ocean hover:bg-white font-bold transition-all">
+                          Full Profile
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
 

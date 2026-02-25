@@ -4,7 +4,7 @@ import pg from 'pg';
 import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite, newsletterSubscribers, InsertNewsletterSubscriber, shelters, InsertFacility, Facility } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
-export const facilities = shelters as any;
+// facilities alias removed, using shelters directly
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _pool: pg.Pool | null = null;
@@ -100,8 +100,8 @@ export async function createFacilitySubmission(submission: InsertFacilitySubmiss
     throw new Error("Database not available");
   }
 
-  const result = await db.insert(facilitySubmissions).values(submission);
-  return result;
+  const result = await db.insert(facilitySubmissions).values(submission).returning({ id: facilitySubmissions.id });
+  return result[0];
 }
 
 export async function getFacilitySubmissions(status?: "pending" | "approved" | "rejected") {
@@ -197,8 +197,8 @@ export async function addUserFavorite(favorite: InsertUserFavorite) {
     return { alreadyExists: true, id: existing[0].id };
   }
 
-  const result = await db.insert(userFavorites).values(favorite);
-  return { alreadyExists: false, id: Number(result[0].insertId) };
+  const result = await db.insert(userFavorites).values(favorite).returning({ id: userFavorites.id });
+  return { alreadyExists: false, id: result[0].id };
 }
 
 export async function removeUserFavorite(userId: number, facilityId: string) {
@@ -265,8 +265,8 @@ export async function createFacilityReport(report: InsertFacilityReport) {
     throw new Error("Database not available");
   }
 
-  const result = await db.insert(facilityReports).values(report);
-  return { id: Number(result[0].insertId) };
+  const result = await db.insert(facilityReports).values(report).returning({ id: facilityReports.id });
+  return { id: result[0].id };
 }
 
 export async function getFacilityReports(status?: "pending" | "reviewed" | "resolved" | "dismissed") {
@@ -365,8 +365,8 @@ export async function createFacilityReview(review: InsertFacilityReview) {
     throw new Error("You have already reviewed this facility");
   }
 
-  const result = await db.insert(facilityReviews).values(review);
-  return { id: Number(result[0].insertId) };
+  const result = await db.insert(facilityReviews).values(review).returning({ id: facilityReviews.id });
+  return { id: result[0].id };
 }
 
 export async function updateFacilityReview(
@@ -759,10 +759,8 @@ export async function unsubscribeNewsletter(email: string) {
 
 
 // ============================================================
-// Facilities (live directory) database operations
+// Shelters (live directory) database operations
 // ============================================================
-
-// Duplicate import removed
 
 export interface FacilityQueryParams {
   search?: string;
@@ -774,8 +772,7 @@ export interface FacilityQueryParams {
 }
 
 /**
- * Get all active facilities from the database.
- * Returns the full list for client-side filtering/sorting (matching current CSV behavior).
+ * Get all active shelters from the database.
  */
 export async function getAllFacilities(activeOnly: boolean = true): Promise<Facility[]> {
   const db = await getDb();
@@ -785,15 +782,80 @@ export async function getAllFacilities(activeOnly: boolean = true): Promise<Faci
 
   const conditions = [];
   if (activeOnly) {
-    conditions.push(eq(facilities.isActive, 1));
+    conditions.push(eq(shelters.active, true));
   }
 
   const result = await db.select()
-    .from(facilities)
+    .from(shelters)
     .where(conditions.length > 0 ? and(...conditions) : undefined);
 
   return result;
 }
+
+/**
+ * Add a new shelter to the database.
+ */
+export async function addFacility(data: InsertFacility): Promise<{ id: string }> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  // Ensure slug exists if not provided
+  if (!data.slug) {
+    data.slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  const result = await db.insert(shelters).values(data).returning({ id: shelters.id });
+  return { id: result[0].id };
+}
+
+/**
+ * Update an existing shelter.
+ */
+export async function updateFacility(id: string, data: Partial<InsertFacility>) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(shelters)
+    .set(data)
+    .where(eq(shelters.id, id));
+}
+
+/**
+ * Deactivate (soft-delete) a shelter.
+ */
+export async function deactivateFacility(id: string) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(shelters)
+    .set({ active: false })
+    .where(eq(shelters.id, id));
+}
+
+/**
+ * Get a single shelter by ID (UUID).
+ */
+export async function getFacilityById(id: string): Promise<Facility | null> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select()
+    .from(shelters)
+    .where(eq(shelters.id, id))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+export const getShelterById = getFacilityById;
 
 /**
  * Get shelters with advanced filtering and geospatial search.
@@ -848,11 +910,8 @@ export async function getShelters(params: {
   }
 
   // Handle species (GIN index array)
-  // Note: species index on GIN array uses array_ops
   if (params.species && params.species.length > 0) {
-    // For now simple intersection logic if needed or just first
-    // In Postgres: species_served @> array['dogs']
-    conditions.push(sql`${shelters.speciesServed} && ARRAY[${params.species.join(',')}]::text[]`);
+    conditions.push(sql`${shelters.speciesServed} && ${params.species}::text[]`);
   }
 
   const distanceSql = params.lat && params.lng
@@ -862,6 +921,7 @@ export async function getShelters(params: {
   let query: any = db.select({
     id: shelters.id,
     name: shelters.name,
+    slug: shelters.slug,
     addressLine1: shelters.addressLine1,
     city: shelters.city,
     state: shelters.state,
@@ -934,60 +994,7 @@ export async function getFacilityStats() {
   }
 }
 
-/**
- * Add a new facility to the database (e.g., from an approved submission).
- */
-export async function addFacility(data: Omit<InsertFacility, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ id: number }> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-
-  const result = await db.insert(facilities).values(data);
-  return { id: Number(result[0].insertId) };
-}
-
-/**
- * Update an existing facility.
- */
-export async function updateFacility(id: number, data: Partial<InsertFacility>) {
-  const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-
-  await db.update(facilities)
-    .set(data)
-    .where(eq(facilities.id, id));
-}
-
-/**
- * Deactivate (soft-delete) a facility.
- */
-export async function deactivateFacility(id: number) {
-  const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-
-  await db.update(facilities)
-    .set({ isActive: 0 })
-    .where(eq(facilities.id, id));
-}
-
-/**
- * Get a single facility by ID.
- */
-export async function getFacilityById(id: number): Promise<Facility | null> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-
-  const result = await db.select()
-    .from(facilities)
-    .where(eq(facilities.id, id))
-    .limit(1);
-
-  return result[0] || null;
-}
+export const getShelterStats = getFacilityStats;
+export const addShelter = addFacility;
+export const updateShelter = updateFacility;
+export const deactivateShelter = deactivateFacility;

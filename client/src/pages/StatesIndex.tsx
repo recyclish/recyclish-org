@@ -90,20 +90,19 @@ export default function StatesIndex() {
     });
   }, [stateCounts]);
 
-  // Structured data for SEO
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Recycling Centers by State",
-    "description": "Find recycling centers in all 50 US states. Free directory of electronics recyclers, hazardous waste facilities, and more.",
+    "name": "Animal Rescues by State",
+    "description": "Find verified animal rescues and shelters across all 50 US states. Digital atlas of the US animal welfare community.",
     "numberOfItems": STATES.length,
     "itemListElement": sortedStates.map((state, index) => ({
       "@type": "ListItem",
       "position": index + 1,
       "item": {
         "@type": "WebPage",
-        "name": `Recycling Centers in ${state.name}`,
-        "url": `https://recycling.recyclish.com/state/${state.slug}`
+        "name": `Animal Rescues in ${state.name}`,
+        "url": `https://rescues.recyclish.com/state/${state.slug}`
       }
     }))
   };
@@ -111,145 +110,117 @@ export default function StatesIndex() {
   return (
     <>
       <Helmet>
-        <title>Recycling Centers by State | National Recycling Directory</title>
-        <meta 
-          name="description" 
-          content="Find recycling centers in all 50 US states. Free directory of over 2,000 electronics recyclers, hazardous waste facilities, sharps disposal, and more." 
+        <title>Browse Rescues by State | Animal Rescue Directory</title>
+        <meta
+          name="description"
+          content="Explore the national atlas of animal rescues. Find verified shelters and no-kill sanctuaries in all 50 US states."
         />
-        <meta name="keywords" content="recycling centers by state, recycling directory, where to recycle, electronics recycling, hazardous waste disposal" />
-        <link rel="canonical" href="https://recycling.recyclish.com/states" />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content="Recycling Centers by State | National Recycling Directory" />
-        <meta property="og:description" content="Find recycling centers in all 50 US states. Free directory of over 2,000 facilities." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://recycling.recyclish.com/states" />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Recycling Centers by State" />
-        <meta name="twitter:description" content="Find recycling centers in all 50 US states." />
-        
-        {/* Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify(structuredData)}
         </script>
       </Helmet>
 
-      <div className="min-h-screen flex flex-col bg-topo-pattern">
+      <div className="min-h-screen flex flex-col bg-cream font-body selection:bg-terracotta/20 selection:text-terracotta">
         <Header />
 
-        {/* Breadcrumb */}
-        <nav className="container py-4" aria-label="Breadcrumb">
-          <ol className="flex items-center gap-2 text-sm text-muted-foreground">
-            <li>
-              <Link href="/" className="hover:text-primary transition-colors">
-                Home
-              </Link>
-            </li>
-            <ChevronRight className="h-4 w-4" />
-            <li className="text-foreground font-medium">
-              States
-            </li>
-          </ol>
-        </nav>
+        {/* Hero Section - Ocean Palette */}
+        <section className="bg-ocean text-cream py-20 md:py-32 px-6 relative overflow-hidden">
+          {/* Brand Watermark */}
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none hidden lg:block">
+            <span className="text-[25vw] font-display font-black leading-none tracking-tighter uppercase italic whitespace-nowrap">The Atlas</span>
+          </div>
 
-        {/* Hero Section */}
-        <section className="container py-8 md:py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-primary/10">
-                <MapPin className="h-8 w-8 text-primary" />
+          <div className="container relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="max-w-4xl"
+            >
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-1 bg-terracotta rounded-full" />
+                <span className="text-[10px] font-label uppercase tracking-[0.4em] font-black text-cream/40">National Census</span>
               </div>
-              <div>
-                <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-                  Recycling Centers by State
-                </h1>
-              </div>
-            </div>
-            
-            <p className="text-lg text-muted-foreground max-w-3xl mb-8">
-              Browse recycling facilities across all 50 US states. Find electronics recyclers, 
-              hazardous waste drop-offs, sharps disposal, and more in your state.
-            </p>
-          </motion.div>
+              <h1 className="font-display text-5xl md:text-8xl font-bold mb-8 leading-[1.05] tracking-tight">
+                Rescues & Shelters <br />
+                <span className="text-terracotta italic underline decoration-terracotta/30 underline-offset-[12px]">by State.</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-cream/70 font-medium leading-relaxed max-w-2xl">
+                Our verified directory spans all 50 states, tracking 8,500+ animal welfare organizations in the most accurate census ever built.
+              </p>
+            </motion.div>
+          </div>
         </section>
 
         {/* States Grid */}
-        <section className="container pb-16">
-          {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-24 rounded-xl bg-muted animate-pulse"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {sortedStates.map((state, index) => {
-                const count = stateCounts[state.slug] || 0;
-                return (
-                  <motion.div
-                    key={state.slug}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: Math.min(index * 0.02, 0.5) }}
-                  >
-                    <Link href={`/state/${state.slug}`}>
-                      <div className="group p-5 rounded-xl border bg-card hover:bg-accent/50 hover:border-primary/30 transition-all cursor-pointer">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h2 className="font-display text-lg font-semibold group-hover:text-primary transition-colors">
+        <section className="relative py-24 px-6 overflow-hidden">
+          <div className="absolute inset-0 bg-topo-pattern opacity-[0.04] pointer-events-none" />
+
+          <div className="container relative z-10">
+            {isLoading ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="h-32 rounded-[2rem] bg-ocean/5 animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {sortedStates.map((state, index) => {
+                  const count = stateCounts[state.slug] || 0;
+                  return (
+                    <motion.div
+                      key={state.slug}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: Math.min(index * 0.02, 0.5) }}
+                    >
+                      <Link href={`/state/${state.slug}`}>
+                        <div className="group p-8 rounded-[2.5rem] bg-white/40 backdrop-blur-xl border border-ocean/5 hover:bg-white hover:border-terracotta/20 hover:shadow-2xl hover:shadow-ocean/5 transition-all cursor-pointer relative overflow-hidden">
+                          <div className="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:opacity-10 transition-opacity">
+                            <MapPin className="w-12 h-12 text-ocean" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <span className="text-[10px] font-label uppercase tracking-widest text-terracotta font-black mb-2 block">{state.abbreviation}</span>
+                            <h2 className="font-display text-2xl font-bold text-ocean mb-4 group-hover:text-terracotta transition-colors">
                               {state.name}
                             </h2>
-                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                              <Building2 className="h-4 w-4" />
-                              <span className="text-sm">
-                                {count} {count === 1 ? "facility" : "facilities"}
-                              </span>
+                            <div className="flex items-center gap-2 text-ocean/40 font-bold text-[10px] font-label uppercase tracking-widest">
+                              <Building2 className="h-3 w-3" />
+                              <span>{count} Logged Rescues</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
-                              {state.abbreviation}
-                            </Badge>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+
+                          <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all">
+                            <ChevronRight className="w-6 h-6 text-terracotta" />
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </section>
 
-        {/* SEO Content */}
-        <section className="container pb-16">
-          <div className="bg-muted/30 rounded-2xl p-8">
-            <h2 className="font-display text-2xl font-bold mb-4">
-              Find Recycling Centers Near You
-            </h2>
-            <div className="prose prose-gray max-w-none">
-              <p className="text-muted-foreground">
-                The National Recycling Directory provides free access to over 2,000 recycling 
-                facilities across all 50 US states. Whether you need to recycle electronics, 
-                dispose of hazardous waste, or find a sharps disposal location, our directory 
-                helps you find the right facility.
-              </p>
-              <p className="text-muted-foreground mt-4">
-                Each state page shows all available recycling centers with detailed information 
-                including addresses, phone numbers, hours of operation, and accepted materials. 
-                You can filter by category, fee structure, and whether the facility accepts 
-                walk-in drop-offs.
-              </p>
+        {/* Narrative Section */}
+        <section className="py-24 px-6 bg-ocean text-cream overflow-hidden">
+          <div className="container relative">
+            <div className="absolute -right-20 -top-20 w-96 h-96 bg-terracotta/20 rounded-full blur-[120px] pointer-events-none" />
+
+            <div className="max-w-4xl">
+              <h2 className="font-display text-4xl md:text-5xl font-bold mb-10 leading-tight">
+                Building the <span className="text-terracotta italic">National Census</span> <br />of US Animal Welfare.
+              </h2>
+              <div className="grid md:grid-cols-2 gap-12 text-cream/60 font-medium text-lg leading-relaxed">
+                <p>
+                  The National Atlas is more than just a list of addresses. It is a living, synchronized database that tracks the heartbeat of animal rescues in every corner of America. From the smallest sanctuaries in rural Alaska to the massive municipal shelters of New York City, our mission is universal visibility.
+                </p>
+                <p>
+                  By categorizing facilities by state and city, we enable local communities to find the organizations that need their support most. Mobi, our synchronization engine, ensures that every facility listed is verified, active, and meeting the Recyclish standard of community excellence.
+                </p>
+              </div>
             </div>
           </div>
         </section>

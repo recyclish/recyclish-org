@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, ArrowRight, Loader2, Syringe, Store, Cpu, Battery, CircleDot, Package, PawPrint, Heart, ShieldCheck } from "lucide-react";
+import { Home, ArrowRight, Loader2, PawPrint, Heart, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ function isZipCode(value: string): boolean {
 
 const MAX_FILTERS = 2;
 
-type FilterKey = "household" | "free" | "sharps" | "retail" | "electronics" | "batteries" | "tires" | "cardboard";
+type FilterKey = "dogs" | "cats" | "nokill";
 
 interface HeroSearchProps {
   states: string[];
@@ -304,25 +304,21 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       params.set("lng", selectedLocation.lng.toString());
       params.set("locationName", selectedLocation.name);
       params.set("distance", "25");
+    } else if (inputValue.trim()) {
+      // Fallback to keyword search if no location selected
+      params.set("q", inputValue.trim());
     }
 
-    if (selectedFilters.has("household")) {
-      params.set("household", "true");
+    const species: string[] = [];
+    if (selectedFilters.has("dogs")) species.push("dog");
+    if (selectedFilters.has("cats")) species.push("cat");
+
+    if (species.length > 0) {
+      params.set("species", species.join(","));
     }
-    if (selectedFilters.has("free")) {
-      params.set("fee", "Free");
-    }
-    if (selectedFilters.has("sharps")) {
-      params.set("sharps", "true");
-    }
-    if (selectedFilters.has("retail")) {
-      params.set("retail", "true");
-    }
-    // Material shortcut tags
-    const materialShortcuts: FilterKey[] = ["electronics", "batteries", "tires", "cardboard"];
-    const activeMaterial = materialShortcuts.find(m => selectedFilters.has(m));
-    if (activeMaterial) {
-      params.set("material", activeMaterial);
+
+    if (selectedFilters.has("nokill")) {
+      params.set("noKill", "true");
     }
 
     setLocation(`/directory?${params.toString()}`);
@@ -332,80 +328,71 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
   const showZipSearchButton = isZipCode(inputValue) && !selectedLocation;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
-      className="bg-card/95 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-6 md:p-8 mt-8"
-    >
-      <h2 className="font-display text-xl md:text-2xl font-semibold text-foreground mb-2">
-        Search 8,500+ Animal Rescues & Shelters
-      </h2>
-      <p className="text-muted-foreground font-body text-sm mb-6">
-        Enter your city, state or ZIP code to find local shelters, specialized rescue groups, and pet adoption centers near you.
-      </p>
+    <div className="w-full group">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-1.5 bg-ocean/10 rounded-lg">
+          <Search className="w-3.5 h-3.5 text-ocean" />
+        </div>
+        <p className="text-xs font-label text-ocean/50 uppercase tracking-widest font-bold">
+          Search Directory
+        </p>
+      </div>
 
-      {/* Search Row */}
-      <div className="grid gap-4 md:grid-cols-12">
-        {/* Location Input */}
-        <div className="md:col-span-8 relative">
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            Search Location
-          </label>
-          <div className="relative">
-            {selectedLocation ? (
-              <div className="flex items-center gap-2 h-10 px-3 bg-primary/5 border border-primary/20 rounded-md">
-                <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="text-sm text-primary font-medium truncate">
-                  {selectedLocation.name}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 ml-auto hover:bg-primary/10"
-                  onClick={handleClearLocation}
-                >
-                  <X className="h-4 w-4 text-primary" />
-                </Button>
-              </div>
-            ) : (
-              <>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
-                  placeholder="City, State or ZIP Code"
-                  className="pl-9 pr-10 font-body"
-                  disabled={!mapsReady}
-                />
-                {(isSearching || isGeocodingZip) && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                )}
-              </>
-            )}
+      <div className="bg-white/80 backdrop-blur-xl p-2 rounded-[2.5rem] border-2 border-ocean/10 shadow-2xl shadow-ocean/5 transition-all group-hover:border-terracotta/20 group-hover:shadow-terracotta/5">
+        <div className="flex flex-col lg:flex-row gap-2 p-1">
+          {/* Location Input Wrapper */}
+          <div className="flex-grow flex items-center px-6 gap-3 bg-cream/70 rounded-[1.5rem] border border-ocean/5 relative">
+            <Search className="w-5 h-5 text-ocean/30" />
+            <div className="flex-grow">
+              {selectedLocation ? (
+                <div className="flex items-center gap-2 h-14">
+                  <span className="text-lg text-ocean font-bold italic truncate">
+                    {selectedLocation.name}
+                  </span>
+                  <button
+                    onClick={handleClearLocation}
+                    className="p-1 hover:bg-terracotta/10 rounded-full text-terracotta"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Input
+                    ref={inputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
+                    placeholder="Find a shelter or rescue near you..."
+                    className="bg-transparent border-none text-ocean placeholder:text-ocean/20 h-14 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-lg italic shadow-none"
+                  />
+                  {(isSearching || isGeocodingZip) && (
+                    <Loader2 className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-terracotta" />
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Predictions dropdown */}
             {showDropdown && predictions.length > 0 && !selectedLocation && (
               <div
                 ref={dropdownRef}
-                className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-auto"
+                className="absolute z-50 left-0 right-0 top-full mt-2 bg-white border border-ocean/10 rounded-2xl shadow-2xl max-h-60 overflow-auto overflow-x-hidden p-2"
               >
                 {predictions.map((prediction) => (
                   <button
                     key={prediction.place_id}
-                    className="w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors flex items-start gap-3 border-b border-border/50 last:border-0"
+                    className="w-full px-4 py-3 text-left hover:bg-cream transition-colors flex items-center gap-3 rounded-xl"
                     onClick={() => handleSelectPrediction(prediction)}
                   >
-                    <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <MapPin className="h-4 w-4 text-terracotta flex-shrink-0" />
                     <div>
-                      <div className="font-medium text-sm">
+                      <div className="font-bold text-ocean text-sm">
                         {prediction.main_text}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[10px] text-ocean/40 font-label uppercase tracking-widest font-bold">
                         {prediction.secondary_text}
                       </div>
                     </div>
@@ -414,82 +401,45 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Search Button */}
-        <div className="md:col-span-4 flex items-end">
           <Button
             size="lg"
-            className="w-full font-label bg-primary hover:bg-primary/90 rounded-md shadow-lg shadow-primary/20"
+            className="bg-ocean hover:bg-ocean-light text-cream h-14 px-10 font-bold rounded-[1.5rem] transition-all flex items-center gap-2"
             onClick={handleSearch}
           >
             Find Rescues
-            <ArrowRight className="h-4 w-4 ml-2" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Quick Filter Chips - up to 2 selectable */}
-      <div className="mt-5 pt-5 border-t border-border/50">
-        <label className="text-sm font-label text-muted-foreground mb-3 block">
-          Filter by:
-          <span className="ml-2 text-xs opacity-70">(select up to 2)</span>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedFilters.has("household" as any) ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("household" as any)}
+      {/* Quick Filter Chips */}
+      <div className="mt-8 flex flex-wrap gap-3">
+        {[
+          { key: "dogs", label: "Dogs", icon: PawPrint },
+          { key: "cats", label: "Cats", icon: Heart },
+          { key: "nokill", label: "No-Kill Only", icon: ShieldCheck },
+        ].map((filter) => (
+          <button
+            key={filter.key}
+            onClick={() => toggleFilter(filter.key as any)}
             className={cn(
-              "font-label rounded-full",
-              selectedFilters.has("household" as any) && "bg-primary text-primary-foreground"
+              "px-5 py-2.5 rounded-full font-label text-[10px] uppercase tracking-[0.2em] font-black transition-all border flex items-center gap-2",
+              selectedFilters.has(filter.key as any)
+                ? "bg-terracotta border-terracotta text-cream shadow-lg shadow-terracotta/20"
+                : "bg-white/50 border-ocean/10 text-ocean/60 hover:border-terracotta/30 hover:text-terracotta"
             )}
           >
-            <PawPrint className="h-4 w-4 mr-1.5" />
-            Dogs
-          </Button>
-          <Button
-            variant={selectedFilters.has("free" as any) ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("free" as any)}
-            className={cn(
-              "font-label rounded-full",
-              selectedFilters.has("free" as any) && "bg-primary text-primary-foreground"
-            )}
-          >
-            <Heart className="h-4 w-4 mr-1.5" />
-            Cats
-          </Button>
-          <Button
-            variant={selectedFilters.has("sharps" as any) ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("sharps" as any)}
-            className={cn(
-              "font-label rounded-full",
-              selectedFilters.has("sharps" as any) && "bg-primary text-primary-foreground"
-            )}
-          >
-            No-Kill Only
-          </Button>
-          <Button
-            variant={selectedFilters.has("retail" as any) ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("retail" as any)}
-            className={cn(
-              "font-label rounded-full",
-              selectedFilters.has("retail" as any) && "bg-primary text-primary-foreground"
-            )}
-          >
-            <ShieldCheck className="h-4 w-4 mr-1.5" />
-            Verified
-          </Button>
-        </div>
+            {filter.icon && <filter.icon className="h-3 w-3" />}
+            {filter.label}
+          </button>
+        ))}
       </div>
 
-      {/* Help Text */}
-      <p className="text-xs text-muted-foreground mt-4">
-        Need help finding the right pet? <Link href="/blog" className="text-primary hover:underline">Read our adoption guide</Link> or <Link href="/directory" className="text-primary hover:underline">browse all shelters</Link>.
+      <p className="mt-6 text-[11px] text-ocean/40 font-medium italic">
+        * Our high-performance search engine features intelligent filters for pet types, rescue size, and verification status.
+        <Link href="/directory" className="text-terracotta hover:underline ml-1">Browse all shelters</Link>
       </p>
-    </motion.div>
+    </div>
   );
 }

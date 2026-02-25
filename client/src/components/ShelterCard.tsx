@@ -45,99 +45,95 @@ export function ShelterCard({ shelter, index, isFavorite = false }: ShelterCardP
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
+            transition={{ duration: 0.5, delay: index * 0.05 }}
         >
-            <Card className="h-full hover:shadow-xl transition-all duration-300 border-border/50 bg-card group overflow-hidden">
-                <div className="h-2 bg-primary/20 group-hover:bg-primary transition-colors" />
-                <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
+            <Card className="h-full hover:shadow-2xl transition-all duration-500 border-ocean/5 bg-white/90 backdrop-blur-md group overflow-hidden rounded-[2rem]">
+                <div className="h-1.5 bg-gradient-to-r from-terracotta/20 via-terracotta to-terracotta/20 group-hover:h-2 transition-all" />
+                <CardHeader className="pb-4 pt-8 px-8">
+                    <div className="flex items-start justify-between gap-4">
                         <Link href={`/shelter/${shelter.id}`}>
-                            <CardTitle className="text-xl font-display leading-tight line-clamp-2 flex-1 hover:text-primary transition-colors cursor-pointer capitalize">
+                            <CardTitle className="text-2xl font-display font-bold text-ocean leading-tight line-clamp-2 flex-1 hover:text-terracotta transition-colors cursor-pointer capitalize">
                                 {shelter.name.toLowerCase()}
                             </CardTitle>
                         </Link>
-                        {shelter.verified && (
-                            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                                <ShieldCheck className="h-3 w-3 mr-1" />
-                                Verified
-                            </Badge>
-                        )}
                     </div>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                            <PawPrint className="h-3 w-3 mr-1" />
-                            {shelter.shelterType}
-                        </Badge>
-                        {shelter.isNoKill && (
-                            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                                No-Kill
-                            </Badge>
+
+                    <div className="flex flex-wrap gap-2 mt-4">
+                        {shelter.verified && (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-ocean text-cream text-[9px] font-label uppercase tracking-widest font-black rounded-full">
+                                <ShieldCheck className="h-3 w-3" />
+                                Verified
+                            </div>
                         )}
-                        {shelter.speciesServed?.map(species => (
-                            <Badge key={species} variant="secondary" className="text-[10px] uppercase tracking-wider">
-                                {species}
-                            </Badge>
-                        ))}
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-terracotta/10 text-terracotta text-[9px] font-label uppercase tracking-widest font-black rounded-full">
+                            <PawPrint className="h-3 w-3" />
+                            {shelter.shelterType}
+                        </div>
+                        {shelter.isNoKill && (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-ocean/5 text-ocean/40 text-[9px] font-label uppercase tracking-widest font-black rounded-full border border-ocean/5">
+                                No-Kill
+                            </div>
+                        )}
                     </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-                            <div className="flex-1">
-                                <span className="line-clamp-1">{shelter.addressLine1}</span>
-                                <span className="block text-xs">{shelter.city}, {shelter.state} {shelter.zip}</span>
+
+                <CardContent className="space-y-6 px-8 pb-8">
+                    <div className="space-y-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-cream flex items-center justify-center shrink-0 border border-ocean/5">
+                                <MapPin className="h-5 w-5 text-terracotta" />
+                            </div>
+                            <div className="flex-1 pt-1">
+                                <span className="block text-ocean font-bold text-sm leading-tight">{shelter.addressLine1}</span>
+                                <span className="block text-ocean/40 text-xs font-label uppercase tracking-widest font-bold mt-1">
+                                    {shelter.city}, {shelter.state}
+                                </span>
                                 {shelter.distance !== undefined && (
-                                    <span className="block text-sm text-primary font-bold mt-1">
-                                        {shelter.distance.toFixed(1)} miles away
-                                    </span>
+                                    <div className="inline-block mt-2 px-2 py-0.5 bg-terracotta text-cream text-[10px] font-label uppercase tracking-widest font-black rounded-md shadow-lg shadow-terracotta/20">
+                                        {shelter.distance.toFixed(1)} Miles
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        {shelter.phone && (
-                            <div className="flex items-center gap-2 text-sm">
-                                <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                <a href={`tel:${shelter.phone}`} className="hover:text-primary transition-colors">
-                                    {shelter.phone}
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                            {shelter.phone && (
+                                <a href={`tel:${shelter.phone}`} className="flex items-center gap-2 p-3 rounded-2xl bg-cream/50 border border-ocean/5 hover:bg-terracotta/5 hover:border-terracotta/20 transition-all group/link">
+                                    <Phone className="h-4 w-4 text-ocean/20 group-hover/link:text-terracotta transition-colors" />
+                                    <span className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/60">Call</span>
                                 </a>
-                            </div>
-                        )}
-
-                        {shelter.website && (
-                            <div className="flex items-center gap-2 text-sm">
-                                <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            )}
+                            {shelter.website && (
                                 <a
                                     href={shelter.website.startsWith('http') ? shelter.website : `https://${shelter.website}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-primary transition-colors truncate flex items-center gap-1"
+                                    className="flex items-center gap-2 p-3 rounded-2xl bg-cream/50 border border-ocean/5 hover:bg-ocean/5 hover:border-ocean/20 transition-all group/link"
                                 >
-                                    Visit Website
-                                    <ExternalLink className="h-3 w-3" />
+                                    <Globe className="h-4 w-4 text-ocean/20 group-hover/link:text-ocean transition-colors" />
+                                    <span className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/60">Web</span>
                                 </a>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex gap-3 pt-2">
                         <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 rounded-full border-primary/20 hover:bg-primary/5"
+                            variant="ghost"
+                            className="flex-1 h-12 rounded-2xl font-label text-[10px] uppercase tracking-widest font-black text-ocean/40 hover:text-terracotta hover:bg-terracotta/5 transition-all"
                             onClick={getDirections}
                         >
                             <Navigation className="h-4 w-4 mr-2" />
-                            Directions
+                            Map
                         </Button>
-                        <Button
-                            variant="default"
-                            size="sm"
-                            className="flex-1 rounded-full shadow-lg shadow-primary/20"
-                        >
-                            Details
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
+                        <Link href={`/shelter/${shelter.id}`} className="flex-1">
+                            <Button
+                                className="w-full h-12 rounded-2xl bg-ocean hover:bg-ocean-light text-cream font-bold shadow-xl shadow-ocean/20 transition-all flex items-center justify-center gap-2"
+                            >
+                                Details
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </Link>
                     </div>
                 </CardContent>
             </Card>
