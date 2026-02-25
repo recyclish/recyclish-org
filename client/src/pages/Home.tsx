@@ -108,10 +108,10 @@ export default function Home() {
                 <motion.div
                   animate={{ y: [0, -12, 0] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-36 -right-24 bg-white/90 backdrop-blur-md p-6 rounded-[2.5rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-4 min-w-[220px]"
+                  className="absolute -bottom-48 -right-32 bg-white/90 backdrop-blur-md p-7 rounded-[3rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-5 min-w-[260px]"
                 >
-                  <div className="p-3 bg-ocean rounded-full group">
-                    <Recycle className="w-6 h-6 text-cream group-hover:rotate-180 transition-transform duration-1000" />
+                  <div className="p-4 bg-ocean rounded-full group">
+                    <Recycle className="w-7 h-7 text-cream group-hover:rotate-180 transition-transform duration-1000" />
                   </div>
                   <div>
                     <div className="text-[10px] font-label text-ocean/40 uppercase tracking-widest font-black">Meet Mobi:</div>
