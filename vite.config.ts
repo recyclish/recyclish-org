@@ -158,10 +158,10 @@ export default defineConfig({
     },
   },
   envDir: path.resolve(PROJECT_ROOT),
-  root: path.resolve(PROJECT_ROOT, "client"),
-  publicDir: path.resolve(PROJECT_ROOT, "client", "public"),
+  root: "client",
+  publicDir: "public",
   build: {
-    outDir: path.resolve(PROJECT_ROOT, "dist"),
+    outDir: "../dist",
     emptyOutDir: true,
   },
   server: {
