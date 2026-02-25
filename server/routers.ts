@@ -4,9 +4,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { 
-  createFacilitySubmission, 
-  getFacilitySubmissions, 
+import {
+  createFacilitySubmission,
+  getFacilitySubmissions,
   updateFacilitySubmissionStatus,
   getFacilitySubmissionById,
   deleteFacilitySubmission,
@@ -44,6 +44,7 @@ import {
   updateFacility,
   deactivateFacility,
   getFacilityById,
+  getShelters,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { generateWelcomeEmailContent, formatWelcomeEmailHtml, formatWelcomeEmailText } from "./welcomeEmail";
@@ -52,9 +53,9 @@ import { generateChatResponse, ChatMessage } from "./chatbot";
 // Admin-only procedure - checks if user has admin role
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== 'admin') {
-    throw new TRPCError({ 
-      code: 'FORBIDDEN', 
-      message: 'You do not have permission to access this resource' 
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'You do not have permission to access this resource'
     });
   }
   return next({ ctx });
@@ -296,10 +297,10 @@ export const appRouter = router({
           facilityLatitude: input.facilityLatitude || null,
           facilityLongitude: input.facilityLongitude || null,
         });
-        return { 
-          success: true, 
+        return {
+          success: true,
           alreadyExists: result.alreadyExists,
-          message: result.alreadyExists ? "Already in favorites" : "Added to favorites" 
+          message: result.alreadyExists ? "Already in favorites" : "Added to favorites"
         };
       }),
 
@@ -620,16 +621,16 @@ export const appRouter = router({
         });
 
         if (result.alreadySubscribed) {
-          return { 
-            success: false, 
-            message: "This email is already subscribed to our newsletter." 
+          return {
+            success: false,
+            message: "This email is already subscribed to our newsletter."
           };
         }
 
         if (result.reactivated) {
-          return { 
-            success: true, 
-            message: "Welcome back! Your subscription has been reactivated." 
+          return {
+            success: true,
+            message: "Welcome back! Your subscription has been reactivated."
           };
         }
 
@@ -652,8 +653,8 @@ export const appRouter = router({
           content: `A new user has subscribed to the newsletter:\n\n**Email:** ${input.email}\n**Zip Code:** ${input.zipCode}${input.age ? `\n**Age:** ${input.age}` : ''}${input.gender ? `\n**Gender:** ${input.gender}` : ''}${input.additionalInfo ? `\n**Additional Info:** ${input.additionalInfo}` : ''}`,
         });
 
-        return { 
-          success: true, 
+        return {
+          success: true,
           message: "Thank you for subscribing! You'll receive recycling tips and updates for your area.",
           welcomeEmail,
         };
@@ -679,6 +680,25 @@ export const appRouter = router({
 
   // Live directory routes - facility data from database
   directory: router({
+    // Advanced search for shelters
+    search: publicProcedure
+      .input(z.object({
+        search: z.string().optional(),
+        state: z.string().optional(),
+        city: z.string().optional(),
+        species: z.array(z.string()).optional(),
+        type: z.string().optional(),
+        noKill: z.boolean().optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+        radius: z.number().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await getShelters(input as any);
+      }),
+
     // Public endpoint - get all active facilities
     list: publicProcedure
       .query(async () => {

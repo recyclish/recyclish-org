@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Home, ArrowRight, Loader2, Syringe, Store, Cpu, Battery, CircleDot, Package } from "lucide-react";
+import { Home, ArrowRight, Loader2, Syringe, Store, Cpu, Battery, CircleDot, Package, PawPrint, Heart, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 
 const API_KEY = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
 const FORGE_BASE_URL =
@@ -28,18 +28,18 @@ function loadMapsScript(): Promise<void> {
   if (mapsScriptLoaded && window.google?.maps) {
     return Promise.resolve();
   }
-  
+
   if (mapsScriptPromise) {
     return mapsScriptPromise;
   }
-  
+
   mapsScriptPromise = new Promise((resolve, reject) => {
     if (window.google?.maps?.places) {
       mapsScriptLoaded = true;
       resolve();
       return;
     }
-    
+
     const script = document.createElement("script");
     script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=places,geocoding`;
     script.async = true;
@@ -54,7 +54,7 @@ function loadMapsScript(): Promise<void> {
     };
     document.head.appendChild(script);
   });
-  
+
   return mapsScriptPromise;
 }
 
@@ -86,7 +86,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
   const [mapsReady, setMapsReady] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<Set<FilterKey>>(new Set());
   const [isGeocodingZip, setIsGeocodingZip] = useState(false);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -142,7 +142,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
           } else if (adminArea) {
             cityName = `${adminArea.short_name} ${zipCode}`;
           }
-          
+
           setSelectedLocation({
             lat: location.lat(),
             lng: location.lng(),
@@ -165,7 +165,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       setIsSearching(false);
       return;
     }
-    
+
     if (query.length < 2 || !autocompleteServiceRef.current) {
       setPredictions([]);
       return;
@@ -224,7 +224,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
   // Handle input change
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    
+
     if (!isZipCode(value)) {
       setShowDropdown(true);
     } else {
@@ -296,16 +296,16 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       geocodeZipCode(inputValue.trim());
       return;
     }
-    
+
     const params = new URLSearchParams();
-    
+
     if (selectedLocation) {
       params.set("lat", selectedLocation.lat.toString());
       params.set("lng", selectedLocation.lng.toString());
       params.set("locationName", selectedLocation.name);
       params.set("distance", "25");
     }
-    
+
     if (selectedFilters.has("household")) {
       params.set("household", "true");
     }
@@ -324,7 +324,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
     if (activeMaterial) {
       params.set("material", activeMaterial);
     }
-    
+
     setLocation(`/directory?${params.toString()}`);
   };
 
@@ -339,10 +339,10 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       className="bg-card/95 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-6 md:p-8 mt-8"
     >
       <h2 className="font-display text-xl md:text-2xl font-semibold text-foreground mb-2">
-        Search {totalFacilities.toLocaleString()} Recycling Centers
+        Search 8,500+ Animal Rescues & Shelters
       </h2>
       <p className="text-muted-foreground font-body text-sm mb-6">
-        Enter your city, state or ZIP code to find drop-off locations for household recyclables, electronics, hazardous waste, and more.
+        Enter your city, state or ZIP code to find local shelters, specialized rescue groups, and pet adoption centers near you.
       </p>
 
       {/* Search Row */}
@@ -350,22 +350,22 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
         {/* Location Input */}
         <div className="md:col-span-8 relative">
           <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            Your Location
+            Search Location
           </label>
           <div className="relative">
             {selectedLocation ? (
-              <div className="flex items-center gap-2 h-10 px-3 bg-green-50 border border-green-200 rounded-md">
-                <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-                <span className="text-sm text-green-700 font-medium truncate">
+              <div className="flex items-center gap-2 h-10 px-3 bg-primary/5 border border-primary/20 rounded-md">
+                <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="text-sm text-primary font-medium truncate">
                   {selectedLocation.name}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 ml-auto hover:bg-green-100"
+                  className="h-6 w-6 p-0 ml-auto hover:bg-primary/10"
                   onClick={handleClearLocation}
                 >
-                  <X className="h-4 w-4 text-green-600" />
+                  <X className="h-4 w-4 text-primary" />
                 </Button>
               </div>
             ) : (
@@ -378,7 +378,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
                   onChange={(e) => handleInputChange(e.target.value)}
                   onKeyDown={handleKeyDown}
                   onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
-                  placeholder="Enter city, state or ZIP"
+                  placeholder="City, State or ZIP Code"
                   className="pl-9 pr-10 font-body"
                   disabled={!mapsReady}
                 />
@@ -413,42 +413,17 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
                 ))}
               </div>
             )}
-            
-            {/* ZIP code hint */}
-            {showZipSearchButton && (
-              <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Search ZIP code <strong>{inputValue}</strong></span>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    onClick={handleZipSearch}
-                    disabled={isGeocodingZip}
-                    className="font-label"
-                  >
-                    {isGeocodingZip ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Search"
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Press Enter or click Search</p>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Search Button */}
         <div className="md:col-span-4 flex items-end">
-          <Button 
-            size="lg" 
-            className="w-full font-label bg-primary hover:bg-primary/90"
+          <Button
+            size="lg"
+            className="w-full font-label bg-primary hover:bg-primary/90 rounded-md shadow-lg shadow-primary/20"
             onClick={handleSearch}
           >
-            Find Recycling Centers
+            Find Rescues
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
@@ -457,120 +432,63 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       {/* Quick Filter Chips - up to 2 selectable */}
       <div className="mt-5 pt-5 border-t border-border/50">
         <label className="text-sm font-label text-muted-foreground mb-3 block">
-          I'm looking for...
+          Filter by:
           <span className="ml-2 text-xs opacity-70">(select up to 2)</span>
         </label>
         <div className="flex flex-wrap gap-2">
           <Button
-            variant={selectedFilters.has("household") ? "default" : "outline"}
+            variant={selectedFilters.has("household" as any) ? "default" : "outline"}
             size="sm"
-            onClick={() => toggleFilter("household")}
+            onClick={() => toggleFilter("household" as any)}
             className={cn(
-              "font-label",
-              selectedFilters.has("household") && "bg-primary text-primary-foreground"
+              "font-label rounded-full",
+              selectedFilters.has("household" as any) && "bg-primary text-primary-foreground"
             )}
           >
-            <Home className="h-4 w-4 mr-1.5" />
-            Household Drop-off
-            <span className="ml-1.5 text-xs opacity-70">(Paper, Plastic, Glass)</span>
+            <PawPrint className="h-4 w-4 mr-1.5" />
+            Dogs
           </Button>
           <Button
-            variant={selectedFilters.has("free") ? "default" : "outline"}
+            variant={selectedFilters.has("free" as any) ? "default" : "outline"}
             size="sm"
-            onClick={() => toggleFilter("free")}
+            onClick={() => toggleFilter("free" as any)}
             className={cn(
-              "font-label",
-              selectedFilters.has("free") && "bg-primary text-primary-foreground"
+              "font-label rounded-full",
+              selectedFilters.has("free" as any) && "bg-primary text-primary-foreground"
             )}
           >
-            <span className="mr-1.5">$0</span>
-            Free Drop-off Only
+            <Heart className="h-4 w-4 mr-1.5" />
+            Cats
           </Button>
           <Button
-            variant={selectedFilters.has("sharps") ? "default" : "outline"}
+            variant={selectedFilters.has("sharps" as any) ? "default" : "outline"}
             size="sm"
-            onClick={() => toggleFilter("sharps")}
+            onClick={() => toggleFilter("sharps" as any)}
             className={cn(
-              "font-label",
-              selectedFilters.has("sharps") && "bg-primary text-primary-foreground"
+              "font-label rounded-full",
+              selectedFilters.has("sharps" as any) && "bg-primary text-primary-foreground"
             )}
           >
-            <Syringe className="h-4 w-4 mr-1.5" />
-            Needles / Sharps
+            No-Kill Only
           </Button>
           <Button
-            variant={selectedFilters.has("retail") ? "default" : "outline"}
+            variant={selectedFilters.has("retail" as any) ? "default" : "outline"}
             size="sm"
-            onClick={() => toggleFilter("retail")}
+            onClick={() => toggleFilter("retail" as any)}
             className={cn(
-              "font-label",
-              selectedFilters.has("retail") && "bg-primary text-primary-foreground"
+              "font-label rounded-full",
+              selectedFilters.has("retail" as any) && "bg-primary text-primary-foreground"
             )}
           >
-            <Store className="h-4 w-4 mr-1.5" />
-            Retail Take-Back
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          <span className="text-xs text-muted-foreground self-center mr-1">By material:</span>
-          <Button
-            variant={selectedFilters.has("electronics") ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("electronics")}
-            className={cn(
-              "font-label text-xs h-7 px-2.5",
-              selectedFilters.has("electronics") && "bg-blue-600 text-white hover:bg-blue-700",
-              !selectedFilters.has("electronics") && "border-blue-200 text-blue-700 hover:bg-blue-50"
-            )}
-          >
-            <Cpu className="h-3.5 w-3.5 mr-1" />
-            Electronics
-          </Button>
-          <Button
-            variant={selectedFilters.has("batteries") ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("batteries")}
-            className={cn(
-              "font-label text-xs h-7 px-2.5",
-              selectedFilters.has("batteries") && "bg-amber-600 text-white hover:bg-amber-700",
-              !selectedFilters.has("batteries") && "border-amber-200 text-amber-700 hover:bg-amber-50"
-            )}
-          >
-            <Battery className="h-3.5 w-3.5 mr-1" />
-            Batteries
-          </Button>
-          <Button
-            variant={selectedFilters.has("tires") ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("tires")}
-            className={cn(
-              "font-label text-xs h-7 px-2.5",
-              selectedFilters.has("tires") && "bg-gray-700 text-white hover:bg-gray-800",
-              !selectedFilters.has("tires") && "border-gray-300 text-gray-700 hover:bg-gray-50"
-            )}
-          >
-            <CircleDot className="h-3.5 w-3.5 mr-1" />
-            Tires
-          </Button>
-          <Button
-            variant={selectedFilters.has("cardboard") ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleFilter("cardboard")}
-            className={cn(
-              "font-label text-xs h-7 px-2.5",
-              selectedFilters.has("cardboard") && "bg-yellow-700 text-white hover:bg-yellow-800",
-              !selectedFilters.has("cardboard") && "border-yellow-300 text-yellow-800 hover:bg-yellow-50"
-            )}
-          >
-            <Package className="h-3.5 w-3.5 mr-1" />
-            Cardboard
+            <ShieldCheck className="h-4 w-4 mr-1.5" />
+            Verified
           </Button>
         </div>
       </div>
 
       {/* Help Text */}
       <p className="text-xs text-muted-foreground mt-4">
-        Not sure what you can recycle? <a href="/blog/what-can-cannot-be-recycled" className="text-primary hover:underline">Read our recycling guide</a> or <a href="/directory" className="text-primary hover:underline">browse all facilities</a>.
+        Need help finding the right pet? <Link href="/blog" className="text-primary hover:underline">Read our adoption guide</Link> or <Link href="/directory" className="text-primary hover:underline">browse all shelters</Link>.
       </p>
     </motion.div>
   );

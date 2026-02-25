@@ -1,15 +1,26 @@
-import { and, desc, eq, sql, inArray } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite, newsletterSubscribers, InsertNewsletterSubscriber, facilities, InsertFacility, Facility } from "../drizzle/schema";
+import { and, desc, eq, sql, inArray, ilike, or } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from 'pg';
+import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite, newsletterSubscribers, InsertNewsletterSubscriber, shelters, InsertFacility, Facility } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
+export const facilities = shelters as any;
+
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: pg.Pool | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _pool = new pg.Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false
+        },
+      });
+      _db = drizzle(_pool);
+      console.log("[Database] Connected successfully to PostgreSQL");
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -30,23 +41,19 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
-    const values: InsertUser = {
+    const values: any = {
       openId: user.openId,
     };
     const updateSet: Record<string, unknown> = {};
 
     const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
 
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
+    textFields.forEach(field => {
+      if (user[field] !== undefined) {
+        values[field] = user[field];
+        updateSet[field] = user[field];
+      }
+    });
 
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
@@ -64,11 +71,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.lastSignedIn = new Date();
     }
 
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -112,14 +116,14 @@ export async function getFacilitySubmissions(status?: "pending" | "approved" | "
       .where(eq(facilitySubmissions.status, status))
       .orderBy(desc(facilitySubmissions.createdAt));
   }
-  
+
   return db.select()
     .from(facilitySubmissions)
     .orderBy(desc(facilitySubmissions.createdAt));
 }
 
 export async function updateFacilitySubmissionStatus(
-  id: number, 
+  id: number,
   status: "pending" | "approved" | "rejected",
   reviewNotes?: string
 ) {
@@ -277,14 +281,14 @@ export async function getFacilityReports(status?: "pending" | "reviewed" | "reso
       .where(eq(facilityReports.status, status))
       .orderBy(desc(facilityReports.createdAt));
   }
-  
+
   return db.select()
     .from(facilityReports)
     .orderBy(desc(facilityReports.createdAt));
 }
 
 export async function updateFacilityReportStatus(
-  id: number, 
+  id: number,
   status: "pending" | "reviewed" | "resolved" | "dismissed",
   adminNotes?: string
 ) {
@@ -509,7 +513,7 @@ export async function getAllReviewsForAdmin(status?: "pending" | "approved" | "r
       .where(eq(facilityReviews.status, status))
       .orderBy(desc(facilityReviews.createdAt));
   }
-  
+
   return db.select()
     .from(facilityReviews)
     .orderBy(desc(facilityReviews.createdAt));
@@ -680,7 +684,7 @@ export async function createNewsletterSubscription(data: {
     // If already subscribed but inactive, reactivate
     if (existing[0].isActive === 0) {
       await db.update(newsletterSubscribers)
-        .set({ 
+        .set({
           isActive: 1,
           zipCode: data.zipCode,
           age: data.age || null,
@@ -758,7 +762,7 @@ export async function unsubscribeNewsletter(email: string) {
 // Facilities (live directory) database operations
 // ============================================================
 
-import { like, or } from "drizzle-orm";
+// Duplicate import removed
 
 export interface FacilityQueryParams {
   search?: string;
@@ -792,41 +796,142 @@ export async function getAllFacilities(activeOnly: boolean = true): Promise<Faci
 }
 
 /**
- * Get facility count and basic stats.
+ * Get shelters with advanced filtering and geospatial search.
  */
+export async function getShelters(params: {
+  search?: string;
+  state?: string;
+  city?: string;
+  species?: string[];
+  type?: string;
+  noKill?: boolean;
+  lat?: number;
+  lng?: number;
+  radius?: number; // miles
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const conditions = [eq(shelters.active, true)];
+
+  if (params.state) conditions.push(eq(shelters.state, params.state));
+  if (params.city) conditions.push(eq(shelters.city, params.city));
+  if (params.noKill !== undefined) conditions.push(eq(shelters.isNoKill, params.noKill));
+  if (params.type) conditions.push(eq(shelters.shelterType, params.type));
+  if (params.search) {
+    const searchPattern = `%${params.search}%`;
+    conditions.push(or(
+      ilike(shelters.name, searchPattern),
+      ilike(shelters.city, searchPattern),
+      ilike(shelters.state, searchPattern),
+      ilike(shelters.zip, searchPattern)
+    ) as any);
+  }
+
+  // If we have a search term that looks like a ZIP but no userLocation yet, 
+  // we can attempt to "geocode" it from our own database for the search center.
+  if (!params.lat && !params.lng && params.search && /^\d{5}$/.test(params.search)) {
+    const zipMatch = await db.select({
+      lat: shelters.latitude,
+      lng: shelters.longitude
+    })
+      .from(shelters)
+      .where(eq(shelters.zip, params.search))
+      .limit(1);
+
+    if (zipMatch.length > 0 && zipMatch[0].lat && zipMatch[0].lng) {
+      params.lat = zipMatch[0].lat;
+      params.lng = zipMatch[0].lng;
+    }
+  }
+
+  // Handle species (GIN index array)
+  // Note: species index on GIN array uses array_ops
+  if (params.species && params.species.length > 0) {
+    // For now simple intersection logic if needed or just first
+    // In Postgres: species_served @> array['dogs']
+    conditions.push(sql`${shelters.speciesServed} && ARRAY[${params.species.join(',')}]::text[]`);
+  }
+
+  const distanceSql = params.lat && params.lng
+    ? sql<number>`ST_Distance(${shelters.location}, ST_MakePoint(${params.lng}, ${params.lat})::geography) / 1609.34`
+    : sql<number>`0`;
+
+  let query: any = db.select({
+    id: shelters.id,
+    name: shelters.name,
+    addressLine1: shelters.addressLine1,
+    city: shelters.city,
+    state: shelters.state,
+    zip: shelters.zip,
+    phone: shelters.phone,
+    email: shelters.email,
+    website: shelters.website,
+    shelterType: shelters.shelterType,
+    speciesServed: shelters.speciesServed,
+    isNoKill: shelters.isNoKill,
+    verified: shelters.verified,
+    latitude: shelters.latitude,
+    longitude: shelters.longitude,
+    distance: distanceSql
+  })
+    .from(shelters)
+    .where(and(
+      ...conditions,
+      params.lat && params.lng && params.radius
+        ? sql`ST_DWithin(${shelters.location}, ST_MakePoint(${params.lng}, ${params.lat})::geography, ${params.radius} * 1609.34)`
+        : sql`TRUE`
+    ));
+
+  if (params.lat && params.lng) {
+    query = query.orderBy(distanceSql);
+  } else {
+    query = query.orderBy(desc(shelters.updatedAt));
+  }
+
+  return await query.limit(params.limit || 50).offset(params.offset || 0);
+}
+
 export async function getFacilityStats() {
   const db = await getDb();
   if (!db) {
     throw new Error("Database not available");
   }
 
-  const [totalResult] = await db.select({ count: sql<number>`COUNT(*)` })
-    .from(facilities)
-    .where(eq(facilities.isActive, 1));
+  try {
+    const [totalResult] = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(shelters)
+      .where(eq(shelters.active, true));
 
-  const stateResult = await db.select({ 
-    state: facilities.state, 
-    count: sql<number>`COUNT(*)` 
-  })
-    .from(facilities)
-    .where(eq(facilities.isActive, 1))
-    .groupBy(facilities.state)
-    .orderBy(desc(sql`COUNT(*)`));
+    const stateResult = await db.select({
+      state: shelters.state,
+      count: sql<number>`COUNT(*)`
+    })
+      .from(shelters)
+      .where(eq(shelters.active, true))
+      .groupBy(shelters.state)
+      .orderBy(desc(sql`COUNT(*)`));
 
-  const categoryResult = await db.select({ 
-    category: facilities.category, 
-    count: sql<number>`COUNT(*)` 
-  })
-    .from(facilities)
-    .where(eq(facilities.isActive, 1))
-    .groupBy(facilities.category)
-    .orderBy(desc(sql`COUNT(*)`));
+    const categoryResult = await db.select({
+      category: shelters.shelterType,
+      count: sql<number>`COUNT(*)`
+    })
+      .from(shelters)
+      .where(eq(shelters.active, true))
+      .groupBy(shelters.shelterType)
+      .orderBy(desc(sql`COUNT(*)`));
 
-  return {
-    total: Number(totalResult?.count || 0),
-    byState: stateResult.map(r => ({ state: r.state, count: Number(r.count) })),
-    byCategory: categoryResult.map(r => ({ category: r.category, count: Number(r.count) })),
-  };
+    return {
+      total: Number(totalResult?.count || 0),
+      byState: stateResult.map(r => ({ state: r.state, count: Number(r.count) })),
+      byCategory: categoryResult.map(r => ({ category: r.category || 'Unknown', count: Number(r.count) })),
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get stats:", error);
+    return { total: 0, byState: [], byCategory: [] };
+  }
 }
 
 /**

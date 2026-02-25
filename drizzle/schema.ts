@@ -1,4 +1,4 @@
-import { pgTable, check, integer, varchar, index, unique, pgPolicy, uuid, text, doublePrecision, jsonb, boolean, timestamp, foreignKey, pgView } from "drizzle-orm/pg-core"
+import { pgTable, check, integer, varchar, index, unique, pgPolicy, uuid, text, doublePrecision, jsonb, boolean, timestamp, foreignKey, pgView, customType } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -13,6 +13,14 @@ export const spatialRefSys = pgTable("spatial_ref_sys", {
 	check("spatial_ref_sys_srid_check", sql`(srid > 0) AND (srid <= 998999)`),
 ]);
 
+// Custom type for PostGIS geography
+const geography = (name: string) =>
+	customType<{ data: string }>({
+		dataType() {
+			return "geography(Point, 4321)";
+		},
+	})(name);
+
 export const shelters = pgTable("shelters", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	name: text().notNull(),
@@ -25,8 +33,7 @@ export const shelters = pgTable("shelters", {
 	zip: text().notNull(),
 	latitude: doublePrecision(),
 	longitude: doublePrecision(),
-	// TODO: failed to parse database type 'geography'
-	location: text("location"),
+	location: geography("location"),
 	phone: text(),
 	email: text(),
 	website: text(),

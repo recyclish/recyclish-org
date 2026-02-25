@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Recycle, Menu, X, Shield, Heart } from "lucide-react";
+import { PawPrint, Menu, X, Shield, Heart } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -26,11 +26,11 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <Recycle className="h-6 w-6 text-primary" />
+              <PawPrint className="h-6 w-6 text-primary" />
             </div>
             <div className="flex flex-col">
               <span className="font-display text-lg font-semibold leading-tight">
-                National Recycling
+                Animal Rescue
               </span>
               <span className="text-xs font-label text-muted-foreground -mt-0.5">
                 Directory
@@ -82,9 +82,9 @@ export function Header() {
                 rel="noopener noreferrer"
                 className="flex items-center hover:opacity-80 transition-opacity"
               >
-                <img 
-                  src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png" 
-                  alt="Recyclish - Turning Knowledge into Action" 
+                <img
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png"
+                  alt="Recyclish - Turning Knowledge into Action"
                   className="h-10 w-auto"
                 />
               </a>
@@ -158,9 +158,9 @@ export function Header() {
                 rel="noopener noreferrer"
                 className="mt-2 flex justify-center hover:opacity-80 transition-opacity"
               >
-                <img 
-                  src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png" 
-                  alt="Recyclish - Turning Knowledge into Action" 
+                <img
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/99778916/TzwKbZtYhBOMfoAs.png"
+                  alt="Recyclish - Turning Knowledge into Action"
                   className="h-12 w-auto"
                 />
               </a>

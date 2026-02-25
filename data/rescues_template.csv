@@ -1,0 +1,3 @@
+name,address,city,state,zip,phone,email,website,type,isNoKill,species,description
+"Happy Paws Shelter","123 Bark St","Los Angeles","CA","90001","555-0101","info@happypaws.org","https://happypaws.org","shelter","TRUE","dogs,cats","A loving no-kill shelter in LA."
+"Rocky Mountain Rescue","456 Mountain Rd","Denver","CO","80201","555-0202","contact@rockyresuce.com","https://rockyrescue.com","rescue","TRUE","dogs,rabbits","Specializing in mountain dog breeds."

@@ -24,9 +24,7 @@ import { BottomNav } from "./components/BottomNav";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={UnderConstruction} />
-      <Route path="/home" component={Home} />
-      <Route path="/under-construction" component={UnderConstruction} />
+      <Route path="/" component={Home} />
       <Route path="/directory" component={Directory} />
       <Route path="/map" component={MapViewPage} />
       <Route path="/about" component={About} />
@@ -45,22 +43,14 @@ function Router() {
 }
 
 function App() {
-  const [location] = useLocation();
-  const isUnderConstruction = location === "/" || location === "/under-construction";
-
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
-          {!isUnderConstruction && (
-            <>
-              <RecyclingChatbot />
-              <InstallAppBanner />
-              <BottomNav />
-            </>
-          )}
+          <InstallAppBanner />
+          <BottomNav />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

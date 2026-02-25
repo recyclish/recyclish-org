@@ -42,11 +42,11 @@ function loadMapsScript(): Promise<void> {
   if (mapsScriptLoaded && window.google?.maps) {
     return Promise.resolve();
   }
-  
+
   if (mapsScriptPromise) {
     return mapsScriptPromise;
   }
-  
+
   mapsScriptPromise = new Promise((resolve, reject) => {
     // Check if already loaded
     if (window.google?.maps?.places) {
@@ -54,7 +54,7 @@ function loadMapsScript(): Promise<void> {
       resolve();
       return;
     }
-    
+
     const script = document.createElement("script");
     script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=places,geocoding`;
     script.async = true;
@@ -69,7 +69,7 @@ function loadMapsScript(): Promise<void> {
     };
     document.head.appendChild(script);
   });
-  
+
   return mapsScriptPromise;
 }
 
@@ -108,7 +108,19 @@ export function LocationSearch({
 
   // Geocode ZIP code
   const geocodeZipCode = useCallback((zipCode: string) => {
-    if (!geocoderRef.current) return;
+    if (!geocoderRef.current) {
+      // Fallback: if geocoder isn't available, just use the ZIP as display name
+      // and pass some default coords that the backend can ignore in favor of the name
+      onLocationSelect({
+        latitude: 0.000001, // Small non-zero value to signal we have a "location"
+        longitude: 0.000001,
+        displayName: zipCode,
+      });
+      setSelectedLocationName(zipCode);
+      setInputValue("");
+      setShowDropdown(false);
+      return;
+    }
 
     setIsGeocodingZip(true);
     geocoderRef.current.geocode(
@@ -127,7 +139,7 @@ export function LocationSearch({
           } else if (adminArea) {
             cityName = `${adminArea.short_name} ${zipCode}`;
           }
-          
+
           onLocationSelect({
             latitude: location.lat(),
             longitude: location.lng(),
@@ -152,7 +164,7 @@ export function LocationSearch({
       setIsSearching(false);
       return;
     }
-    
+
     if (query.length < 2 || !autocompleteServiceRef.current) {
       setPredictions([]);
       return;
@@ -219,7 +231,7 @@ export function LocationSearch({
   // Debounced input handler
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    
+
     // Only show dropdown for non-ZIP inputs
     if (!isZipCode(value)) {
       setShowDropdown(true);
@@ -310,18 +322,18 @@ export function LocationSearch({
       <div className="flex gap-2">
         <div className="relative flex-1">
           {selectedLocationName ? (
-            <div className="flex items-center gap-2 h-10 px-3 bg-green-50 border border-green-200 rounded-md">
-              <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-              <span className="text-sm text-green-700 font-medium truncate">
+            <div className="flex items-center gap-2 h-10 px-3 bg-primary/5 border border-primary/20 rounded-md">
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+              <span className="text-sm text-primary font-medium truncate">
                 {selectedLocationName}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 ml-auto hover:bg-green-100"
+                className="h-6 w-6 p-0 ml-auto hover:bg-primary/10"
                 onClick={handleClearLocation}
               >
-                <X className="h-4 w-4 text-green-600" />
+                <X className="h-4 w-4 text-primary" />
               </Button>
             </div>
           ) : (
@@ -336,8 +348,12 @@ export function LocationSearch({
                 onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
                 placeholder="Enter city, state or ZIP"
                 className="pl-9 pr-10 font-body"
-                disabled={!mapsReady}
               />
+              {!mapsReady && inputValue.length > 0 && (
+                <div className="absolute right-10 top-1/2 -translate-y-1/2 text-[10px] text-amber-600 font-medium">
+                  (Manual)
+                </div>
+              )}
               {(isSearching || isGeocodingZip) && (
                 <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
               )}
@@ -378,8 +394,8 @@ export function LocationSearch({
                   <MapPin className="h-4 w-4 text-primary" />
                   <span className="text-sm">Search ZIP code <strong>{inputValue}</strong></span>
                 </div>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={handleZipSearch}
                   disabled={isGeocodingZip}
                   className="font-label"

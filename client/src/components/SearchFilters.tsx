@@ -7,173 +7,73 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, MapPin, Home, Syringe, Store, Search, Cpu, Battery, CircleDot, Package } from "lucide-react";
+import { X, Filter, MapPin, Heart, ShieldCheck, Search, PawPrint, Dog, Cat } from "lucide-react";
 import { motion } from "framer-motion";
-import { MATERIAL_TYPES, DISTANCE_OPTIONS, DROPOFF_OPTIONS, FEE_OPTIONS } from "@/hooks/useRecyclingData";
 import { LocationSearch } from "./LocationSearch";
 import { cn } from "@/lib/utils";
-
-interface Facility {
-  Name: string;
-  Address: string;
-  Category: string;
-  State: string;
-}
+import { SPECIES_OPTIONS, SHELTER_TYPES } from "@/hooks/useShelterData";
 
 interface SearchFiltersProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   selectedState: string;
   setSelectedState: (value: string) => void;
-  selectedCategory: string;
-  setSelectedCategory: (value: string) => void;
-  selectedMaterial: string;
-  setSelectedMaterial: (value: string) => void;
-  selectedDistance: string;
-  setSelectedDistance: (value: string) => void;
-  selectedDropoff: string;
-  setSelectedDropoff: (value: string) => void;
-  selectedFee: string;
-  setSelectedFee: (value: string) => void;
-  householdDropoff: boolean;
-  setHouseholdDropoff: (value: boolean) => void;
-  sharpsFilter: boolean;
-  setSharpsFilter: (value: boolean) => void;
-  retailTakeBack: boolean;
-  setRetailTakeBack: (value: boolean) => void;
-  states: string[];
-  categories: string[];
+  selectedSpecies: string[];
+  setSelectedSpecies: (value: string[]) => void;
+  isNoKill: boolean | undefined;
+  setIsNoKill: (value: boolean | undefined) => void;
+  userLocation: { lat: number; lng: number } | null;
+  setUserLocation: (location: { lat: number; lng: number } | null) => void;
+  radius: number;
+  setRadius: (value: number) => void;
   onClear: () => void;
   totalResults: number;
   activeFilterCount: number;
-  userLocation: { latitude: number; longitude: number } | null;
-  setUserLocation: (location: { latitude: number; longitude: number } | null) => void;
-  locationDisplayName: string;
-  setLocationDisplayName: (name: string) => void;
-  isLocating: boolean;
-  locationError: string | null;
-  requestLocation: () => void;
-  facilities?: Facility[];
 }
-
-const MAX_QUICK_FILTERS = 2;
 
 export function SearchFilters({
   searchTerm,
   setSearchTerm,
   selectedState,
   setSelectedState,
-  selectedCategory,
-  setSelectedCategory,
-  selectedMaterial,
-  setSelectedMaterial,
-  selectedDistance,
-  setSelectedDistance,
-  selectedDropoff,
-  setSelectedDropoff,
-  selectedFee,
-  setSelectedFee,
-  householdDropoff,
-  setHouseholdDropoff,
-  sharpsFilter,
-  setSharpsFilter,
-  retailTakeBack,
-  setRetailTakeBack,
-  states,
-  categories,
+  selectedSpecies,
+  setSelectedSpecies,
+  isNoKill,
+  setIsNoKill,
+  userLocation,
+  setUserLocation,
+  radius,
+  setRadius,
   onClear,
   totalResults,
   activeFilterCount,
-  userLocation,
-  setUserLocation,
-  locationDisplayName,
-  setLocationDisplayName,
-  isLocating,
-  locationError,
-  requestLocation,
-  facilities = [],
 }: SearchFiltersProps) {
   const hasFilters = activeFilterCount > 0;
 
-  const formatCategory = (cat: string) => {
-    return cat
-      .replace("Recycling ", "Recycling ")
-      .replace("Secondary ", "Secondary ")
-      .replace("Recyclers", "Recycling")
-      .replace("(MRFs)", "")
-      .trim();
-  };
-
-  // Material shortcut tags
-  const MATERIAL_SHORTCUTS = [
-    { value: "electronics", label: "Electronics", icon: Cpu, activeClass: "bg-blue-600 text-white hover:bg-blue-700", inactiveClass: "border-blue-200 text-blue-700 hover:bg-blue-50" },
-    { value: "batteries", label: "Batteries", icon: Battery, activeClass: "bg-amber-600 text-white hover:bg-amber-700", inactiveClass: "border-amber-200 text-amber-700 hover:bg-amber-50" },
-    { value: "tires", label: "Tires", icon: CircleDot, activeClass: "bg-gray-700 text-white hover:bg-gray-800", inactiveClass: "border-gray-300 text-gray-700 hover:bg-gray-50" },
-    { value: "cardboard", label: "Cardboard", icon: Package, activeClass: "bg-yellow-700 text-white hover:bg-yellow-800", inactiveClass: "border-yellow-300 text-yellow-800 hover:bg-yellow-50" },
-  ] as const;
-
-  const activeMaterialShortcut = MATERIAL_SHORTCUTS.find(m => selectedMaterial === m.value);
-
-  const toggleMaterialShortcut = (value: string) => {
-    if (selectedMaterial === value) {
-      setSelectedMaterial("all");
+  const toggleSpecies = (value: string) => {
+    if (selectedSpecies.includes(value)) {
+      setSelectedSpecies(selectedSpecies.filter(s => s !== value));
     } else {
-      setSelectedMaterial(value);
+      setSelectedSpecies([...selectedSpecies, value]);
     }
   };
 
-  // Count currently active quick filters
-  const activeQuickFilterCount = [
-    householdDropoff,
-    selectedFee === "Free",
-    sharpsFilter,
-    retailTakeBack,
-  ].filter(Boolean).length;
-
-  // Toggle a quick filter, respecting the max of 2
-  const toggleQuickFilter = (
-    currentValue: boolean,
-    setter: (value: boolean) => void
-  ) => {
-    if (currentValue) {
-      setter(false);
-    } else if (activeQuickFilterCount < MAX_QUICK_FILTERS) {
-      setter(true);
-    }
-  };
-
-  const toggleFeeFilter = () => {
-    const isActive = selectedFee === "Free";
-    if (isActive) {
-      setSelectedFee("all");
-    } else if (activeQuickFilterCount < MAX_QUICK_FILTERS) {
-      setSelectedFee("Free");
-    }
-  };
-
-  // Handle location selection from LocationSearch
   const handleLocationSelect = (location: {
     latitude: number;
     longitude: number;
     displayName: string;
   }) => {
     if (location.latitude && location.longitude) {
-      setUserLocation({ latitude: location.latitude, longitude: location.longitude });
-      setLocationDisplayName(location.displayName);
-      if (selectedDistance === "any") {
-        setSelectedDistance("25");
+      // If coordinates are the placeholder ones (Google Maps down)
+      if (Math.abs(location.latitude) < 0.001) {
+        setSearchTerm(location.displayName);
+        setUserLocation(null);
+      } else {
+        setUserLocation({ lat: location.latitude, lng: location.longitude });
       }
     } else {
       setUserLocation(null);
-      setLocationDisplayName("");
-      setSelectedDistance("any");
     }
-  };
-
-  // Handle browser geolocation
-  const handleUseMyLocation = () => {
-    requestLocation();
-    setLocationDisplayName("Your Location");
   };
 
   return (
@@ -181,262 +81,165 @@ export function SearchFilters({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-card rounded-xl shadow-lg border border-border/50 p-6"
+      className="bg-card rounded-2xl shadow-xl border border-border/50 p-6"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Filter className="h-5 w-5 text-primary" />
-          <h2 className="font-display text-xl font-semibold">Find Recycling Centers</h2>
+          <h2 className="font-display text-xl font-semibold">Search Filters</h2>
           {activeFilterCount > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active
+            <Badge variant="secondary" className="ml-2 rounded-full px-3">
+              {activeFilterCount} active
             </Badge>
           )}
         </div>
       </div>
-      
+
       {/* Primary Search Row - Location + Distance */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-1.5">
+          <label className="text-sm font-label text-muted-foreground ml-1">
+            Find Near
+          </label>
           <LocationSearch
             onLocationSelect={handleLocationSelect}
-            currentLocation={userLocation}
-            isLocating={isLocating}
-            onUseMyLocation={handleUseMyLocation}
+            currentLocation={userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null}
+            isLocating={false}
+            onUseMyLocation={() => { }}
           />
-          {locationError && (
-            <p className="text-xs text-destructive mt-1">{locationError}</p>
-          )}
         </div>
-        
-        <div>
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            Distance
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-label text-muted-foreground ml-1">
+            Search Radius
           </label>
-          <Select 
-            value={selectedDistance} 
-            onValueChange={setSelectedDistance}
-            disabled={!userLocation}
+          <Select
+            value={radius.toString()}
+            onValueChange={(v) => setRadius(parseInt(v))}
+            disabled={!userLocation && !(/^\d{5}$/.test(searchTerm))}
           >
-            <SelectTrigger className="font-body">
+            <SelectTrigger className="rounded-xl">
               <SelectValue placeholder="Select distance" />
             </SelectTrigger>
             <SelectContent>
-              {DISTANCE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
+              <SelectItem value="10">10 miles</SelectItem>
+              <SelectItem value="25">25 miles</SelectItem>
+              <SelectItem value="50">50 miles</SelectItem>
+              <SelectItem value="100">100 miles</SelectItem>
             </SelectContent>
           </Select>
-          {!userLocation && (
-            <p className="text-xs text-muted-foreground mt-1">Enter location to filter by distance</p>
-          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-label text-muted-foreground ml-1">
+            Keywords
+          </label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Rescue name or city..."
+              className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-sm"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Quick Filter Buttons - up to 2 selectable */}
-      <div className="mt-4 pt-4 border-t border-border/50">
-        <label className="text-sm font-label text-muted-foreground mb-2 block">
-          Quick Filters
-          <span className="ml-2 text-xs opacity-70">(select up to 2)</span>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={householdDropoff ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleQuickFilter(householdDropoff, setHouseholdDropoff)}
-            className={cn(
-              "font-label",
-              householdDropoff && "bg-primary text-primary-foreground",
-              !householdDropoff && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Home className="h-4 w-4 mr-1.5" />
-            Household Drop-off
-          </Button>
-          <Button
-            variant={selectedFee === "Free" ? "default" : "outline"}
-            size="sm"
-            onClick={toggleFeeFilter}
-            className={cn(
-              "font-label",
-              selectedFee === "Free" && "bg-primary text-primary-foreground",
-              selectedFee !== "Free" && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <span className="mr-1.5">$0</span>
-            Free Only
-          </Button>
-          <Button
-            variant={sharpsFilter ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleQuickFilter(sharpsFilter, setSharpsFilter)}
-            className={cn(
-              "font-label",
-              sharpsFilter && "bg-primary text-primary-foreground",
-              !sharpsFilter && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Syringe className="h-4 w-4 mr-1.5" />
-            Needles / Sharps
-          </Button>
-          <Button
-            variant={retailTakeBack ? "default" : "outline"}
-            size="sm"
-            onClick={() => toggleQuickFilter(retailTakeBack, setRetailTakeBack)}
-            className={cn(
-              "font-label",
-              retailTakeBack && "bg-primary text-primary-foreground",
-              !retailTakeBack && activeQuickFilterCount >= MAX_QUICK_FILTERS && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Store className="h-4 w-4 mr-1.5" />
-            Retail Take-Back
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          <span className="text-xs text-muted-foreground self-center mr-1">By material:</span>
-          {MATERIAL_SHORTCUTS.map((shortcut) => {
-            const Icon = shortcut.icon;
-            const isActive = selectedMaterial === shortcut.value;
-            return (
+      {/* Species & Features */}
+      <div className="mt-8 pt-6 border-t border-border/50">
+        <div className="grid gap-8 md:grid-cols-2">
+          <div>
+            <label className="text-sm font-label text-muted-foreground mb-3 block">
+              Animals Served
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {SPECIES_OPTIONS.map((species) => (
+                <Button
+                  key={species.value}
+                  variant={selectedSpecies.includes(species.value) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleSpecies(species.value)}
+                  className={cn(
+                    "rounded-full font-label transition-all",
+                    selectedSpecies.includes(species.value) && "shadow-lg shadow-primary/20"
+                  )}
+                >
+                  <PawPrint className="h-3.5 w-3.5 mr-1.5" />
+                  {species.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-label text-muted-foreground mb-3 block">
+              Facility Options
+            </label>
+            <div className="flex flex-wrap gap-2">
               <Button
-                key={shortcut.value}
-                variant={isActive ? "default" : "outline"}
+                variant={isNoKill === true ? "default" : "outline"}
                 size="sm"
-                onClick={() => toggleMaterialShortcut(shortcut.value)}
+                onClick={() => setIsNoKill(isNoKill === true ? undefined : true)}
                 className={cn(
-                  "font-label text-xs h-7 px-2.5",
-                  isActive && shortcut.activeClass,
-                  !isActive && shortcut.inactiveClass
+                  "rounded-full font-label transition-all",
+                  isNoKill === true && "shadow-lg shadow-primary/20"
                 )}
               >
-                <Icon className="h-3.5 w-3.5 mr-1" />
-                {shortcut.label}
+                <Heart className="h-3.5 w-3.5 mr-1.5" />
+                No-Kill Only
               </Button>
-            );
-          })}
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full font-label"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />
+                Verified Only
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* All Dropdown Filters - Always visible */}
-      <div className="grid gap-4 md:grid-cols-3 mt-4 pt-4 border-t border-border/50">
-        <div>
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            Facility Type
-          </label>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="font-body">
-              <SelectValue placeholder="All Types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Facility Types</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {formatCategory(category)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Search Button and Results Summary */}
+      <div className="mt-8 pt-6 border-t border-border/50 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <p className="text-sm font-body text-muted-foreground">
+            Found <span className="font-semibold text-foreground">{totalResults.toLocaleString()}</span> local rescues
+          </p>
+          {userLocation && (
+            <Badge variant="outline" className="text-primary border-primary/30 rounded-full bg-primary/5 px-3">
+              <MapPin className="h-3 w-3 mr-1" />
+              Sorted by nearest
+            </Badge>
+          )}
         </div>
 
-        <div>
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            Material Type
-          </label>
-          <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
-            <SelectTrigger className="font-body">
-              <SelectValue placeholder="All Materials" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Materials</SelectItem>
-              {MATERIAL_TYPES.map((material) => (
-                <SelectItem key={material.value} value={material.value}>
-                  {material.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            Drop-off Availability
-          </label>
-          <Select value={selectedDropoff} onValueChange={setSelectedDropoff}>
-            <SelectTrigger className="font-body">
-              <SelectValue placeholder="All Facilities" />
-            </SelectTrigger>
-            <SelectContent>
-              {DROPOFF_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3 mt-4">
-        <div>
-          <label className="text-sm font-label text-muted-foreground mb-1.5 block">
-            Fee Structure
-          </label>
-          <Select value={selectedFee} onValueChange={setSelectedFee}>
-            <SelectTrigger className="font-body">
-              <SelectValue placeholder="Any Fee Structure" />
-            </SelectTrigger>
-            <SelectContent>
-              {FEE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      {/* Search Button and Results */}
-      <div className="mt-4 pt-4 border-t border-border/50">
-        <div className="flex items-center gap-3 mb-3">
-          <Button
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-label px-6 py-2"
-            onClick={() => {
-              // Scroll to results
-              const resultsEl = document.getElementById('facility-results');
-              if (resultsEl) {
-                resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }}
-          >
-            <Search className="h-4 w-4 mr-2" />
-            Search
-          </Button>
+        <div className="flex items-center gap-2">
           {hasFilters && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onClear}
-              className="text-muted-foreground hover:text-foreground font-label"
+              className="text-muted-foreground hover:text-foreground font-label h-10 px-4"
             >
-              <X className="h-4 w-4 mr-1" />
-              Clear all filters
+              <X className="h-4 w-4 mr-1.5" />
+              Reset All
             </Button>
           )}
-        </div>
-        <div className="flex items-center gap-4">
-          <p className="text-sm font-body text-muted-foreground">
-            Showing <span className="font-semibold text-foreground">{totalResults.toLocaleString()}</span> recycling facilities
-          </p>
-          {userLocation && (
-            <Badge variant="outline" className="text-primary border-primary/30">
-              <MapPin className="h-3 w-3 mr-1" />
-              Sorted by distance
-            </Badge>
-          )}
+          <Button
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-label h-10 px-8 rounded-xl shadow-lg shadow-primary/20"
+            onClick={() => {
+              const resultsEl = document.getElementById('shelter-results');
+              if (resultsEl) {
+                resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+          >
+            Show Results
+          </Button>
         </div>
       </div>
     </motion.div>
