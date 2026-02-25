@@ -10,15 +10,15 @@ import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
 import { StarRating } from "@/components/StarRating";
 import { Input } from "@/components/ui/input";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Download, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Globe, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Download,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
   Building2,
   Loader2,
   ArrowLeft,
@@ -42,61 +42,9 @@ type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
 type ReviewStatus = "pending" | "approved" | "rejected";
 type AdminView = "submissions" | "reports" | "reviews" | "newsletter";
 
-interface Submission {
-  id: number;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  category: string;
-  materialsAccepted: string | null;
-  additionalNotes: string | null;
-  submitterName: string | null;
-  submitterEmail: string | null;
-  status: SubmissionStatus;
-  reviewNotes: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface Report {
-  id: number;
-  facilityId: string;
-  facilityName: string;
-  facilityAddress: string;
-  issueType: string;
-  description: string | null;
-  reporterName: string | null;
-  reporterEmail: string | null;
-  status: ReportStatus;
-  adminNotes: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface Review {
-  id: number;
-  userId: number;
-  userName: string | null;
-  facilityId: string;
-  facilityName: string;
-  facilityAddress: string;
-  rating: number;
-  title: string | null;
-  content: string | null;
-  serviceRating: number | null;
-  cleanlinessRating: number | null;
-  convenienceRating: number | null;
-  helpfulCount: number;
-  status: ReviewStatus;
-  adminNotes: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+type Submission = any;
+type Report = any;
+type Review = any;
 
 const issueTypeLabels: Record<string, string> = {
   permanently_closed: "Permanently Closed",
@@ -331,7 +279,7 @@ export default function Admin() {
       const headers = Object.keys(result.data[0]);
       const csvContent = [
         headers.join(","),
-        ...result.data.map(row => 
+        ...result.data.map(row =>
           headers.map(h => `"${(row as Record<string, string>)[h] || ''}"`).join(",")
         )
       ].join("\n");
@@ -434,8 +382,8 @@ export default function Admin() {
             <CardDescription>Please sign in to access the admin dashboard</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              className="w-full" 
+            <Button
+              className="w-full"
               onClick={() => window.location.href = getLoginUrl()}
             >
               Sign In
@@ -1265,7 +1213,7 @@ export default function Admin() {
               {pendingAction === "approve" ? "Approve Facility" : "Reject Facility"}
             </DialogTitle>
             <DialogDescription>
-              {pendingAction === "approve" 
+              {pendingAction === "approve"
                 ? "This facility will be marked as approved and can be exported to the directory."
                 : "This facility will be marked as rejected and will not appear in the directory."
               }
@@ -1346,7 +1294,7 @@ export default function Admin() {
               {pendingReviewAction === "approve" ? "Approve Review" : "Reject Review"}
             </DialogTitle>
             <DialogDescription>
-              {pendingReviewAction === "approve" 
+              {pendingReviewAction === "approve"
                 ? "This review will be published and visible to all users."
                 : "This review will be rejected and hidden from public view."
               }

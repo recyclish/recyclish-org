@@ -16,6 +16,7 @@ import StatePage from "./pages/StatePage";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import Directory from "./pages/Directory";
+import UnderConstruction from "./pages/UnderConstruction";
 import { RecyclingChatbot } from "./components/RecyclingChatbot";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 import { BottomNav } from "./components/BottomNav";
@@ -24,6 +25,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/under-construction" component={UnderConstruction} />
       <Route path="/directory" component={Directory} />
       <Route path="/map" component={MapViewPage} />
       <Route path="/about" component={About} />

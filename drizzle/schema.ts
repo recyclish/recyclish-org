@@ -1,267 +1,130 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
-
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
-export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
-  id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
-  name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
-});
-
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-
-/**
- * Facility submissions table for user-submitted recycling locations.
- * Submissions are reviewed before being added to the main directory.
- */
-export const facilitySubmissions = mysqlTable("facility_submissions", {
-  id: int("id").autoincrement().primaryKey(),
-  
-  // Facility information
-  name: varchar("name", { length: 255 }).notNull(),
-  address: varchar("address", { length: 500 }).notNull(),
-  city: varchar("city", { length: 100 }).notNull(),
-  state: varchar("state", { length: 100 }).notNull(),
-  zipCode: varchar("zipCode", { length: 20 }),
-  phone: varchar("phone", { length: 50 }),
-  email: varchar("email", { length: 320 }),
-  website: varchar("website", { length: 500 }),
-  category: varchar("category", { length: 100 }).notNull(),
-  materialsAccepted: text("materialsAccepted"),
-  additionalNotes: text("additionalNotes"),
-  
-  // Submitter information
-  submitterName: varchar("submitterName", { length: 255 }),
-  submitterEmail: varchar("submitterEmail", { length: 320 }),
-  
-  // Status tracking
-  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
-  reviewNotes: text("reviewNotes"),
-  
-  // Timestamps
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type FacilitySubmission = typeof facilitySubmissions.$inferSelect;
-export type InsertFacilitySubmission = typeof facilitySubmissions.$inferInsert;
-
-/**
- * User favorites table for saving recycling facilities.
- * Uses a composite key of userId and facilityId to store favorites.
- * facilityId is a string identifier based on facility name and address hash.
- */
-export const userFavorites = mysqlTable("user_favorites", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  
-  // Facility identifier (hash of name + address for CSV-based facilities)
-  facilityId: varchar("facilityId", { length: 64 }).notNull(),
-  
-  // Store facility details for quick access without CSV lookup
-  facilityName: varchar("facilityName", { length: 255 }).notNull(),
-  facilityAddress: varchar("facilityAddress", { length: 500 }).notNull(),
-  facilityCategory: varchar("facilityCategory", { length: 100 }),
-  facilityPhone: varchar("facilityPhone", { length: 50 }),
-  facilityWebsite: varchar("facilityWebsite", { length: 500 }),
-  facilityFeedstock: text("facilityFeedstock"),
-  facilityLatitude: varchar("facilityLatitude", { length: 20 }),
-  facilityLongitude: varchar("facilityLongitude", { length: 20 }),
-  
-  // Timestamps
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type UserFavorite = typeof userFavorites.$inferSelect;
-export type InsertUserFavorite = typeof userFavorites.$inferInsert;
-
-/**
- * Facility reports table for users to flag incorrect or outdated information.
- * Reports are reviewed by admins to maintain data accuracy.
- */
-export const facilityReports = mysqlTable("facility_reports", {
-  id: int("id").autoincrement().primaryKey(),
-  
-  // Facility identifier (hash of name + address)
-  facilityId: varchar("facilityId", { length: 64 }).notNull(),
-  facilityName: varchar("facilityName", { length: 255 }).notNull(),
-  facilityAddress: varchar("facilityAddress", { length: 500 }).notNull(),
-  
-  // Report details
-  issueType: mysqlEnum("issueType", [
-    "permanently_closed",
-    "temporarily_closed",
-    "wrong_address",
-    "wrong_phone",
-    "wrong_hours",
-    "wrong_materials",
-    "duplicate_listing",
-    "other"
-  ]).notNull(),
-  description: text("description"),
-  
-  // Reporter information (optional)
-  reporterName: varchar("reporterName", { length: 255 }),
-  reporterEmail: varchar("reporterEmail", { length: 320 }),
-  
-  // Status tracking
-  status: mysqlEnum("status", ["pending", "reviewed", "resolved", "dismissed"]).default("pending").notNull(),
-  adminNotes: text("adminNotes"),
-  
-  // Timestamps
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type FacilityReport = typeof facilityReports.$inferSelect;
-export type InsertFacilityReport = typeof facilityReports.$inferInsert;
-
-/**
- * Facility reviews table for user ratings and reviews.
- * Allows users to share their experiences with recycling facilities.
- */
-export const facilityReviews = mysqlTable("facility_reviews", {
-  id: int("id").autoincrement().primaryKey(),
-  
-  // User who wrote the review
-  userId: int("userId").notNull(),
-  userName: varchar("userName", { length: 255 }),
-  
-  // Facility identifier (hash of name + address)
-  facilityId: varchar("facilityId", { length: 64 }).notNull(),
-  facilityName: varchar("facilityName", { length: 255 }).notNull(),
-  facilityAddress: varchar("facilityAddress", { length: 500 }).notNull(),
-  
-  // Review content
-  rating: int("rating").notNull(), // 1-5 stars
-  title: varchar("title", { length: 255 }),
-  content: text("content"),
-  
-  // Review aspects (optional detailed ratings)
-  serviceRating: int("serviceRating"), // 1-5
-  cleanlinessRating: int("cleanlinessRating"), // 1-5
-  convenienceRating: int("convenienceRating"), // 1-5
-  
-  // Moderation
-  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
-  adminNotes: text("adminNotes"),
-  
-  // Helpful votes
-  helpfulCount: int("helpfulCount").default(0).notNull(),
-  
-  // Timestamps
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type FacilityReview = typeof facilityReviews.$inferSelect;
-export type InsertFacilityReview = typeof facilityReviews.$inferInsert;
-
-/**
- * Review helpful votes table to track which users found reviews helpful.
- * Prevents duplicate votes from the same user.
- */
-export const reviewHelpfulVotes = mysqlTable("review_helpful_votes", {
-  id: int("id").autoincrement().primaryKey(),
-  reviewId: int("reviewId").notNull(),
-  userId: int("userId").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type ReviewHelpfulVote = typeof reviewHelpfulVotes.$inferSelect;
-export type InsertReviewHelpfulVote = typeof reviewHelpfulVotes.$inferInsert;
+import { pgTable, check, integer, varchar, index, unique, pgPolicy, uuid, text, doublePrecision, jsonb, boolean, timestamp, foreignKey, pgView } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
 
 
-/**
- * Newsletter subscribers table for mailing list signups.
- * Collects email, zip code for location-based updates, and optional demographics.
- */
-export const newsletterSubscribers = mysqlTable("newsletter_subscribers", {
-  id: int("id").autoincrement().primaryKey(),
-  
-  // Required fields
-  email: varchar("email", { length: 320 }).notNull().unique(),
-  zipCode: varchar("zipCode", { length: 20 }).notNull(),
-  
-  // Optional demographics
-  age: varchar("age", { length: 20 }), // e.g., "18-24", "25-34", etc.
-  gender: varchar("gender", { length: 50 }),
-  sex: varchar("sex", { length: 50 }),
-  
-  // Additional information
-  additionalInfo: text("additionalInfo"),
-  
-  // Subscription status
-  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = unsubscribed
-  
-  // Timestamps
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
 
-export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
-export type InsertNewsletterSubscriber = typeof newsletterSubscribers.$inferInsert;
+export const spatialRefSys = pgTable("spatial_ref_sys", {
+	srid: integer().notNull(),
+	authName: varchar("auth_name", { length: 256 }),
+	authSrid: integer("auth_srid"),
+	srtext: varchar({ length: 2048 }),
+	proj4Text: varchar({ length: 2048 }),
+}, (table) => [
+	check("spatial_ref_sys_srid_check", sql`(srid > 0) AND (srid <= 998999)`),
+]);
 
-/**
- * Main facilities table - the live directory of recycling locations.
- * Migrated from static CSV and continuously updated via admin approvals.
- */
-export const facilities = mysqlTable("facilities", {
-  id: int("id").autoincrement().primaryKey(),
-  
-  // Core facility info
-  name: varchar("name", { length: 255 }).notNull(),
-  address: varchar("address", { length: 500 }).notNull(),
-  state: varchar("state", { length: 100 }).notNull(),
-  county: varchar("county", { length: 100 }),
-  phone: varchar("phone", { length: 100 }),
-  email: varchar("email", { length: 320 }),
-  website: varchar("website", { length: 500 }),
-  
-  // Classification
-  category: varchar("category", { length: 150 }).notNull(),
-  facilityType: varchar("facilityType", { length: 150 }),
-  feedstock: text("feedstock"),
-  naicsCode: varchar("naicsCode", { length: 20 }),
-  
-  // Location
-  latitude: varchar("latitude", { length: 30 }),
-  longitude: varchar("longitude", { length: 30 }),
-  
-  // Operating details
-  hours: varchar("hours", { length: 500 }),
-  acceptsDropoff: varchar("acceptsDropoff", { length: 50 }),
-  feeStructure: varchar("feeStructure", { length: 50 }),
-  feeDetails: text("feeDetails"),
-  offersPayment: varchar("offersPayment", { length: 50 }),
-  paymentDetails: text("paymentDetails"),
-  
-  // Data source tracking
-  source: varchar("source", { length: 50 }).default("csv_import").notNull(), // csv_import, user_submission, admin_added
-  submissionId: int("submissionId"), // Link back to facilitySubmissions if from a submission
-  
-  // Status
-  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive/removed
-  
-  // Timestamps
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+export const shelters = pgTable("shelters", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	name: text().notNull(),
+	slug: text().notNull(),
+	description: text(),
+	addressLine1: text("address_line1").notNull(),
+	addressLine2: text("address_line2"),
+	city: text().notNull(),
+	state: text().notNull(),
+	zip: text().notNull(),
+	latitude: doublePrecision(),
+	longitude: doublePrecision(),
+	// TODO: failed to parse database type 'geography'
+	location: text("location"),
+	phone: text(),
+	email: text(),
+	website: text(),
+	hoursOfOperation: jsonb("hours_of_operation"),
+	isNoKill: boolean("is_no_kill").default(true),
+	shelterType: text("shelter_type"),
+	speciesServed: text("species_served").array().default([""]),
+	services: text().array().default([""]),
+	socialMedia: jsonb("social_media").default({}),
+	logoUrl: text("logo_url"),
+	photoUrls: text("photo_urls").array().default([""]),
+	verified: boolean().default(false),
+	verifiedAt: timestamp("verified_at", { withTimezone: true, mode: 'string' }),
+	active: boolean().default(true),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("idx_shelters_active").using("btree", table.active.asc().nullsLast().op("bool_ops")).where(sql`(active = true)`),
+	index("idx_shelters_city").using("btree", table.city.asc().nullsLast().op("text_ops"), table.state.asc().nullsLast().op("text_ops")),
+	index("idx_shelters_location").using("gist", table.location.asc().nullsLast().op("gist_geography_ops")),
+	index("idx_shelters_slug").using("btree", table.slug.asc().nullsLast().op("text_ops")),
+	index("idx_shelters_species").using("gin", table.speciesServed.asc().nullsLast().op("array_ops")),
+	index("idx_shelters_state").using("btree", table.state.asc().nullsLast().op("text_ops")),
+	unique("shelters_slug_key").on(table.slug),
+	pgPolicy("Public can view active shelters", { as: "permissive", for: "select", to: ["public"], using: sql`(active = true)` }),
+	check("shelters_shelter_type_check", sql`shelter_type = ANY (ARRAY['shelter'::text, 'rescue'::text, 'sanctuary'::text, 'foster_network'::text, 'community_resource'::text])`),
+]);
 
-export type Facility = typeof facilities.$inferSelect;
-export type InsertFacility = typeof facilities.$inferInsert;
+export const shelterCorrections = pgTable("shelter_corrections", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	shelterId: uuid("shelter_id"),
+	suggestedShelterName: text("suggested_shelter_name"),
+	correctionType: text("correction_type"),
+	details: text().notNull(),
+	submitterName: text("submitter_name"),
+	submitterEmail: text("submitter_email"),
+	status: text().default('pending'),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("idx_corrections_status").using("btree", table.status.asc().nullsLast().op("text_ops")),
+	foreignKey({
+		columns: [table.shelterId],
+		foreignColumns: [shelters.id],
+		name: "shelter_corrections_shelter_id_fkey"
+	}).onDelete("cascade"),
+	pgPolicy("Public can submit corrections", { as: "permissive", for: "insert", to: ["public"], withCheck: sql`true` }),
+	check("shelter_corrections_correction_type_check", sql`correction_type = ANY (ARRAY['info_update'::text, 'new_shelter'::text, 'closure_report'::text, 'general'::text])`),
+	check("shelter_corrections_status_check", sql`status = ANY (ARRAY['pending'::text, 'reviewed'::text, 'applied'::text, 'rejected'::text])`),
+]);
+export const geographyColumns = pgView("geography_columns", {	// TODO: failed to parse database type 'name'
+	fTableCatalog: text("f_table_catalog"),
+	// TODO: failed to parse database type 'name'
+	fTableSchema: text("f_table_schema"),
+	// TODO: failed to parse database type 'name'
+	fTableName: text("f_table_name"),
+	// TODO: failed to parse database type 'name'
+	fGeographyColumn: text("f_geography_column"),
+	coordDimension: integer("coord_dimension"),
+	srid: integer(),
+	type: text(),
+}).as(sql`SELECT current_database() AS f_table_catalog, n.nspname AS f_table_schema, c.relname AS f_table_name, a.attname AS f_geography_column, postgis_typmod_dims(a.atttypmod) AS coord_dimension, postgis_typmod_srid(a.atttypmod) AS srid, postgis_typmod_type(a.atttypmod) AS type FROM pg_class c, pg_attribute a, pg_type t, pg_namespace n WHERE t.typname = 'geography'::name AND a.attisdropped = false AND a.atttypid = t.oid AND a.attrelid = c.oid AND c.relnamespace = n.oid AND (c.relkind = ANY (ARRAY['r'::"char", 'v'::"char", 'm'::"char", 'f'::"char", 'p'::"char"])) AND NOT pg_is_other_temp_schema(c.relnamespace) AND has_table_privilege(c.oid, 'SELECT'::text)`);
+
+export const geometryColumns = pgView("geometry_columns", {
+	fTableCatalog: varchar("f_table_catalog", { length: 256 }),
+	// TODO: failed to parse database type 'name'
+	fTableSchema: text("f_table_schema"),
+	// TODO: failed to parse database type 'name'
+	fTableName: text("f_table_name"),
+	// TODO: failed to parse database type 'name'
+	fGeometryColumn: text("f_geometry_column"),
+	coordDimension: integer("coord_dimension"),
+	srid: integer(),
+	type: varchar({ length: 30 }),
+}).as(sql`SELECT current_database()::character varying(256) AS f_table_catalog, n.nspname AS f_table_schema, c.relname AS f_table_name, a.attname AS f_geometry_column, COALESCE(postgis_typmod_dims(a.atttypmod), sn.ndims, 2) AS coord_dimension, COALESCE(NULLIF(postgis_typmod_srid(a.atttypmod), 0), sr.srid, 0) AS srid, replace(replace(COALESCE(NULLIF(upper(postgis_typmod_type(a.atttypmod)), 'GEOMETRY'::text), st.type, 'GEOMETRY'::text), 'ZM'::text, ''::text), 'Z'::text, ''::text)::character varying(30) AS type FROM pg_class c JOIN pg_attribute a ON a.attrelid = c.oid AND NOT a.attisdropped JOIN pg_namespace n ON c.relnamespace = n.oid JOIN pg_type t ON a.atttypid = t.oid LEFT JOIN ( SELECT s.connamespace, s.conrelid, s.conkey, replace(split_part(s.consrc, ''''::text, 2), ')'::text, ''::text) AS type FROM ( SELECT pg_constraint.connamespace, pg_constraint.conrelid, pg_constraint.conkey, pg_get_constraintdef(pg_constraint.oid) AS consrc FROM pg_constraint) s WHERE s.consrc ~~* '%geometrytype(% = %'::text) st ON st.connamespace = n.oid AND st.conrelid = c.oid AND (a.attnum = ANY (st.conkey)) LEFT JOIN ( SELECT s.connamespace, s.conrelid, s.conkey, replace(split_part(s.consrc, ' = '::text, 2), ')'::text, ''::text)::integer AS ndims FROM ( SELECT pg_constraint.connamespace, pg_constraint.conrelid, pg_constraint.conkey, pg_get_constraintdef(pg_constraint.oid) AS consrc FROM pg_constraint) s WHERE s.consrc ~~* '%ndims(% = %'::text) sn ON sn.connamespace = n.oid AND sn.conrelid = c.oid AND (a.attnum = ANY (sn.conkey)) LEFT JOIN ( SELECT s.connamespace, s.conrelid, s.conkey, replace(replace(split_part(s.consrc, ' = '::text, 2), ')'::text, ''::text), '('::text, ''::text)::integer AS srid FROM ( SELECT pg_constraint.connamespace, pg_constraint.conrelid, pg_constraint.conkey, pg_get_constraintdef(pg_constraint.oid) AS consrc FROM pg_constraint) s WHERE s.consrc ~~* '%srid(% = %'::text) sr ON sr.connamespace = n.oid AND sr.conrelid = c.oid AND (a.attnum = ANY (sr.conkey)) WHERE (c.relkind = ANY (ARRAY['r'::"char", 'v'::"char", 'm'::"char", 'f'::"char", 'p'::"char"])) AND NOT c.relname = 'raster_columns'::name AND t.typname = 'geometry'::name AND NOT pg_is_other_temp_schema(c.relnamespace) AND has_table_privilege(c.oid, 'SELECT'::text)`);
+
+// Stubs for transition from Recycling to Animal Shelter Directory
+export const facilities = shelters as any;
+export const facilitySubmissions = shelterCorrections as any;
+export const users = {} as any;
+export const userFavorites = {} as any;
+export const newsletterSubscribers = {} as any;
+export const facilityReports = {} as any;
+export const facilityReviews = {} as any;
+export const reviewHelpfulVotes = {} as any;
+
+export type InsertFacility = any;
+export type Facility = any;
+export type User = any;
+export type InsertUser = any;
+export type Submission = any;
+export type InsertFacilitySubmission = any;
+export type Report = any;
+export type InsertFacilityReport = any;
+export type Review = any;
+export type InsertFacilityReview = any;
+export type UserFavorite = any;
+export type InsertUserFavorite = any;
+export type NewsletterSubscriber = any;
+export type InsertNewsletterSubscriber = any;
+export type ReviewHelpfulVote = any;
+export type InsertReviewHelpfulVote = any;
