@@ -130,11 +130,10 @@ const UnderConstruction = () => {
                                 className="relative z-30 w-full h-full object-contain -rotate-3 hover:rotate-0 transition-transform duration-700 pointer-events-none drop-shadow-sm"
                             />
 
-                            {/* Floating Recyclish Brand Badge */}
                             <motion.div
                                 animate={{ y: [0, -12, 0] }}
                                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute -bottom-24 -right-16 bg-white/90 backdrop-blur-md p-6 rounded-[2.5rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-4 min-w-[220px]"
+                                className="absolute -bottom-36 -right-24 bg-white/90 backdrop-blur-md p-6 rounded-[2.5rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-4 min-w-[220px]"
                             >
                                 <div className="p-3 bg-ocean rounded-full group animate-bounce">
                                     <Recycle className="w-6 h-6 text-cream group-hover:rotate-180 transition-transform duration-1000" />

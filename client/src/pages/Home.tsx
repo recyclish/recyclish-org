@@ -11,7 +11,8 @@ import {
   Shield,
   PawPrint,
   Loader2,
-  MapPin
+  MapPin,
+  Recycle
 } from 'lucide-react';
 import { HeroSearch } from "@/components/HeroSearch";
 
@@ -107,10 +108,10 @@ export default function Home() {
                 <motion.div
                   animate={{ y: [0, -12, 0] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-12 -right-16 bg-white/90 backdrop-blur-md p-6 rounded-[2.5rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-4 min-w-[220px]"
+                  className="absolute -bottom-36 -right-24 bg-white/90 backdrop-blur-md p-6 rounded-[2.5rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-4 min-w-[220px]"
                 >
-                  <div className="p-3 bg-ocean rounded-2xl group">
-                    <PawPrint className="w-6 h-6 text-cream group-hover:scale-110 transition-transform duration-500" />
+                  <div className="p-3 bg-ocean rounded-full group">
+                    <Recycle className="w-6 h-6 text-cream group-hover:rotate-180 transition-transform duration-1000" />
                   </div>
                   <div>
                     <div className="text-[10px] font-label text-ocean/40 uppercase tracking-widest font-black">Meet Mobi:</div>
