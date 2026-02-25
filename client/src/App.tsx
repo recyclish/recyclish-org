@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -24,7 +24,8 @@ import { BottomNav } from "./components/BottomNav";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={UnderConstruction} />
+      <Route path="/home" component={Home} />
       <Route path="/under-construction" component={UnderConstruction} />
       <Route path="/directory" component={Directory} />
       <Route path="/map" component={MapViewPage} />
@@ -44,15 +45,22 @@ function Router() {
 }
 
 function App() {
+  const [location] = useLocation();
+  const isUnderConstruction = location === "/" || location === "/under-construction";
+
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
-          <RecyclingChatbot />
-          <InstallAppBanner />
-          <BottomNav />
+          {!isUnderConstruction && (
+            <>
+              <RecyclingChatbot />
+              <InstallAppBanner />
+              <BottomNav />
+            </>
+          )}
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
