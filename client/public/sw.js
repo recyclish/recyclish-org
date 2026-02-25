@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recycling-directory-v1';
+const CACHE_NAME = 'rescue-directory-v1';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache on install
@@ -52,14 +52,14 @@ self.addEventListener('fetch', (event) => {
       .then((response) => {
         // Clone the response before caching
         const responseClone = response.clone();
-        
+
         // Cache successful responses
         if (response.status === 200) {
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
           });
         }
-        
+
         return response;
       })
       .catch(async () => {

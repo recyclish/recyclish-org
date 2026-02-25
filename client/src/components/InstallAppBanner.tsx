@@ -44,7 +44,7 @@ export function InstallAppBanner() {
     // For iOS Safari (which doesn't support beforeinstallprompt)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isInStandaloneMode = window.matchMedia("(display-mode: standalone)").matches;
-    
+
     if (isIOS && !isInStandaloneMode) {
       // Show banner for iOS users after a short delay
       const timer = setTimeout(() => {
@@ -115,10 +115,10 @@ export function InstallAppBanner() {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-                  Install Recycling Directory
+                  Install Rescue Directory
                 </h3>
                 <p className="text-sm text-muted-foreground font-body leading-relaxed">
-                  Add to your home screen for quick access to recycling locations, 
+                  Add to your home screen for quick access to 8,500+ verified rescue locations,
                   even when offline.
                 </p>
               </div>

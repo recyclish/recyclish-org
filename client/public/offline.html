@@ -1,119 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Offline - National Recycling Directory</title>
+  <title>Offline - Animal Rescue Directory</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: linear-gradient(135deg, #faf8f5 0%, #e8f5e9 100%);
+      background: linear-gradient(135deg, #F8F5F2 0%, #F2EBE4 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
+
     .container {
       text-align: center;
       max-width: 400px;
     }
+
     .icon {
       width: 80px;
       height: 80px;
       margin: 0 auto 24px;
-      background: #2d6a4f;
+      background: #0F172A;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .icon svg {
       width: 40px;
       height: 40px;
       fill: white;
     }
+
     h1 {
-      color: #1a1a1a;
+      color: #0F172A;
       font-size: 24px;
       margin-bottom: 12px;
+      font-family: 'Playfair Display', serif;
     }
+
     p {
-      color: #666;
+      color: #64748B;
       font-size: 16px;
       line-height: 1.6;
       margin-bottom: 24px;
     }
+
     .retry-btn {
-      background: #2d6a4f;
+      background: #D97706;
       color: white;
       border: none;
       padding: 12px 32px;
       font-size: 16px;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
+      font-weight: bold;
       transition: background 0.2s;
     }
+
     .retry-btn:hover {
-      background: #1b4332;
+      background: #B45309;
     }
+
     .tips {
       margin-top: 32px;
       padding: 20px;
       background: white;
-      border-radius: 12px;
+      border-radius: 20px;
       text-align: left;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
+
     .tips h2 {
       font-size: 14px;
-      color: #2d6a4f;
+      color: #D97706;
       margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      font-weight: 800;
     }
+
     .tips ul {
       list-style: none;
       font-size: 14px;
-      color: #666;
+      color: #64748B;
     }
+
     .tips li {
       padding: 8px 0;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #F1F5F9;
     }
+
     .tips li:last-child {
       border-bottom: none;
     }
+
     .tips li::before {
-      content: "♻️ ";
+      content: "🐾 ";
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="icon">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
       </svg>
     </div>
     <h1>You're Offline</h1>
-    <p>It looks like you've lost your internet connection. Don't worry - some features may still be available from cache.</p>
-    <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
-    
+    <p>The Rescue Atlas is temporarily unavailable. Check your connection to continue searching forVerified Shelters.
+    </p>
+    <button class="retry-btn" onclick="window.location.reload()">Refresh Atlas</button>
+
     <div class="tips">
-      <h2>Quick Recycling Tips</h2>
+      <h2>Mobi's Rescue Tips</h2>
       <ul>
-        <li>Rinse containers before recycling</li>
-        <li>Remove caps from plastic bottles</li>
-        <li>Flatten cardboard boxes</li>
-        <li>Never put sharps in regular trash</li>
-        <li>Check local guidelines for electronics</li>
+        <li>Support local 501(c)(3) verified rescues</li>
+        <li>Consider fostering if you can't adopt</li>
+        <li>Check for no-kill status in the atlas</li>
+        <li>Always call ahead before visiting</li>
+        <li>Have a pawsitive day!</li>
       </ul>
     </div>
   </div>
 </body>
+
 </html>

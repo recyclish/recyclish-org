@@ -1,11 +1,11 @@
 {
-  "name": "National Recycling Directory",
-  "short_name": "Recycling Dir",
-  "description": "Find recycling centers near you. Search over 2,000 facilities across all 50 states for electronics, plastics, glass, paper, textiles, sharps, and more.",
+  "name": "Animal Rescue Directory",
+  "short_name": "Rescue Atlas",
+  "description": "Find and support 8,500+ verified animal rescues and shelters across all 50 US states.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#faf8f5",
-  "theme_color": "#2d6a4f",
+  "background_color": "#F8F5F2",
+  "theme_color": "#0F172A",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -57,7 +57,10 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["utilities", "lifestyle"],
+  "categories": [
+    "utilities",
+    "lifestyle"
+  ],
   "screenshots": [
     {
       "src": "/screenshots/home.png",
