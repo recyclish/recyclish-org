@@ -29,7 +29,7 @@ export function Header() {
         </p>
       </div>
 
-      <header className="py-8 px-6 bg-cream border-b border-ocean/5 relative z-50">
+      <header className="py-4 lg:py-8 px-6 bg-cream border-b border-ocean/5 relative z-50">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">

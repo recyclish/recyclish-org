@@ -103,7 +103,7 @@ export function InstallAppBanner() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6"
+          className="fixed bottom-16 md:bottom-0 left-0 right-0 z-50 p-4 md:p-6"
         >
           <div className="container max-w-2xl mx-auto">
             <div className="bg-card border border-border rounded-xl shadow-lg p-4 md:p-5 flex items-start gap-4">

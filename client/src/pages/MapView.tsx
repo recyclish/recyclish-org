@@ -29,6 +29,7 @@ import {
   ShieldCheck,
   Compass
 } from "lucide-react";
+import { useIsMobile } from "@/hooks/useMobile";
 import { useShelterData } from "@/hooks/useShelterData";
 import type { Shelter } from "@/components/ShelterCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -62,6 +63,7 @@ export default function MapViewPage() {
     activeFilterCount,
   } = useShelterData();
 
+  const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
@@ -237,38 +239,38 @@ export default function MapViewPage() {
         {/* Map Interface Overlay - Header */}
         <div className="absolute top-6 left-6 right-6 z-20 pointer-events-none">
           <div className="container px-0 flex flex-col gap-4">
-            <div className="flex items-center justify-between pointer-events-auto">
+            <div className={`flex items-start justify-between pointer-events-auto ${isMobile ? 'gap-2' : ''}`}>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-ocean text-cream rounded-[2rem] p-6 shadow-2xl flex items-center gap-6 border border-white/10"
+                className={`bg-ocean text-cream rounded-[1.5rem] lg:rounded-[2rem] ${isMobile ? 'p-3' : 'p-6'} shadow-2xl flex items-center gap-3 lg:gap-6 border border-white/10`}
               >
-                <div className="p-3 bg-terracotta rounded-xl shadow-lg">
-                  <Compass className="h-6 w-6" />
+                <div className={`${isMobile ? 'p-2' : 'p-3'} bg-terracotta rounded-xl shadow-lg`}>
+                  <Compass className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
                 </div>
                 <div>
-                  <h1 className="font-display text-2xl font-bold leading-none mb-1">Rescue Atlas</h1>
-                  <p className="text-[10px] font-label uppercase tracking-widest text-cream/40 font-black">
-                    {sheltersWithCoords.length} Synchronized Nodes
+                  <h1 className={`${isMobile ? 'text-sm' : 'text-2xl'} font-display font-bold leading-none mb-1`}>Rescue Atlas</h1>
+                  <p className="text-[8px] lg:text-[10px] font-label uppercase tracking-widest text-cream/40 font-black">
+                    {sheltersWithCoords.length} Node{isMobile ? '' : 's Synced'}
                   </p>
                 </div>
               </motion.div>
 
-              <div className="flex gap-3">
+              <div className={`flex ${isMobile ? 'flex-col' : 'gap-3'} gap-2`}>
                 <Link href="/directory">
-                  <Button className="bg-white/80 backdrop-blur-xl text-ocean hover:bg-white rounded-2xl h-14 px-6 font-bold shadow-xl border border-ocean/5 transition-all">
-                    <List className="h-4 w-4 mr-2" />
-                    List View
+                  <Button className={`bg-white/80 backdrop-blur-xl text-ocean hover:bg-white rounded-xl lg:rounded-2xl ${isMobile ? 'h-10 px-3 text-xs' : 'h-14 px-6 font-bold'} shadow-xl border border-ocean/5 transition-all`}>
+                    <List className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} lg:mr-2`} />
+                    <span className={isMobile ? 'sr-only lg:not-sr-only' : ''}>List</span>
                   </Button>
                 </Link>
                 <Button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`${showFilters ? 'bg-terracotta text-cream' : 'bg-white/80 backdrop-blur-xl text-ocean'} rounded-2xl h-14 px-6 font-bold shadow-xl border border-ocean/5 transition-all`}
+                  className={`${showFilters ? 'bg-terracotta text-cream' : 'bg-white/80 backdrop-blur-xl text-ocean'} rounded-xl lg:rounded-2xl ${isMobile ? 'h-10 px-3 text-xs' : 'h-14 px-6 font-bold'} shadow-xl border border-ocean/5 transition-all`}
                 >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
+                  <Filter className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} lg:mr-2`} />
+                  <span className={isMobile ? 'sr-only lg:not-sr-only' : ''}>Filters</span>
                   {activeFilterCount > 0 && (
-                    <Badge className="ml-2 bg-ocean text-cream border-none h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]">
+                    <Badge className="ml-1 lg:ml-2 bg-ocean text-cream border-none h-4 w-4 lg:h-5 lg:w-5 p-0 flex items-center justify-center rounded-full text-[8px] lg:text-[10px]">
                       {activeFilterCount}
                     </Badge>
                   )}
@@ -283,9 +285,9 @@ export default function MapViewPage() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="bg-white/90 backdrop-blur-2xl p-8 rounded-[2.5rem] shadow-2xl border border-ocean/5 pointer-events-auto"
+                  className={`bg-white/90 backdrop-blur-2xl ${isMobile ? 'p-4 rounded-[1.5rem]' : 'p-8 rounded-[2.5rem]'} shadow-2xl border border-ocean/5 pointer-events-auto max-h-[60vh] overflow-y-auto`}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 lg:grid-cols-4 gap-6'}`}>
                     <div className="space-y-2">
                       <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Search Keywords</label>
                       <div className="relative">
@@ -371,41 +373,43 @@ export default function MapViewPage() {
             onMapReady={handleMapReady}
           />
 
-          {/* Legend Overlay */}
-          <div className="absolute bottom-10 left-10 z-20">
-            <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-ocean/5 w-64">
-              <h4 className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/30 mb-4">Atlas Legend</h4>
-              <div className="space-y-3">
-                {Object.entries(shelterTypeColors).map(([type, color]) => (
-                  <div key={type} className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }} />
-                    <span className="text-xs font-bold text-ocean/60">{type}</span>
-                  </div>
-                ))}
-                {userLocation && (
-                  <div className="flex items-center gap-3 pt-2 border-t border-ocean/5">
-                    <div className="w-3 h-3 rounded-full bg-terracotta border-2 border-white shadow-sm" />
-                    <span className="text-xs font-bold text-ocean/60">Your Sanctuary</span>
-                  </div>
-                )}
+          {/* Legend Overlay - Hide on Mobile */}
+          {!isMobile && (
+            <div className="absolute bottom-10 left-10 z-20">
+              <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-ocean/5 w-64">
+                <h4 className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/30 mb-4">Atlas Legend</h4>
+                <div className="space-y-3">
+                  {Object.entries(shelterTypeColors).map(([type, color]) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }} />
+                      <span className="text-xs font-bold text-ocean/60">{type}</span>
+                    </div>
+                  ))}
+                  {userLocation && (
+                    <div className="flex items-center gap-3 pt-2 border-t border-ocean/5">
+                      <div className="w-3 h-3 rounded-full bg-terracotta border-2 border-white shadow-sm" />
+                      <span className="text-xs font-bold text-ocean/60">Your Sanctuary</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Detail Side Panel */}
           <AnimatePresence>
             {selectedShelter && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="absolute top-6 bottom-6 right-6 w-96 z-30 pointer-events-none"
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: isMobile ? 0 : 20, y: isMobile ? 20 : 0 }}
+                className={`absolute ${isMobile ? 'bottom-20 left-4 right-4 h-[45vh]' : 'top-6 bottom-6 right-6 w-96'} z-30 pointer-events-none`}
               >
-                <Card className="h-full bg-white/95 backdrop-blur-2xl shadow-2xl border-none rounded-[3.5rem] overflow-hidden pointer-events-auto flex flex-col">
+                <Card className={`h-full bg-white/95 backdrop-blur-2xl shadow-2xl border-none ${isMobile ? 'rounded-t-[2.5rem] rounded-b-none' : 'rounded-[3.5rem]'} overflow-hidden pointer-events-auto flex flex-col`}>
                   <div className="h-2 bg-terracotta" />
 
-                  <div className="p-10 flex-1 overflow-y-auto custom-scrollbar">
-                    <div className="flex justify-between items-start mb-8">
+                  <div className={`${isMobile ? 'p-6' : 'p-10'} flex-1 overflow-y-auto custom-scrollbar`}>
+                    <div className={`flex justify-between items-start ${isMobile ? 'mb-4' : 'mb-8'}`}>
                       <Badge className="bg-ocean/5 text-ocean/40 border-none px-4 py-1.5 rounded-full text-[9px] font-label font-black uppercase tracking-widest">
                         {selectedShelter.shelterType}
                       </Badge>

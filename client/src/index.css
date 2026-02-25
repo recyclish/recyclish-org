@@ -40,15 +40,18 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
+
   /* Custom colors for Warm Community Atlas theme */
-  --color-terracotta: #D97706; /* Vibrant Terracotta/Amber */
+  --color-terracotta: #D97706;
+  /* Vibrant Terracotta/Amber */
   --color-terracotta-light: #F59E0B;
-  --color-ocean: #0F172A; /* Deep Navy/Ocean */
+  --color-ocean: #0F172A;
+  /* Deep Navy/Ocean */
   --color-ocean-light: #1E293B;
-  --color-cream: #F8F5F2; /* Soft Warm Cream */
+  --color-cream: #F8F5F2;
+  /* Soft Warm Cream */
   --color-cream-dark: #F2EBE4;
-  
+
   /* Typography */
   --font-display: 'Playfair Display', serif;
   --font-body: 'Source Sans 3', sans-serif;
@@ -57,25 +60,31 @@
 
 :root {
   /* Warm Community Atlas Theme - Light Mode */
-  --primary: #D97706; /* Terracotta */
-  --primary-foreground: #F8F5F2; /* Cream */
-  --sidebar-primary: #0F172A; /* Ocean Blue */
+  --primary: #D97706;
+  /* Terracotta */
+  --primary-foreground: #F8F5F2;
+  /* Cream */
+  --sidebar-primary: #0F172A;
+  /* Ocean Blue */
   --sidebar-primary-foreground: #F8F5F2;
-  
+
   --chart-1: #D97706;
   --chart-2: #0F172A;
   --chart-3: #F59E0B;
   --chart-4: #1E293B;
   --chart-5: #B45309;
-  
+
   --radius: 0.75rem;
-  --background: #F8F5F2; /* Cream */
-  --foreground: #0F172A; /* Dark Ocean */
+  --background: #F8F5F2;
+  /* Cream */
+  --foreground: #0F172A;
+  /* Dark Ocean */
   --card: #FFFFFF;
   --card-foreground: #0F172A;
   --popover: #FFFFFF;
   --popover-foreground: #0F172A;
-  --secondary: #F2EBE4; /* Darker Cream */
+  --secondary: #F2EBE4;
+  /* Darker Cream */
   --secondary-foreground: #0F172A;
   --muted: #E2E8F0;
   --muted-foreground: #64748B;
@@ -133,13 +142,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Source Sans 3', sans-serif;
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Playfair Display', serif;
   }
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -181,28 +198,36 @@
       max-width: 1280px;
     }
   }
-  
+
   /* Custom utility classes */
   .font-display {
     font-family: 'Playfair Display', serif;
   }
-  
+
   .font-body {
     font-family: 'Source Sans 3', sans-serif;
   }
-  
+
   .font-label {
     font-family: 'Overpass', sans-serif;
   }
-  
+
   .bg-topo-pattern {
     background-image: url('https://files.manuscdn.com/user_upload_by_module/session_file/99778916/VQWiUEBjKxxYaPFV.png');
     background-size: 400px;
     background-repeat: repeat;
   }
-  
+
   .text-balance {
     text-wrap: balance;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
   }
 }
 

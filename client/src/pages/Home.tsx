@@ -108,7 +108,7 @@ export default function Home() {
                 <motion.div
                   animate={{ y: [0, -12, 0] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-48 -right-32 bg-white/90 backdrop-blur-md p-7 rounded-[3rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-5 min-w-[260px]"
+                  className="absolute -bottom-10 right-0 lg:-bottom-48 lg:-right-32 bg-white/90 backdrop-blur-md p-4 lg:p-7 rounded-[2rem] lg:rounded-[3rem] shadow-2xl shadow-ocean/20 border border-ocean/10 z-40 flex items-center gap-3 lg:gap-5 min-w-[200px] lg:min-w-[260px] scale-90 lg:scale-100"
                 >
                   <div className="p-4 bg-ocean rounded-full group">
                     <Recycle className="w-7 h-7 text-cream group-hover:rotate-180 transition-transform duration-1000" />

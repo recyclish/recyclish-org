@@ -1,20 +1,36 @@
 import { and, desc, eq, sql, inArray, ilike, or } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from 'pg';
-import { InsertUser, users, facilitySubmissions, InsertFacilitySubmission, userFavorites, InsertUserFavorite, newsletterSubscribers, InsertNewsletterSubscriber, shelters, InsertFacility, Facility } from "../drizzle/schema";
+import type { drizzle } from "drizzle-orm/node-postgres";
+import type pg from 'pg';
+import {
+  type InsertUser,
+  users,
+  facilitySubmissions,
+  type InsertFacilitySubmission,
+  userFavorites,
+  type InsertUserFavorite,
+  newsletterSubscribers,
+  type InsertNewsletterSubscriber,
+  shelters,
+  type InsertFacility,
+  type Facility
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 // facilities alias removed, using shelters directly
 
-let _db: ReturnType<typeof drizzle> | null = null;
-let _pool: pg.Pool | null = null;
+let _db: any = null;
+let _pool: any = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  if (!_db && (process.env.DATABASE_URL || ENV.databaseUrl)) {
     try {
+      const dbUrl = process.env.DATABASE_URL || ENV.databaseUrl;
+      const { default: pg } = await import('pg');
+      const { drizzle } = await import('drizzle-orm/node-postgres');
+
       _pool = new pg.Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: dbUrl,
         ssl: {
           rejectUnauthorized: false
         },
