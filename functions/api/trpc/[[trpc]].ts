@@ -1,11 +1,11 @@
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { edgeRouter } from "../../../server/edge-router";
-
 export const onRequest = async (context: any) => {
+    const { fetchRequestHandler } = await import("@trpc/server/adapters/fetch");
+    const { edgeRouter } = await import("../../../server/edge-router");
+
     return fetchRequestHandler({
         endpoint: "/api/trpc",
         req: context.request,
         router: edgeRouter,
-        createContext: () => ({}),
+        createContext: () => ({ env: context.env }),
     });
 };
