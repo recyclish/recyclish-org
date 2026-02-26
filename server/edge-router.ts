@@ -1,11 +1,14 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
+import superjson from "superjson";
 
 export interface EdgeContext {
     env?: Record<string, string>;
 }
 
-const t = initTRPC.context<EdgeContext>().create();
+const t = initTRPC.context<EdgeContext>().create({
+    transformer: superjson,
+});
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
