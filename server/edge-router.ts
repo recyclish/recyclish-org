@@ -11,7 +11,7 @@ export const publicProcedure = t.procedure;
 
 // Fallback hardcoded keys (will be overridden by env if present)
 const FALLBACK_URL = "https://vraafuuipvxfxygkuvau.supabase.co";
-const FALLBACK_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc20iOiJzdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiZXhwIjoyMDgwNjY2MzA4fQ.InZyYWF1dWlwdnhmeHlna3V2YXVfYW5vbiI";
+const FALLBACK_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyYWFmdXVpcHZ4Znh5Z2t1dmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1MjY3MTAsImV4cCI6MjA1NjEwMjcxMH0.R_H2p59Njk1Njk2RnN0.dwvK-IA-zHOJRx78bSDbTmYky6l3YOfQgKVasmFLOHg";
 
 const getSupabaseConfig = (ctx: EdgeContext) => ({
     url: ctx.env?.SUPABASE_URL || FALLBACK_URL,
