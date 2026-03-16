@@ -17,6 +17,7 @@ import StatePage from "./pages/StatePage";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import Directory from "./pages/Directory";
+import Tags from "./pages/Tags";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 import { BottomNav } from "./components/BottomNav";
 
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/state/:stateSlug" component={StatePage} />
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogArticle} />
+              <Route path="/tags" component={Tags} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
