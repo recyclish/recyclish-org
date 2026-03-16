@@ -2,58 +2,72 @@ import { useEffect } from "react";
 
 export default function Tags() {
   useEffect(() => {
-    // Load Fredoka One font
     const link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Open+Sans:wght@400;600;700&display=swap";
     link.rel = "stylesheet";
     document.head.appendChild(link);
     window.scrollTo(0, 0);
   }, []);
 
+  const green = "#245424";
+  const navy = "#243368";
+  const blue = "#1E90FF";
+  const tan = "#F0C270";
+  const bg = "#FFFCF8";
+  const fredoka = "'Fredoka One', cursive";
+  const openSans = "'Open Sans', sans-serif";
+
   return (
-    <div style={{ fontFamily: "'Fredoka One', cursive", backgroundColor: "#FAF3E0", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: bg, minHeight: "100vh", fontFamily: openSans, color: "#333333" }}>
 
       {/* Hero */}
-      <div style={{ backgroundColor: "#2D6A4F", color: "white", padding: "48px 24px", textAlign: "center" }}>
+      <div style={{ backgroundColor: green, color: "white", padding: "48px 24px 40px", textAlign: "center" }}>
         <img
           src="/images/mobi-mascot.png"
-          alt="Mobi"
-          style={{ width: 96, height: 96, objectFit: "contain", margin: "0 auto 16px", display: "block" }}
+          alt="Mobi the recycling pup"
+          style={{ width: 100, height: 100, objectFit: "contain", display: "block", margin: "0 auto 16px" }}
         />
-        <h1 style={{ fontSize: 28, margin: "0 0 10px", letterSpacing: 0.5 }}>
+        <h1 style={{ fontFamily: fredoka, fontSize: 28, margin: "0 0 10px", letterSpacing: 0.5, color: "white" }}>
           You're holding something rare.
         </h1>
-        <p style={{ fontSize: 17, margin: "0 0 6px", opacity: 0.9 }}>
+        <p style={{ fontSize: 16, margin: "0 0 6px", opacity: 0.92 }}>
           The Mobi Tag‚Ñ¢ Collector's Edition
         </p>
-        <p style={{ fontSize: 13, margin: 0, opacity: 0.7 }}>
+        <p style={{ fontSize: 13, margin: 0, opacity: 0.72 }}>
           4 cards. 1 mission. Your move.
         </p>
       </div>
 
-      {/* Cards */}
-      <div style={{ padding: "36px 20px 0", maxWidth: 480, margin: "0 auto" }}>
-        <h2 style={{ textAlign: "center", fontSize: 20, color: "#2D6A4F", marginBottom: 20 }}>
+      {/* Tagline strip */}
+      <div style={{ backgroundColor: tan, padding: "10px 24px", textAlign: "center" }}>
+        <p style={{ fontFamily: fredoka, color: navy, fontSize: 14, margin: 0, letterSpacing: 0.3 }}>
+          Turning Knowledge into Action
+        </p>
+      </div>
+
+      {/* Cards Section */}
+      <div style={{ padding: "32px 20px 0", maxWidth: 480, margin: "0 auto" }}>
+        <h2 style={{ fontFamily: fredoka, fontSize: 22, color: navy, textAlign: "center", marginBottom: 20 }}>
           Meet the Series
         </h2>
 
-        {/* Card B ‚Äî lead emotionally */}
+        {/* Card B ‚Äî emotional lead */}
         <div style={{
-          backgroundColor: "#2D6A4F", color: "white",
-          borderRadius: 20, padding: "24px 20px", marginBottom: 14,
-          boxShadow: "0 4px 16px rgba(45,106,79,0.3)"
+          backgroundColor: green, color: "white",
+          borderRadius: 16, padding: "22px 20px", marginBottom: 12,
+          boxShadow: "0 4px 16px rgba(36,84,36,0.25)"
         }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
             <div style={{
-              backgroundColor: "white", color: "#2D6A4F",
-              borderRadius: "50%", width: 42, height: 42, flexShrink: 0,
+              backgroundColor: tan, color: navy,
+              borderRadius: "50%", width: 44, height: 44, flexShrink: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 18, fontWeight: "bold"
+              fontFamily: fredoka, fontSize: 20
             }}>B</div>
             <div>
-              <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, opacity: 0.7, margin: "0 0 4px" }}>Card B</p>
-              <h3 style={{ fontSize: 20, margin: "0 0 8px" }}>The Anchor</h3>
-              <p style={{ fontSize: 14, opacity: 0.9, margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1.5, opacity: 0.7, margin: "0 0 4px", fontWeight: 600 }}>Card B</p>
+              <h3 style={{ fontFamily: fredoka, fontSize: 20, margin: "0 0 8px", color: "white" }}>The Anchor</h3>
+              <p style={{ fontSize: 14, opacity: 0.9, margin: 0, lineHeight: 1.55 }}>
                 When everything pulls you off course, this is what holds.
               </p>
             </div>
@@ -67,20 +81,21 @@ export default function Tags() {
           { letter: "D", name: "The Badge", desc: "You earned this. Wear it." },
         ].map((card) => (
           <div key={card.letter} style={{
-            backgroundColor: "white", borderRadius: 20, padding: "20px",
-            marginBottom: 12, border: "1px solid #e8e0d0"
+            backgroundColor: "white", borderRadius: 16, padding: "18px 20px",
+            marginBottom: 10, border: "1px solid #E8E8E8",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
           }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
               <div style={{
-                backgroundColor: "#2D6A4F", color: "white",
-                borderRadius: "50%", width: 42, height: 42, flexShrink: 0,
+                backgroundColor: green, color: "white",
+                borderRadius: "50%", width: 44, height: 44, flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18
+                fontFamily: fredoka, fontSize: 20
               }}>{card.letter}</div>
               <div>
-                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, color: "#999", margin: "0 0 4px" }}>Card {card.letter}</p>
-                <h3 style={{ fontSize: 18, color: "#2D6A4F", margin: "0 0 6px" }}>{card.name}</h3>
-                <p style={{ fontSize: 14, color: "#555", margin: 0, lineHeight: 1.5 }}>{card.desc}</p>
+                <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1.5, color: "#888", margin: "0 0 4px", fontWeight: 600 }}>Card {card.letter}</p>
+                <h3 style={{ fontFamily: fredoka, fontSize: 18, color: navy, margin: "0 0 6px" }}>{card.name}</h3>
+                <p style={{ fontSize: 14, color: "#555", margin: 0, lineHeight: 1.55 }}>{card.desc}</p>
               </div>
             </div>
           </div>
@@ -90,19 +105,20 @@ export default function Tags() {
       {/* Buy Section */}
       <div style={{ padding: "24px 20px", maxWidth: 480, margin: "0 auto" }}>
 
-        {/* Single */}
+        {/* Single Card */}
         <div style={{
-          backgroundColor: "white", borderRadius: 20, padding: "24px",
-          textAlign: "center", marginBottom: 14, border: "1px solid #e8e0d0"
+          backgroundColor: "white", borderRadius: 16, padding: "22px",
+          textAlign: "center", marginBottom: 12,
+          border: "1px solid #E8E8E8", boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
         }}>
-          <p style={{ color: "#888", fontSize: 13, margin: "0 0 4px" }}>Single Card</p>
-          <p style={{ fontSize: 36, color: "#2D6A4F", margin: "0 0 16px" }}>$8.99</p>
+          <p style={{ color: "#888", fontSize: 12, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: 1, fontWeight: 600 }}>Single Card</p>
+          <p style={{ fontFamily: fredoka, fontSize: 38, color: green, margin: "0 0 16px" }}>$8.99</p>
           <a
             href="https://recyclish.com/products/mobi-tag"
             style={{
-              display: "block", backgroundColor: "#2D6A4F", color: "white",
-              padding: "16px", borderRadius: 14, fontSize: 17,
-              textDecoration: "none", fontFamily: "'Fredoka One', cursive"
+              display: "block", backgroundColor: blue, color: "white",
+              padding: "15px", borderRadius: 12, fontSize: 16,
+              textDecoration: "none", fontFamily: fredoka, letterSpacing: 0.3
             }}
           >
             Get Your Card
@@ -111,18 +127,20 @@ export default function Tags() {
 
         {/* Bundle */}
         <div style={{
-          backgroundColor: "#2D6A4F", borderRadius: 20, padding: "24px",
+          backgroundColor: navy, borderRadius: 16, padding: "22px",
           textAlign: "center", color: "white"
         }}>
-          <p style={{ fontSize: 12, opacity: 0.75, margin: "0 0 4px", letterSpacing: 1 }}>FULL COLLECTOR'S SET ‚Äî BEST VALUE</p>
-          <p style={{ fontSize: 36, margin: "0 0 4px" }}>$24.99</p>
+          <p style={{ fontSize: 11, opacity: 0.7, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600 }}>
+            Full Collector's Set ‚Äî Best Value
+          </p>
+          <p style={{ fontFamily: fredoka, fontSize: 38, margin: "0 0 4px" }}>$24.99</p>
           <p style={{ fontSize: 13, opacity: 0.75, margin: "0 0 18px" }}>All 4 cards ‚Äî A, B, C &amp; D</p>
           <a
             href="https://recyclish.com/products/mobi-tag-bundle"
             style={{
-              display: "block", backgroundColor: "#FAF3E0", color: "#2D6A4F",
-              padding: "16px", borderRadius: 14, fontSize: 17,
-              textDecoration: "none", fontFamily: "'Fredoka One', cursive"
+              display: "block", backgroundColor: blue, color: "white",
+              padding: "15px", borderRadius: 12, fontSize: 16,
+              textDecoration: "none", fontFamily: fredoka, letterSpacing: 0.3
             }}
           >
             Get the Full Set
@@ -131,21 +149,19 @@ export default function Tags() {
       </div>
 
       {/* Mission */}
-      <div style={{ padding: "24px 20px 60px", maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
-        <div style={{ borderTop: "1px solid #ddd6c8", paddingTop: 28 }}>
-          <img
-            src="/images/mobi-mascot.png"
-            alt="Mobi"
-            style={{ width: 56, height: 56, objectFit: "contain", margin: "0 auto 12px", display: "block", opacity: 0.85 }}
-          />
-          <h3 style={{ fontSize: 18, color: "#2D6A4F", margin: "0 0 10px" }}>
+      <div style={{ padding: "20px 20px 60px", maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ borderTop: "2px solid #E8E8E8", paddingTop: 28 }}>
+          <span style={{ fontSize: 32 }}>üêæ</span>
+          <h3 style={{ fontFamily: fredoka, fontSize: 18, color: navy, margin: "12px 0 10px" }}>
             Every Tag Helps a Dog Find Home
           </h3>
-          <p style={{ fontSize: 14, color: "#777", lineHeight: 1.6, margin: "0 0 12px" }}>
+          <p style={{ fontSize: 14, color: "#666", lineHeight: 1.65, margin: "0 0 14px" }}>
             A portion of every Mobi Tag sale supports dog rescue.
             Because the best things in life find you when you're not looking.
           </p>
-          <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>recyclish.com ¬∑ Turning Knowledge into Action</p>
+          <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>
+            recyclish.com ¬∑ Turning Knowledge into Action
+          </p>
         </div>
       </div>
 
