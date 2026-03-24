@@ -20,7 +20,7 @@ const SITE_CONFIG = {
     title: "Animal Rescue Directory | Recyclish",
     description:
       "Find animal shelters and rescues near you. Every life deserves a second chance.",
-    image: "https://www.recyclish.pet/og-image.png",
+    image: "https://www.recyclish.pet/og-image.jpg",
     url: "https://www.recyclish.pet",
     siteName: "Recyclish",
     type: "website",
@@ -36,46 +36,33 @@ const SITE_CONFIG = {
       title: "Meet Mobi | Recyclish",
       description:
         "Mobi believes every life deserves a second chance. Explore rescue stories, recycling tips, and the Mobi collection.",
-      image: "https://www.recyclish.pet/og-mobi.png",
+      image: "https://www.recyclish.pet/og-mobi.jpg",
     },
   },
 };
 
-// ─── Helper: escape HTML attribute values ────────────────────
-
-function esc(str) {
-  return str.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// ─── HTMLRewriter Handlers ───────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const esc = (s) => s.replace(/"/g, "&quot;");
 
 class OGMetaInjector {
   constructor(config) {
     this.config = config;
     this.injected = false;
   }
-
   element(el) {
     if (this.injected) return;
     this.injected = true;
-
     const c = this.config;
-
-    // Core OG tags
     el.append(`<meta property="og:title" content="${esc(c.title)}" />`, { html: true });
     el.append(`<meta property="og:description" content="${esc(c.description)}" />`, { html: true });
     el.append(`<meta property="og:image" content="${esc(c.image)}" />`, { html: true });
     el.append(`<meta property="og:url" content="${esc(c.url)}" />`, { html: true });
     el.append(`<meta property="og:type" content="${esc(c.type)}" />`, { html: true });
     el.append(`<meta property="og:site_name" content="${esc(c.siteName)}" />`, { html: true });
-
-    // Twitter Card tags
     el.append(`<meta name="twitter:card" content="summary_large_image" />`, { html: true });
     el.append(`<meta name="twitter:title" content="${esc(c.title)}" />`, { html: true });
     el.append(`<meta name="twitter:description" content="${esc(c.description)}" />`, { html: true });
     el.append(`<meta name="twitter:image" content="${esc(c.image)}" />`, { html: true });
-
-    // Standard meta description
     el.append(`<meta name="description" content="${esc(c.description)}" />`, { html: true });
   }
 }
@@ -84,32 +71,23 @@ class TitleRewriter {
   constructor(title) {
     this.title = title;
   }
-
   element(el) {
     el.setInnerContent(this.title);
   }
 }
 
-// ─── Middleware Entry Point ──────────────────────────────────────────────
-
+// ─── Request Handler ──────────────────────────────────────────────────────
 export async function onRequest(context) {
-  // Let the request pass through to Pages first
   const response = await context.next();
-
-  // Only transform HTML responses
   const contentType = response.headers.get("content-type") || "";
-  if (!contentType.includes("text/html")) {
-    return response;
-  }
+  if (!contentType.includes("text/html")) return response;
 
-  // Determine which config to use based on the request path
   const url = new URL(context.request.url);
   const pathConfig = SITE_CONFIG.paths[url.pathname];
   const finalConfig = pathConfig
     ? { ...SITE_CONFIG.default, ...pathConfig, url: SITE_CONFIG.default.url + url.pathname }
     : SITE_CONFIG.default;
 
-  // Use HTMLRewriter to inject OG tags into <head> and update <title>
   return new HTMLRewriter()
     .on("head", new OGMetaInjector(finalConfig))
     .on("title", new TitleRewriter(finalConfig.title))
