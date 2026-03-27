@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -12,7 +12,6 @@ import Admin from "./pages/Admin";
 import Favorites from "./pages/Favorites";
 import FacilityDetail from "./pages/FacilityDetail";
 import StatesIndex from "./pages/StatesIndex";
-import ShelterDetail from "./pages/ShelterDetail";
 import StatePage from "./pages/StatePage";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
@@ -27,8 +26,6 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/directory" component={Directory} />
       <Route path="/map" component={MapViewPage} />
-      <Route path="/shelter/:id" component={ShelterDetail} />
-      <Route path="/submit-rescue" component={SubmitFacility} />
       <Route path="/about" component={About} />
       <Route path="/submit" component={SubmitFacility} />
       <Route path="/admin" component={Admin} />
@@ -38,7 +35,7 @@ function Router() {
       <Route path="/state/:stateSlug" component={StatePage} />
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogArticle} />
-              <Route path="/tags" component={Tags} />
+      <Route path="/tags" component={Tags} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

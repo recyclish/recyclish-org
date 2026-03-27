@@ -49,7 +49,7 @@ export default function BlogArticle() {
   const prevPost = currentIndex > 0 ? blogPosts[currentIndex - 1] : null;
   const nextPost = currentIndex < blogPosts.length - 1 ? blogPosts[currentIndex + 1] : null;
 
-  const shareUrl = `https://recycling.recyclish.com/blog/${slug}`;
+  const shareUrl = `https://recyclish.info/blog/${slug}`;
   const shareTitle = post.title;
   const shareDescription = post.excerpt;
 
@@ -85,7 +85,7 @@ export default function BlogArticle() {
               "name": "National Recycling Directory",
               "logo": {
                 "@type": "ImageObject",
-                "url": "https://recycling.recyclish.com/logo.png"
+                "url": "https://recyclish.info/logo.png"
               }
             }
           })}

@@ -2,311 +2,311 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Main Pages -->
   <url>
-    <loc>https://recycling.recyclish.com/</loc>
+    <loc>https://recyclish.info/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/directory</loc>
+    <loc>https://recyclish.info/directory</loc>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/map</loc>
+    <loc>https://recyclish.info/map</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/states</loc>
+    <loc>https://recyclish.info/states</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/about</loc>
+    <loc>https://recyclish.info/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/submit</loc>
+    <loc>https://recyclish.info/submit</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <!-- Blog Pages -->
   <url>
-    <loc>https://recycling.recyclish.com/blog</loc>
+    <loc>https://recyclish.info/blog</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/blog/how-to-recycle-electronics-safely</loc>
+    <loc>https://recyclish.info/blog/how-to-recycle-electronics-safely</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/blog/sharps-disposal-guide-glp1-medications</loc>
+    <loc>https://recyclish.info/blog/sharps-disposal-guide-glp1-medications</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/blog/what-can-and-cannot-be-recycled</loc>
+    <loc>https://recyclish.info/blog/what-can-and-cannot-be-recycled</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/blog/find-free-recycling-near-you</loc>
+    <loc>https://recyclish.info/blog/find-free-recycling-near-you</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <!-- State Pages -->
   <url>
-    <loc>https://recycling.recyclish.com/state/alabama</loc>
+    <loc>https://recyclish.info/state/alabama</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/alaska</loc>
+    <loc>https://recyclish.info/state/alaska</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/arizona</loc>
+    <loc>https://recyclish.info/state/arizona</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/arkansas</loc>
+    <loc>https://recyclish.info/state/arkansas</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/california</loc>
+    <loc>https://recyclish.info/state/california</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/colorado</loc>
+    <loc>https://recyclish.info/state/colorado</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/connecticut</loc>
+    <loc>https://recyclish.info/state/connecticut</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/delaware</loc>
+    <loc>https://recyclish.info/state/delaware</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/florida</loc>
+    <loc>https://recyclish.info/state/florida</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/georgia</loc>
+    <loc>https://recyclish.info/state/georgia</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/hawaii</loc>
+    <loc>https://recyclish.info/state/hawaii</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/idaho</loc>
+    <loc>https://recyclish.info/state/idaho</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/illinois</loc>
+    <loc>https://recyclish.info/state/illinois</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/indiana</loc>
+    <loc>https://recyclish.info/state/indiana</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/iowa</loc>
+    <loc>https://recyclish.info/state/iowa</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/kansas</loc>
+    <loc>https://recyclish.info/state/kansas</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/kentucky</loc>
+    <loc>https://recyclish.info/state/kentucky</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/louisiana</loc>
+    <loc>https://recyclish.info/state/louisiana</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/maine</loc>
+    <loc>https://recyclish.info/state/maine</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/maryland</loc>
+    <loc>https://recyclish.info/state/maryland</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/massachusetts</loc>
+    <loc>https://recyclish.info/state/massachusetts</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/michigan</loc>
+    <loc>https://recyclish.info/state/michigan</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/minnesota</loc>
+    <loc>https://recyclish.info/state/minnesota</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/mississippi</loc>
+    <loc>https://recyclish.info/state/mississippi</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/missouri</loc>
+    <loc>https://recyclish.info/state/missouri</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/montana</loc>
+    <loc>https://recyclish.info/state/montana</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/nebraska</loc>
+    <loc>https://recyclish.info/state/nebraska</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/nevada</loc>
+    <loc>https://recyclish.info/state/nevada</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/new-hampshire</loc>
+    <loc>https://recyclish.info/state/new-hampshire</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/new-jersey</loc>
+    <loc>https://recyclish.info/state/new-jersey</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/new-mexico</loc>
+    <loc>https://recyclish.info/state/new-mexico</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/new-york</loc>
+    <loc>https://recyclish.info/state/new-york</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/north-carolina</loc>
+    <loc>https://recyclish.info/state/north-carolina</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/north-dakota</loc>
+    <loc>https://recyclish.info/state/north-dakota</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/ohio</loc>
+    <loc>https://recyclish.info/state/ohio</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/oklahoma</loc>
+    <loc>https://recyclish.info/state/oklahoma</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/oregon</loc>
+    <loc>https://recyclish.info/state/oregon</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/pennsylvania</loc>
+    <loc>https://recyclish.info/state/pennsylvania</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/rhode-island</loc>
+    <loc>https://recyclish.info/state/rhode-island</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/south-carolina</loc>
+    <loc>https://recyclish.info/state/south-carolina</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/south-dakota</loc>
+    <loc>https://recyclish.info/state/south-dakota</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/tennessee</loc>
+    <loc>https://recyclish.info/state/tennessee</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/texas</loc>
+    <loc>https://recyclish.info/state/texas</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/utah</loc>
+    <loc>https://recyclish.info/state/utah</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/vermont</loc>
+    <loc>https://recyclish.info/state/vermont</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/virginia</loc>
+    <loc>https://recyclish.info/state/virginia</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/washington</loc>
+    <loc>https://recyclish.info/state/washington</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/west-virginia</loc>
+    <loc>https://recyclish.info/state/west-virginia</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/wisconsin</loc>
+    <loc>https://recyclish.info/state/wisconsin</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://recycling.recyclish.com/state/wyoming</loc>
+    <loc>https://recyclish.info/state/wyoming</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

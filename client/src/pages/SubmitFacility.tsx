@@ -31,16 +31,17 @@ const US_STATES = [
 ];
 
 const CATEGORIES = [
-  { value: "shelter", label: "Animal Shelter" },
-  { value: "rescue", label: "Rescue Organization" },
-  { value: "sanctuary", label: "Animal Sanctuary" },
-  { value: "foster_network", label: "Foster Network" },
+  { value: "municipal_recycling", label: "Municipal Recycling Center" },
+  { value: "drop_off_center", label: "Drop-Off Center" },
+  { value: "retail_takeback", label: "Retail Take-Back Program" },
+  { value: "electronics_recycler", label: "Electronics Recycler" },
+  { value: "materials_recovery", label: "Materials Recovery Facility (MRF)" },
   { value: "community_resource", label: "Community Resource" },
   { value: "other", label: "Other" },
 ];
 
 const CORRECTION_TYPES = [
-  { value: "new_shelter", label: "New Shelter/Rescue Add" },
+  { value: "new_facility", label: "New Facility / Location Add" },
   { value: "info_update", label: "Update Existing Listing" },
   { value: "closure_report", label: "Report Permanent Closure" },
   { value: "general", label: "General Feedback" },
@@ -67,7 +68,7 @@ export default function SubmitFacility() {
   const submitMutation = trpc.facility.submit.useMutation({
     onSuccess: () => {
       setSubmitted(true);
-      toast.success("Rescue submission received!");
+      toast.success("Facility submission received!");
     },
     onError: (error) => {
       toast.error(error.message || "Failed to submit. Please try again.");
@@ -96,15 +97,15 @@ export default function SubmitFacility() {
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-terracotta/10 mb-10">
               <CheckCircle className="h-12 w-12 text-terracotta" />
             </div>
-            <h1 className="font-display text-5xl font-bold text-ocean mb-6">Census Updated.</h1>
+            <h1 className="font-display text-5xl font-bold text-ocean mb-6">Directory Updated.</h1>
             <p className="text-ocean/50 font-medium text-xl mb-12 leading-relaxed">
               Your submission has been logged in our verification queue.
-              Mobi will synchronize your data with the National Atlas within 24-48 hours.
+              Mobi will synchronize your data with the National Directory within 24-48 hours.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/">
                 <Button className="bg-ocean hover:bg-ocean-light text-cream rounded-2xl px-10 h-16 font-bold text-lg shadow-xl shadow-ocean/20">
-                  Return to Discovery
+                  Return to Directory
                 </Button>
               </Link>
               <Button
@@ -129,7 +130,7 @@ export default function SubmitFacility() {
                   });
                 }}
               >
-                Submit Another Rescue
+                Submit Another Facility
               </Button>
             </div>
           </motion.div>
@@ -158,11 +159,11 @@ export default function SubmitFacility() {
           >
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight tracking-tight">
               Expand the <br />
-              <span className="text-terracotta italic underline decoration-terracotta/30 underline-offset-8">National Atlas.</span>
+              <span className="text-terracotta italic underline decoration-terracotta/30 underline-offset-8">National Directory.</span>
             </h1>
             <p className="text-xl text-cream/60 font-medium leading-relaxed">
-              Help us maintain the most accurate directory of animal rescues in the United States.
-              Whether it's a new 501(c)(3) or an update to an existing shelter, every entry matters.
+              Help us maintain the most accurate directory of recycling facilities in the United States.
+              Whether it's a new drop-off center or an update to an existing listing, every entry matters.
             </p>
           </motion.div>
         </div>
@@ -189,7 +190,7 @@ export default function SubmitFacility() {
                 <CardTitle className="font-display text-3xl font-bold text-ocean">Submission Intake</CardTitle>
               </div>
               <CardDescription className="text-ocean/40 font-medium text-lg leading-relaxed">
-                Please provide high-fidelity information to ensure a fast verification process.
+                Please provide accurate information to ensure a fast verification process.
               </CardDescription>
             </CardHeader>
 
@@ -201,8 +202,8 @@ export default function SubmitFacility() {
                     Submission Intent
                   </Label>
                   <Select
-                    value={formData.additionalNotes.includes('[UPDATE LISTING]') ? 'info_update' : 'new_shelter'}
-                    onValueChange={(value) => handleChange("category", value === 'info_update' ? formData.category : 'shelter')}
+                    value={formData.additionalNotes.includes('[UPDATE LISTING]') ? 'info_update' : 'new_facility'}
+                    onValueChange={(value) => handleChange("category", value === 'info_update' ? formData.category : 'drop_off_center')}
                     required
                   >
                     <SelectTrigger className="h-14 border-ocean/5 bg-cream/30 rounded-2xl text-ocean font-bold focus:ring-terracotta/20 focus:border-terracotta transition-all">
@@ -222,19 +223,19 @@ export default function SubmitFacility() {
                 <div className="space-y-8 pt-6 border-t border-ocean/5">
                   <div className="flex items-center gap-3">
                     <div className="w-1 h-6 bg-terracotta rounded-full" />
-                    <span className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/30">Rescue Profile</span>
+                    <span className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/30">Facility Profile</span>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-3">
                       <Label htmlFor="name" className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/40 pl-1">
-                        Organization Name *
+                        Facility Name *
                       </Label>
                       <Input
                         id="name"
                         value={formData.name}
                         onChange={(e) => handleChange("name", e.target.value)}
-                        placeholder="e.g., North Shore Animal League"
+                        placeholder="e.g., City Recycling Center"
                         required
                         className="h-14 border-ocean/5 bg-cream/30 rounded-2xl text-ocean font-bold placeholder:text-ocean/20 px-6 focus:ring-terracotta/20 focus:border-terracotta transition-all"
                       />
@@ -279,7 +280,7 @@ export default function SubmitFacility() {
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleChange("address", e.target.value)}
-                      placeholder="123 Rescue Way"
+                      placeholder="123 Recycling Way"
                       required
                       className="h-14 border-ocean/5 bg-cream/30 rounded-2xl text-ocean font-bold placeholder:text-ocean/20 px-6 focus:ring-terracotta/20 focus:border-terracotta transition-all"
                     />
@@ -365,7 +366,7 @@ export default function SubmitFacility() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleChange("email", e.target.value)}
-                        placeholder="contact@rescue.org"
+                        placeholder="contact@recyclingcenter.org"
                         className="h-14 border-ocean/5 bg-cream/30 rounded-2xl text-ocean font-bold placeholder:text-ocean/20 px-6 focus:ring-terracotta/20 focus:border-terracotta transition-all"
                       />
                     </div>
@@ -380,7 +381,7 @@ export default function SubmitFacility() {
                       type="url"
                       value={formData.website}
                       onChange={(e) => handleChange("website", e.target.value)}
-                      placeholder="https://www.rescue.org"
+                      placeholder="https://www.recyclingcenter.org"
                       className="h-14 border-ocean/5 bg-cream/30 rounded-2xl text-ocean font-bold placeholder:text-ocean/20 px-6 focus:ring-terracotta/20 focus:border-terracotta transition-all"
                     />
                   </div>
@@ -395,26 +396,26 @@ export default function SubmitFacility() {
 
                   <div className="space-y-3">
                     <Label htmlFor="materialsAccepted" className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/40 pl-1">
-                      Species Rescued / Animals Served
+                      Materials Accepted
                     </Label>
                     <Textarea
                       id="materialsAccepted"
                       value={formData.materialsAccepted}
                       onChange={(e) => handleChange("materialsAccepted", e.target.value)}
-                      placeholder="e.g., Dogs, Cats, Small Animals, Livestock, etc."
+                      placeholder="e.g., Paper, Cardboard, Plastics (#1-7), Glass, Aluminum, Electronics, etc."
                       className="min-h-[120px] border-ocean/5 bg-cream/30 rounded-[2rem] text-ocean font-bold placeholder:text-ocean/20 p-8 focus:ring-terracotta/20 focus:border-terracotta transition-all resize-none"
                     />
                   </div>
 
                   <div className="space-y-3">
                     <Label htmlFor="additionalNotes" className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/40 pl-1">
-                      Organization Mission / Notes
+                      Facility Notes / Hours
                     </Label>
                     <Textarea
                       id="additionalNotes"
                       value={formData.additionalNotes}
                       onChange={(e) => handleChange("additionalNotes", e.target.value)}
-                      placeholder="Any additional context regarding intake hours, fees, or specific facility features."
+                      placeholder="Any additional context regarding hours of operation, fees, or specific facility features."
                       className="min-h-[120px] border-ocean/5 bg-cream/30 rounded-[2rem] text-ocean font-bold placeholder:text-ocean/20 p-8 focus:ring-terracotta/20 focus:border-terracotta transition-all resize-none"
                     />
                   </div>
@@ -467,11 +468,11 @@ export default function SubmitFacility() {
                     {submitMutation.isPending ? (
                       <>
                         <Loader2 className="h-6 w-6 animate-spin" />
-                        Processing Intake...
+                        Processing Submission...
                       </>
                     ) : (
                       <>
-                        Synchronize with Atlas
+                        Add to the National Directory
                         <ArrowRight className="h-6 w-6" />
                       </>
                     )}

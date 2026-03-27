@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, ArrowRight, Loader2, PawPrint, Heart, ShieldCheck } from "lucide-react";
+import { ArrowRight, Loader2, Recycle, Trash2, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ function isZipCode(value: string): boolean {
 
 const MAX_FILTERS = 2;
 
-type FilterKey = "dogs" | "cats" | "nokill";
+type FilterKey = "dropoff" | "electronics" | "verified";
 
 interface HeroSearchProps {
   states: string[];
@@ -115,7 +115,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       } else if (next.size < MAX_FILTERS) {
         next.add(filter);
       } else {
-        // Already at max, do nothing (or optionally replace oldest)
         return prev;
       }
       return next;
@@ -291,7 +290,6 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
 
   // Handle search submission
   const handleSearch = () => {
-    // If user has typed a ZIP code but hasn't geocoded it yet, do that first
     if (isZipCode(inputValue) && !selectedLocation) {
       geocodeZipCode(inputValue.trim());
       return;
@@ -305,26 +303,22 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       params.set("locationName", selectedLocation.name);
       params.set("distance", "25");
     } else if (inputValue.trim()) {
-      // Fallback to keyword search if no location selected
       params.set("q", inputValue.trim());
     }
 
-    const species: string[] = [];
-    if (selectedFilters.has("dogs")) species.push("dog");
-    if (selectedFilters.has("cats")) species.push("cat");
-
-    if (species.length > 0) {
-      params.set("species", species.join(","));
+    if (selectedFilters.has("dropoff")) {
+      params.set("type", "drop_off");
     }
-
-    if (selectedFilters.has("nokill")) {
-      params.set("noKill", "true");
+    if (selectedFilters.has("electronics")) {
+      params.set("type", "electronics");
+    }
+    if (selectedFilters.has("verified")) {
+      params.set("verified", "true");
     }
 
     setLocation(`/directory?${params.toString()}`);
   };
 
-  // Check if current input is a valid ZIP code
   const showZipSearchButton = isZipCode(inputValue) && !selectedLocation;
 
   return (
@@ -338,7 +332,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
         </p>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-xl p-2 rounded-[2.5rem] border-2 border-ocean/10 shadow-2xl shadow-ocean/5 transition-all group-hover:border-terracotta/20 group-hover:shadow-terracotta/5">
+      <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] border border-ocean/5 shadow-2xl shadow-ocean/5 p-2">
         <div className="flex flex-col lg:flex-row gap-2 p-1">
           {/* Location Input Wrapper */}
           <div className="flex-grow flex items-center px-6 gap-3 bg-cream/70 rounded-[1.5rem] border border-ocean/5 relative">
@@ -365,7 +359,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
                     onChange={(e) => handleInputChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onFocus={() => inputValue && !isZipCode(inputValue) && setShowDropdown(true)}
-                    placeholder="Find a shelter or rescue near you..."
+                    placeholder="Find a recycling center near you..."
                     className="bg-transparent border-none text-ocean placeholder:text-ocean/20 h-14 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-lg italic shadow-none"
                   />
                   {(isSearching || isGeocodingZip) && (
@@ -407,7 +401,7 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
             className="bg-ocean hover:bg-ocean-light text-cream h-14 px-10 font-bold rounded-[1.5rem] transition-all flex items-center gap-2"
             onClick={handleSearch}
           >
-            Find Rescues
+            Find Centers
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
@@ -416,16 +410,16 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       {/* Quick Filter Chips */}
       <div className="mt-8 flex flex-wrap gap-3">
         {[
-          { key: "dogs", label: "Dogs", icon: PawPrint },
-          { key: "cats", label: "Cats", icon: Heart },
-          { key: "nokill", label: "No-Kill Only", icon: ShieldCheck },
+          { key: "dropoff", label: "Household Drop-off", icon: Recycle },
+          { key: "electronics", label: "Electronics", icon: Trash2 },
+          { key: "verified", label: "Verified Only", icon: ShieldCheck },
         ].map((filter) => (
           <button
             key={filter.key}
-            onClick={() => toggleFilter(filter.key as any)}
+            onClick={() => toggleFilter(filter.key as FilterKey)}
             className={cn(
               "px-5 py-2.5 rounded-full font-label text-[10px] uppercase tracking-[0.2em] font-black transition-all border flex items-center gap-2",
-              selectedFilters.has(filter.key as any)
+              selectedFilters.has(filter.key as FilterKey)
                 ? "bg-terracotta border-terracotta text-cream shadow-lg shadow-terracotta/20"
                 : "bg-white/50 border-ocean/10 text-ocean/60 hover:border-terracotta/30 hover:text-terracotta"
             )}
@@ -437,8 +431,8 @@ export function HeroSearch({ states, totalFacilities }: HeroSearchProps) {
       </div>
 
       <p className="mt-6 text-[11px] text-ocean/40 font-medium italic">
-        * Our high-performance search engine features intelligent filters for pet types, rescue size, and verification status.
-        <Link href="/directory" className="text-terracotta hover:underline ml-1">Browse all shelters</Link>
+        * Search by city, state, or ZIP code to find recycling centers near you.
+        <Link href="/directory" className="text-terracotta hover:underline ml-1">Browse all locations</Link>
       </p>
     </div>
   );

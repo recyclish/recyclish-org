@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { Link } from "wouter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Badge } from "@/components/ui/badge";
 import { MapPin, ChevronRight, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRecyclingData } from "@/hooks/useRecyclingData";
@@ -70,7 +69,6 @@ export default function StatesIndex() {
     const counts: Record<string, number> = {};
     facilities.forEach((f) => {
       const state = f.State;
-      // Try to match by name or abbreviation
       const stateInfo = STATES.find(
         (s) => s.name === state || s.abbreviation === state
       );
@@ -93,16 +91,16 @@ export default function StatesIndex() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Animal Rescues by State",
-    "description": "Find verified animal rescues and shelters across all 50 US states. Digital atlas of the US animal welfare community.",
+    "name": "Recycling Centers by State",
+    "description": "Find verified recycling centers, drop-off locations, and take-back programs across all 50 US states.",
     "numberOfItems": STATES.length,
     "itemListElement": sortedStates.map((state, index) => ({
       "@type": "ListItem",
       "position": index + 1,
       "item": {
         "@type": "WebPage",
-        "name": `Animal Rescues in ${state.name}`,
-        "url": `https://rescues.recyclish.com/state/${state.slug}`
+        "name": `Recycling Centers in ${state.name}`,
+        "url": `https://recyclish.info/state/${state.slug}`
       }
     }))
   };
@@ -110,10 +108,10 @@ export default function StatesIndex() {
   return (
     <>
       <Helmet>
-        <title>Browse Rescues by State | Animal Rescue Directory</title>
+        <title>Recycling Centers by State | National Directory of Recycling</title>
         <meta
           name="description"
-          content="Explore the national atlas of animal rescues. Find verified shelters and no-kill sanctuaries in all 50 US states."
+          content="Browse recycling centers, drop-off locations, and take-back programs by state. Find verified recycling facilities in all 50 US states on Recyclish."
         />
         <script type="application/ld+json">
           {JSON.stringify(structuredData)}
@@ -123,9 +121,8 @@ export default function StatesIndex() {
       <div className="min-h-screen flex flex-col bg-cream font-body selection:bg-terracotta/20 selection:text-terracotta">
         <Header />
 
-        {/* Hero Section - Ocean Palette */}
+        {/* Hero Section */}
         <section className="bg-ocean text-cream py-20 md:py-32 px-6 relative overflow-hidden">
-          {/* Brand Watermark */}
           <div className="absolute top-1/2 right-0 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none hidden lg:block">
             <span className="text-[25vw] font-display font-black leading-none tracking-tighter uppercase italic whitespace-nowrap">The Atlas</span>
           </div>
@@ -142,11 +139,11 @@ export default function StatesIndex() {
                 <span className="text-[10px] font-label uppercase tracking-[0.4em] font-black text-cream/40">National Census</span>
               </div>
               <h1 className="font-display text-5xl md:text-8xl font-bold mb-8 leading-[1.05] tracking-tight">
-                Rescues & Shelters <br />
+                Recycling Centers <br />
                 <span className="text-terracotta italic underline decoration-terracotta/30 underline-offset-[12px]">by State.</span>
               </h1>
               <p className="text-xl md:text-2xl text-cream/70 font-medium leading-relaxed max-w-2xl">
-                Our verified directory spans all 50 states, tracking 8,500+ animal welfare organizations in the most accurate census ever built.
+                Our verified directory spans all 50 states, covering thousands of recycling facilities in the most comprehensive census ever built.
               </p>
             </motion.div>
           </div>
@@ -187,7 +184,7 @@ export default function StatesIndex() {
                             </h2>
                             <div className="flex items-center gap-2 text-ocean/40 font-bold text-[10px] font-label uppercase tracking-widest">
                               <Building2 className="h-3 w-3" />
-                              <span>{count} Logged Rescues</span>
+                              <span>{count} Recycling {count === 1 ? "Facility" : "Facilities"}</span>
                             </div>
                           </div>
 
@@ -211,14 +208,14 @@ export default function StatesIndex() {
 
             <div className="max-w-4xl">
               <h2 className="font-display text-4xl md:text-5xl font-bold mb-10 leading-tight">
-                Building the <span className="text-terracotta italic">National Census</span> <br />of US Animal Welfare.
+                Building the <span className="text-terracotta italic">National Census</span> <br />of US Recycling.
               </h2>
               <div className="grid md:grid-cols-2 gap-12 text-cream/60 font-medium text-lg leading-relaxed">
                 <p>
-                  The National Atlas is more than just a list of addresses. It is a living, synchronized database that tracks the heartbeat of animal rescues in every corner of America. From the smallest sanctuaries in rural Alaska to the massive municipal shelters of New York City, our mission is universal visibility.
+                  The National Directory of Recycling is more than just a list of addresses. It is a living, synchronized database that tracks recycling infrastructure in every corner of America — from small community drop-off centers in rural Alaska to large-scale materials recovery facilities in New York City.
                 </p>
                 <p>
-                  By categorizing facilities by state and city, we enable local communities to find the organizations that need their support most. Mobi, our synchronization engine, ensures that every facility listed is verified, active, and meeting the Recyclish standard of community excellence.
+                  By organizing facilities by state and city, we help local communities find the recycling options closest to them. Mobi, our synchronization engine, ensures that every facility listed is verified, active, and meeting the Recyclish standard of community excellence.
                 </p>
               </div>
             </div>

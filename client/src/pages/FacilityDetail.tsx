@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -27,7 +27,6 @@ import {
   ExternalLink,
   Heart,
   ArrowLeft,
-  Navigation,
   Clock,
   Recycle,
   ThumbsUp,
@@ -38,9 +37,8 @@ import {
   Banknote,
   Info,
 } from "lucide-react";
-import { RecyclingFacility, generateFacilityId } from "@/components/RecyclingCard";
 import { NearbyFacilities } from "@/components/NearbyFacilities";
-import { SEOHead, generateFacilitySEO } from "@/components/SEOHead";
+import { SEOHead } from "@/components/SEOHead";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 
 const categoryColors: Record<string, string> = {
@@ -58,17 +56,21 @@ const categoryColors: Record<string, string> = {
   "Cardboard Recycling": "bg-[oklch(0.50_0.12_70)] text-white",
   "Metals Recycling": "bg-[oklch(0.45_0.08_240)] text-white",
   "Clothing Recycling": "bg-[oklch(0.55_0.18_340)] text-white",
+  // Mapped from DB shelterType field
+  "shelter": "bg-[oklch(0.45_0.12_200)] text-white",
+  "rescue": "bg-[oklch(0.50_0.15_180)] text-white",
+  "sanctuary": "bg-[oklch(0.55_0.10_80)] text-white",
+  "foster_network": "bg-[oklch(0.50_0.12_70)] text-white",
+  "community_resource": "bg-[oklch(0.55_0.20_25)] text-white",
 };
 
 export default function FacilityDetail() {
   const params = useParams();
   const facilityId = params.id as string;
-  const [facility, setFacility] = useState<RecyclingFacility | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
@@ -80,76 +82,15 @@ export default function FacilityDetail() {
   const [cleanlinessRating, setCleanlinessRating] = useState(0);
   const [convenienceRating, setConvenienceRating] = useState(0);
 
-  // Fetch facility data from CSV
-  useEffect(() => {
-    const loadFacility = async () => {
-      try {
-        const response = await fetch("/data/master_recycling_directory.csv");
-        const text = await response.text();
-        const lines = text.split("\n");
-        const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
-
-        for (let i = 1; i < lines.length; i++) {
-          const values: string[] = [];
-          let current = "";
-          let inQuotes = false;
-
-          for (const char of lines[i]) {
-            if (char === '"') {
-              inQuotes = !inQuotes;
-            } else if (char === "," && !inQuotes) {
-              values.push(current.trim());
-              current = "";
-            } else {
-              current += char;
-            }
-          }
-          values.push(current.trim());
-
-          if (values.length >= headers.length) {
-            const facilityData: Record<string, string> = {};
-            headers.forEach((header, index) => {
-              facilityData[header] = values[index]?.replace(/"/g, "") || "";
-            });
-
-            const currentFacility: RecyclingFacility = {
-              Name: facilityData.Name || "",
-              Address: facilityData.Address || "",
-              State: facilityData.State || "",
-              County: facilityData.County || "",
-              Phone: facilityData.Phone || "",
-              Email: facilityData.Email || "",
-              Website: facilityData.Website || "",
-              Category: facilityData.Category || "",
-              Facility_Type: facilityData.Facility_Type || "",
-              Feedstock: facilityData.Feedstock || "",
-              Latitude: parseFloat(facilityData.Latitude) || 0,
-              Longitude: parseFloat(facilityData.Longitude) || 0,
-              NAICS_Code: facilityData.NAICS_Code || "",
-              Hours: facilityData.Hours || "",
-              Accepts_Dropoff: facilityData.Accepts_Dropoff || "",
-              Fee_Structure: facilityData.Fee_Structure || "",
-              Fee_Details: facilityData.Fee_Details || "",
-              Offers_Payment: facilityData.Offers_Payment || "",
-              Payment_Details: facilityData.Payment_Details || "",
-            };
-
-            const currentId = generateFacilityId(currentFacility.Name, currentFacility.Address);
-            if (currentId === facilityId) {
-              setFacility(currentFacility);
-              break;
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error loading facility:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadFacility();
-  }, [facilityId]);
+  // ─── Fetch facility from tRPC backend ───────────────────────────────────────
+  const {
+    data: facility,
+    isLoading,
+    error: facilityError,
+  } = trpc.directory.getById.useQuery(
+    { id: facilityId },
+    { enabled: !!facilityId, retry: false }
+  );
 
   // Fetch reviews and stats
   const { data: reviews, refetch: refetchReviews } = trpc.reviews.list.useQuery(
@@ -236,8 +177,8 @@ export default function FacilityDetail() {
 
     submitReview.mutate({
       facilityId,
-      facilityName: facility.Name,
-      facilityAddress: facility.Address,
+      facilityName: facility.name,
+      facilityAddress: `${facility.addressLine1}, ${facility.city}, ${facility.state}`,
       rating,
       title: title || undefined,
       content: content || undefined,
@@ -262,41 +203,41 @@ export default function FacilityDetail() {
     }
     if (!facility) return;
 
+    const fullAddress = `${facility.addressLine1}, ${facility.city}, ${facility.state} ${facility.zip}`;
+
     if (isFavorite) {
       removeFavorite.mutate({ facilityId });
     } else {
       addFavorite.mutate({
         facilityId,
-        facilityName: facility.Name,
-        facilityAddress: facility.Address,
-        facilityCategory: facility.Category || undefined,
-        facilityPhone: facility.Phone || undefined,
-        facilityWebsite: facility.Website || undefined,
-        facilityFeedstock: facility.Feedstock || undefined,
-        facilityLatitude: facility.Latitude?.toString() || undefined,
-        facilityLongitude: facility.Longitude?.toString() || undefined,
+        facilityName: facility.name,
+        facilityAddress: fullAddress,
+        facilityCategory: facility.shelterType || undefined,
+        facilityPhone: facility.phone || undefined,
+        facilityWebsite: facility.website || undefined,
+        facilityFeedstock: facility.speciesServed?.join(", ") || undefined,
+        facilityLatitude: facility.latitude?.toString() || undefined,
+        facilityLongitude: facility.longitude?.toString() || undefined,
       });
     }
   };
 
   const handleMapReady = (map: google.maps.Map) => {
     mapRef.current = map;
-    if (facility && facility.Latitude && facility.Longitude) {
-      const position = { lat: facility.Latitude, lng: facility.Longitude };
+    if (facility && facility.latitude && facility.longitude) {
+      const position = { lat: facility.latitude, lng: facility.longitude };
       map.setCenter(position);
-      
-      // Add marker
       markerRef.current = new google.maps.marker.AdvancedMarkerElement({
         map,
         position,
-        title: facility.Name,
+        title: facility.name,
       });
     }
   };
 
   const openMaps = () => {
     if (!facility) return;
-    const query = encodeURIComponent(facility.Address);
+    const query = encodeURIComponent(`${facility.addressLine1}, ${facility.city}, ${facility.state} ${facility.zip}`);
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
   };
 
@@ -306,9 +247,12 @@ export default function FacilityDetail() {
       .replace("Secondary ", "Secondary ")
       .replace("Recyclers", "Recycling")
       .replace("(MRFs)", "")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, l => l.toUpperCase())
       .trim();
   };
 
+  // ─── Loading state ───────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-topo-pattern">
@@ -323,7 +267,8 @@ export default function FacilityDetail() {
     );
   }
 
-  if (!facility) {
+  // ─── Not found state ─────────────────────────────────────────────────────────
+  if (!facility || facilityError) {
     return (
       <div className="min-h-screen flex flex-col bg-topo-pattern">
         <Header />
@@ -334,7 +279,7 @@ export default function FacilityDetail() {
             <p className="text-muted-foreground mb-6">
               The recycling facility you're looking for doesn't exist or has been removed.
             </p>
-            <Link href="/">
+            <Link href="/directory">
               <Button>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Directory
@@ -347,50 +292,51 @@ export default function FacilityDetail() {
     );
   }
 
-  const categoryColor = categoryColors[facility.Category] || "bg-primary text-primary-foreground";
+  // ─── Derived display values ──────────────────────────────────────────────────
+  const fullAddress = `${facility.addressLine1}${facility.addressLine2 ? `, ${facility.addressLine2}` : ""}, ${facility.city}, ${facility.state} ${facility.zip}`;
+  const displayCategory = facility.shelterType || "Recycling Facility";
+  const categoryColor = categoryColors[displayCategory] || "bg-primary text-primary-foreground";
 
-  // Extract city from address (usually format: "123 Main St, City, State ZIP")
-  const addressParts = facility.Address.split(",").map(p => p.trim());
-  const city = addressParts.length >= 2 ? addressParts[addressParts.length - 2] : "";
-  
-  // Generate SEO data
-  const seoData = generateFacilitySEO({
-    name: facility.Name,
-    category: facility.Category,
-    address: facility.Address,
-    city: city,
-    state: facility.State,
-    phone: facility.Phone,
-    website: facility.Website,
-    latitude: facility.Latitude,
-    longitude: facility.Longitude,
-    materials: facility.Feedstock ? facility.Feedstock.split(",").map(m => m.trim()) : undefined,
-  });
+  const materials = facility.speciesServed && facility.speciesServed.length > 0
+    ? facility.speciesServed
+    : facility.services && facility.services.length > 0
+    ? facility.services
+    : [];
+
+  const hoursDisplay = typeof facility.hoursOfOperation === "string"
+    ? facility.hoursOfOperation
+    : facility.hoursOfOperation
+    ? JSON.stringify(facility.hoursOfOperation)
+    : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-topo-pattern">
       <SEOHead
-        title={seoData.title}
-        description={seoData.description}
+        title={`${facility.name} | Recycling Center | ${facility.city}, ${facility.state}`}
+        description={`Find recycling information for ${facility.name} in ${facility.city}, ${facility.state}. View hours, materials accepted, contact info, and directions.`}
         ogType="place"
-        canonicalUrl={`https://recycling.recyclish.com/facility/${facilityId}`}
-        businessName={seoData.businessName}
-        category={seoData.category}
-        phone={seoData.phone}
-        website={seoData.website}
-        coordinates={seoData.coordinates}
+        canonicalUrl={`https://recyclish.info/facility/${facilityId}`}
+        businessName={facility.name}
+        category={displayCategory}
+        phone={facility.phone || undefined}
+        website={facility.website || undefined}
+        coordinates={
+          facility.latitude && facility.longitude
+            ? { lat: facility.latitude, lng: facility.longitude }
+            : undefined
+        }
         address={{
-          street: addressParts[0] || facility.Address,
-          city: city,
-          state: facility.State,
+          street: facility.addressLine1,
+          city: facility.city,
+          state: facility.state,
         }}
       />
       <Header />
-      
+
       <main className="flex-1">
         {/* Breadcrumb */}
         <div className="container py-4">
-          <Link href="/">
+          <Link href="/directory">
             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Directory
@@ -413,16 +359,16 @@ export default function FacilityDetail() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-2">
                         <Badge className={`${categoryColor} w-fit text-xs font-label`}>
-                          {formatCategory(facility.Category)}
+                          {formatCategory(displayCategory)}
                         </Badge>
                         <CardTitle className="text-2xl md:text-3xl font-display">
-                          {facility.Name}
+                          {facility.name}
                         </CardTitle>
                         {stats && stats.totalReviews > 0 && (
                           <div className="flex items-center gap-2">
                             <StarRating rating={stats.avgRating ?? 0} size="sm" />
                             <span className="text-sm text-muted-foreground">
-                              {stats.avgRating?.toFixed(1)} ({stats.totalReviews} review{stats.totalReviews !== 1 ? 's' : ''})
+                              {stats.avgRating?.toFixed(1)} ({stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""})
                             </span>
                           </div>
                         )}
@@ -430,24 +376,44 @@ export default function FacilityDetail() {
                       <div className="flex items-center gap-1 shrink-0">
                         <ReportIssueButton
                           facilityId={facilityId}
-                          facilityName={facility.Name}
-                          facilityAddress={facility.Address}
+                          facilityName={facility.name}
+                          facilityAddress={fullAddress}
                         />
-                        <PrintButton facility={facility} />
+                        <PrintButton facility={{
+                          Name: facility.name,
+                          Address: fullAddress,
+                          State: facility.state,
+                          County: "",
+                          Phone: facility.phone || "",
+                          Email: facility.email || "",
+                          Website: facility.website || "",
+                          Category: displayCategory,
+                          Facility_Type: "",
+                          Feedstock: materials.join(", "),
+                          Latitude: facility.latitude || 0,
+                          Longitude: facility.longitude || 0,
+                          NAICS_Code: "",
+                          Hours: hoursDisplay || "",
+                          Accepts_Dropoff: "",
+                          Fee_Structure: "",
+                          Fee_Details: "",
+                          Offers_Payment: "",
+                          Payment_Details: "",
+                        }} />
                         <ShareButton
-                          facilityName={facility.Name}
-                          facilityAddress={facility.Address}
-                          facilityCategory={formatCategory(facility.Category)}
+                          facilityName={facility.name}
+                          facilityAddress={fullAddress}
+                          facilityCategory={formatCategory(displayCategory)}
                         />
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'}`}
+                          className={`${isFavorite ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
                           onClick={handleFavoriteClick}
                           disabled={addFavorite.isPending || removeFavorite.isPending}
                           title={isFavorite ? "Remove from favorites" : "Add to favorites"}
                         >
-                          <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                          <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
                         </Button>
                       </div>
                     </div>
@@ -457,44 +423,33 @@ export default function FacilityDetail() {
                     <div className="flex items-start gap-3">
                       <MapPin className="h-5 w-5 mt-0.5 shrink-0 text-primary" />
                       <div>
-                        <p className="font-medium">{facility.Address}</p>
-                        {facility.County && (
-                          <p className="text-sm text-muted-foreground">{facility.County} County</p>
-                        )}
+                        <p className="font-medium">{fullAddress}</p>
                       </div>
                     </div>
 
                     {/* Contact Info */}
                     <div className="grid sm:grid-cols-2 gap-4">
-                      {facility.Phone && (
+                      {facility.phone && (
                         <div className="flex items-center gap-3">
                           <Phone className="h-5 w-5 shrink-0 text-accent" />
-                          <a
-                            href={`tel:${facility.Phone}`}
-                            className="hover:text-primary transition-colors"
-                          >
-                            {facility.Phone}
+                          <a href={`tel:${facility.phone}`} className="hover:text-primary transition-colors">
+                            {facility.phone}
                           </a>
                         </div>
                       )}
-
-                      {facility.Email && (
+                      {facility.email && (
                         <div className="flex items-center gap-3">
                           <Mail className="h-5 w-5 shrink-0 text-accent" />
-                          <a
-                            href={`mailto:${facility.Email}`}
-                            className="hover:text-primary transition-colors truncate"
-                          >
-                            {facility.Email}
+                          <a href={`mailto:${facility.email}`} className="hover:text-primary transition-colors truncate">
+                            {facility.email}
                           </a>
                         </div>
                       )}
-
-                      {facility.Website && (
+                      {facility.website && (
                         <div className="flex items-center gap-3">
                           <Globe className="h-5 w-5 shrink-0 text-accent" />
                           <a
-                            href={facility.Website.startsWith('http') ? facility.Website : `https://${facility.Website}`}
+                            href={facility.website.startsWith("http") ? facility.website : `https://${facility.website}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="hover:text-primary transition-colors flex items-center gap-1"
@@ -507,323 +462,225 @@ export default function FacilityDetail() {
                     </div>
 
                     {/* Operating Hours */}
-                    {facility.Hours && (
+                    {hoursDisplay && (
                       <div className="pt-4 border-t">
                         <div className="flex items-start gap-3">
                           <Clock className="h-5 w-5 mt-0.5 shrink-0 text-accent" />
                           <div>
                             <p className="font-medium mb-1">Operating Hours</p>
-                            <p className="text-sm text-muted-foreground">{facility.Hours}</p>
+                            <p className="text-sm text-muted-foreground">{hoursDisplay}</p>
                           </div>
                         </div>
                       </div>
                     )}
 
                     {/* Materials Accepted */}
-                    {facility.Feedstock && (
+                    {materials.length > 0 && (
                       <div className="pt-4 border-t">
                         <div className="flex items-start gap-3">
                           <Recycle className="h-5 w-5 mt-0.5 shrink-0 text-primary" />
                           <div>
-                            <p className="font-medium mb-1">Materials Accepted</p>
-                            <p className="text-sm text-muted-foreground">{facility.Feedstock}</p>
+                            <p className="font-medium mb-2">Materials Accepted</p>
+                            <div className="flex flex-wrap gap-2">
+                              {materials.map((material, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">
+                                  {material}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Drop-off, Fees & Payment Info */}
-                    {(facility.Accepts_Dropoff || facility.Fee_Structure || facility.Offers_Payment === 'Yes') && (
+                    {/* Verified Badge */}
+                    {facility.verified && (
                       <div className="pt-4 border-t">
-                        <div className="flex items-start gap-3">
-                          <Info className="h-5 w-5 mt-0.5 shrink-0 text-accent" />
-                          <div className="space-y-3 flex-1">
-                            <p className="font-medium">Service Information</p>
-                            
-                            {/* Drop-off Acceptance */}
-                            {facility.Accepts_Dropoff && (
-                              <div className="flex items-start gap-2">
-                                <DoorOpen className={`h-4 w-4 mt-0.5 shrink-0 ${
-                                  facility.Accepts_Dropoff === 'Yes' ? 'text-green-600' : 
-                                  facility.Accepts_Dropoff === 'No' ? 'text-red-600' : 'text-amber-600'
-                                }`} />
-                                <div>
-                                  <span className="text-sm font-medium">Customer Drop-off: </span>
-                                  <span className={`text-sm ${
-                                    facility.Accepts_Dropoff === 'Yes' ? 'text-green-600' : 
-                                    facility.Accepts_Dropoff === 'No' ? 'text-red-600' : 'text-amber-600'
-                                  }`}>
-                                    {facility.Accepts_Dropoff === 'Yes' ? 'Yes, walk-ins welcome' : 
-                                     facility.Accepts_Dropoff === 'No' ? 'Not available' : 'By appointment only'}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Fee Structure */}
-                            {facility.Fee_Structure && facility.Fee_Structure !== 'N/A' && (
-                              <div className="flex items-start gap-2">
-                                <DollarSign className={`h-4 w-4 mt-0.5 shrink-0 ${
-                                  facility.Fee_Structure === 'Free' ? 'text-green-600' : 
-                                  facility.Fee_Structure === 'Fee' ? 'text-orange-600' : 'text-blue-600'
-                                }`} />
-                                <div>
-                                  <span className="text-sm font-medium">Fees: </span>
-                                  <span className={`text-sm ${
-                                    facility.Fee_Structure === 'Free' ? 'text-green-600' : 
-                                    facility.Fee_Structure === 'Fee' ? 'text-orange-600' : 'text-blue-600'
-                                  }`}>
-                                    {facility.Fee_Structure}
-                                  </span>
-                                  {facility.Fee_Details && (
-                                    <p className="text-sm text-muted-foreground mt-0.5">{facility.Fee_Details}</p>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Payment Offered */}
-                            {facility.Offers_Payment === 'Yes' && (
-                              <div className="flex items-start gap-2">
-                                <Banknote className="h-4 w-4 mt-0.5 shrink-0 text-emerald-600" />
-                                <div>
-                                  <span className="text-sm font-medium text-emerald-600">This facility pays for materials!</span>
-                                  {facility.Payment_Details && (
-                                    <p className="text-sm text-muted-foreground mt-0.5">{facility.Payment_Details}</p>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                        <div className="flex items-center gap-3">
+                          <Info className="h-5 w-5 shrink-0 text-green-600" />
+                          <p className="text-sm font-medium text-green-700">
+                            Mobi Verified — This facility has been reviewed and confirmed by the Recyclish team.
+                          </p>
                         </div>
                       </div>
                     )}
 
-                    {/* Get Directions Button */}
-                    <Button onClick={openMaps} className="w-full sm:w-auto mt-4">
-                      <Navigation className="h-4 w-4 mr-2" />
-                      Get Directions
-                    </Button>
-
-                    {/* Social Share Buttons */}
-                    <div className="pt-4 border-t mt-4">
-                      <SocialShareButtons
-                        url={`https://recycling.recyclish.com/facility/${facilityId}`}
-                        title={`${facility.Name} - ${formatCategory(facility.Category)} | National Recycling Directory`}
-                        description={`Find ${facility.Name} at ${facility.Address}. ${facility.Feedstock ? `Accepts: ${facility.Feedstock}.` : ''} Search 2,000+ recycling centers across all 50 US states.`}
-                      />
+                    {/* Get Directions */}
+                    <div className="pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={openMaps}
+                        className="flex items-center gap-2"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        Get Directions
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
 
+              {/* Map */}
+              {facility.latitude && facility.longitude && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                  <Card>
+                    <CardContent className="p-0 overflow-hidden rounded-lg">
+                      <div className="h-64">
+                        <MapView
+                          facilities={[{
+                            Name: facility.name,
+                            Address: fullAddress,
+                            State: facility.state,
+                            County: "",
+                            Phone: facility.phone || "",
+                            Email: facility.email || "",
+                            Website: facility.website || "",
+                            Category: displayCategory,
+                            Facility_Type: "",
+                            Feedstock: materials.join(", "),
+                            Latitude: facility.latitude,
+                            Longitude: facility.longitude,
+                            NAICS_Code: "",
+                            Hours: hoursDisplay || "",
+                            Accepts_Dropoff: "",
+                            Fee_Structure: "",
+                            Fee_Details: "",
+                            Offers_Payment: "",
+                            Payment_Details: "",
+                          }]}
+                          center={{ lat: facility.latitude, lng: facility.longitude }}
+                          zoom={15}
+                          onMapReady={handleMapReady}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
               {/* Reviews Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
               >
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-display">Reviews</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="font-display">
+                        Reviews {stats && stats.totalReviews > 0 && `(${stats.totalReviews})`}
+                      </CardTitle>
+                      {isAuthenticated && !hasReviewedData?.hasReviewed && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowReviewForm(!showReviewForm)}
+                        >
+                          {showReviewForm ? "Cancel" : "Write a Review"}
+                        </Button>
+                      )}
+                      {!isAuthenticated && (
+                        <a href={getLoginUrl()}>
+                          <Button variant="outline" size="sm">
+                            Log in to Review
+                          </Button>
+                        </a>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Rating Summary */}
-                    <RatingBreakdown
-                      avgRating={stats?.avgRating ?? null}
-                      totalReviews={stats?.totalReviews ?? 0}
-                      avgService={stats?.avgService}
-                      avgCleanliness={stats?.avgCleanliness}
-                      avgConvenience={stats?.avgConvenience}
-                    />
+                    {/* Rating Breakdown */}
+                    {stats && stats.totalReviews > 0 && (
+                      <RatingBreakdown stats={stats} />
+                    )}
 
-                    {/* Write Review Button or Form */}
-                    {!showReviewForm ? (
-                      <div className="pt-4 border-t">
-                        {!isAuthenticated ? (
-                          <div className="text-center py-4">
-                            <p className="text-sm text-muted-foreground mb-2">
-                              Log in to write a review
-                            </p>
-                            <Button
-                              variant="outline"
-                              onClick={() => window.location.href = getLoginUrl()}
-                            >
-                              Log In
-                            </Button>
-                          </div>
-                        ) : hasReviewedData?.hasReviewed ? (
-                          <p className="text-sm text-muted-foreground text-center py-2">
-                            You have already reviewed this facility
-                          </p>
-                        ) : (
-                          <Button onClick={() => setShowReviewForm(true)} className="w-full">
-                            Write a Review
-                          </Button>
-                        )}
-                      </div>
-                    ) : (
-                      <form onSubmit={handleSubmitReview} className="space-y-4 pt-4 border-t">
-                        <div className="space-y-2">
-                          <Label>Overall Rating *</Label>
-                          <StarRating
-                            rating={rating}
-                            size="lg"
-                            interactive
-                            onChange={setRating}
-                          />
+                    {/* Review Form */}
+                    {showReviewForm && (
+                      <form onSubmit={handleSubmitReview} className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+                        <div>
+                          <Label className="text-sm font-medium mb-2 block">Overall Rating *</Label>
+                          <StarRating rating={rating} interactive onRatingChange={setRating} size="lg" />
                         </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="review-title">Title (optional)</Label>
+                        <div className="grid sm:grid-cols-3 gap-4">
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1 block">Service</Label>
+                            <StarRating rating={serviceRating} interactive onRatingChange={setServiceRating} size="sm" />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1 block">Cleanliness</Label>
+                            <StarRating rating={cleanlinessRating} interactive onRatingChange={setCleanlinessRating} size="sm" />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1 block">Convenience</Label>
+                            <StarRating rating={convenienceRating} interactive onRatingChange={setConvenienceRating} size="sm" />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="review-title" className="text-sm font-medium mb-1 block">Title</Label>
                           <Input
                             id="review-title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Summarize your experience"
-                            maxLength={255}
+                            placeholder="Summary of your experience"
                           />
                         </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="review-content">Your Review (optional)</Label>
+                        <div>
+                          <Label htmlFor="review-content" className="text-sm font-medium mb-1 block">Review</Label>
                           <Textarea
                             id="review-content"
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="Share your experience with this facility..."
+                            placeholder="Share your experience at this facility..."
                             rows={4}
-                            maxLength={2000}
                           />
                         </div>
-
-                        <div className="space-y-3 pt-2 border-t">
-                          <Label className="text-sm text-muted-foreground">
-                            Detailed Ratings (optional)
-                          </Label>
-                          
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="space-y-1">
-                              <span className="text-xs text-muted-foreground">Service</span>
-                              <StarRating
-                                rating={serviceRating}
-                                size="sm"
-                                interactive
-                                onChange={setServiceRating}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-xs text-muted-foreground">Cleanliness</span>
-                              <StarRating
-                                rating={cleanlinessRating}
-                                size="sm"
-                                interactive
-                                onChange={setCleanlinessRating}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-xs text-muted-foreground">Convenience</span>
-                              <StarRating
-                                rating={convenienceRating}
-                                size="sm"
-                                interactive
-                                onChange={setConvenienceRating}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 pt-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setShowReviewForm(false);
-                              resetForm();
-                            }}
-                            className="flex-1"
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            type="submit"
-                            disabled={submitReview.isPending || rating === 0}
-                            className="flex-1"
-                          >
-                            {submitReview.isPending ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Submitting...
-                              </>
-                            ) : (
-                              "Submit Review"
-                            )}
-                          </Button>
-                        </div>
+                        <Button type="submit" disabled={submitReview.isPending}>
+                          {submitReview.isPending ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</>
+                          ) : "Submit Review"}
+                        </Button>
                       </form>
                     )}
 
-                    {/* Reviews List */}
-                    {!showReviewForm && reviews && reviews.length > 0 && (
-                      <div className="space-y-4 pt-4 border-t">
-                        <h4 className="font-semibold">All Reviews ({reviews.length})</h4>
+                    {/* Review List */}
+                    {reviews && reviews.length > 0 ? (
+                      <div className="space-y-4">
                         {reviews.map((review) => (
-                          <div
-                            key={review.id}
-                            className="border rounded-lg p-4 space-y-3"
-                          >
-                            <div className="flex items-start justify-between">
+                          <div key={review.id} className="p-4 border rounded-lg space-y-2">
+                            <div className="flex items-start justify-between gap-2">
                               <div>
-                                <div className="flex items-center gap-2 flex-wrap">
+                                <div className="flex items-center gap-2">
                                   <StarRating rating={review.rating} size="sm" />
-                                  {review.title && (
-                                    <span className="font-medium">{review.title}</span>
-                                  )}
+                                  {review.title && <span className="font-medium text-sm">{review.title}</span>}
                                 </div>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {review.userName || "Anonymous"} •{" "}
-                                  {format(new Date(review.createdAt), "MMMM d, yyyy")}
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {review.userName} · {format(new Date(review.createdAt), "MMM d, yyyy")}
                                 </p>
                               </div>
                             </div>
-
                             {review.content && (
-                              <p className="text-foreground/90">{review.content}</p>
+                              <p className="text-sm text-muted-foreground">{review.content}</p>
                             )}
-
-                            {(review.serviceRating || review.cleanlinessRating || review.convenienceRating) && (
-                              <div className="flex gap-4 text-sm text-muted-foreground">
-                                {review.serviceRating && (
-                                  <span>Service: {review.serviceRating}/5</span>
-                                )}
-                                {review.cleanlinessRating && (
-                                  <span>Cleanliness: {review.cleanlinessRating}/5</span>
-                                )}
-                                {review.convenienceRating && (
-                                  <span>Convenience: {review.convenienceRating}/5</span>
-                                )}
-                              </div>
-                            )}
-
-                            <div className="flex items-center gap-2 pt-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 text-sm"
-                                onClick={() => handleMarkHelpful(review.id)}
-                                disabled={helpfulVotes?.includes(review.id)}
-                              >
-                                <ThumbsUp className="h-4 w-4 mr-1" />
-                                Helpful ({review.helpfulCount})
-                              </Button>
-                            </div>
+                            <button
+                              onClick={() => handleMarkHelpful(review.id)}
+                              className={`flex items-center gap-1.5 text-xs transition-colors ${
+                                helpfulVotes?.includes(review.id)
+                                  ? "text-primary font-medium"
+                                  : "text-muted-foreground hover:text-primary"
+                              }`}
+                            >
+                              <ThumbsUp className="h-3.5 w-3.5" />
+                              Helpful {review.helpfulCount > 0 && `(${review.helpfulCount})`}
+                            </button>
                           </div>
                         ))}
                       </div>
-                    )}
-
-                    {!showReviewForm && reviews && reviews.length === 0 && (
-                      <p className="text-muted-foreground text-center py-6 border-t">
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
                         No reviews yet. Be the first to share your experience!
                       </p>
                     )}
@@ -832,84 +689,33 @@ export default function FacilityDetail() {
               </motion.div>
             </div>
 
-            {/* Sidebar - Mini Map */}
-            <div className="lg:col-span-1">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                className="sticky top-4"
-              >
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-display">Location</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {facility.Latitude && facility.Longitude ? (
-                      <MapView
-                        className="h-[300px] rounded-b-lg"
-                        initialCenter={{ lat: facility.Latitude, lng: facility.Longitude }}
-                        initialZoom={15}
-                        onMapReady={handleMapReady}
-                      />
-                    ) : (
-                      <div className="h-[300px] bg-muted flex items-center justify-center rounded-b-lg">
-                        <p className="text-muted-foreground text-sm">
-                          Location coordinates not available
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Share */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base font-display">Share This Location</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SocialShareButtons
+                    url={`https://recyclish.info/facility/${facilityId}`}
+                    title={`${facility.name} — Recycling Center`}
+                    description={`Find recycling info for ${facility.name} in ${facility.city}, ${facility.state} on Recyclish.`}
+                  />
+                </CardContent>
+              </Card>
 
-                {/* Quick Actions */}
-                <Card className="mt-4">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-display">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button onClick={openMaps} variant="outline" className="w-full justify-start">
-                      <Navigation className="h-4 w-4 mr-2" />
-                      Get Directions
-                    </Button>
-                    {facility.Phone && (
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => window.location.href = `tel:${facility.Phone}`}
-                      >
-                        <Phone className="h-4 w-4 mr-2" />
-                        Call Now
-                      </Button>
-                    )}
-                    {facility.Website && (
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => window.open(
-                          facility.Website.startsWith('http') ? facility.Website : `https://${facility.Website}`,
-                          '_blank'
-                        )}
-                      >
-                        <Globe className="h-4 w-4 mr-2" />
-                        Visit Website
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
+              {/* Nearby Facilities */}
+              {facility.latitude && facility.longitude && (
+                <NearbyFacilities
+                  currentFacilityId={facilityId}
+                  latitude={facility.latitude}
+                  longitude={facility.longitude}
+                  state={facility.state}
+                />
+              )}
             </div>
           </div>
-
-          {/* Nearby Facilities Section */}
-          {facility.Latitude && facility.Longitude && (
-            <NearbyFacilities
-              currentFacilityId={facilityId}
-              latitude={facility.Latitude}
-              longitude={facility.Longitude}
-              className="mt-8"
-            />
-          )}
         </div>
       </main>
 

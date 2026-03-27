@@ -62,7 +62,7 @@ interface SocialShareButtonsProps {
 }
 
 export function SocialShareButtons({ 
-  url = "https://recycling.recyclish.com",
+  url = "https://recyclish.info",
   title = "National Recycling Directory - Find 2,000+ Recycling Centers Near You",
   description = "Search 2,000+ recycling centers across all 50 US states. Free directory for electronics, plastics, glass, paper, hazardous waste, sharps disposal, and more.",
   className = "",
