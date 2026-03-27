@@ -13,8 +13,9 @@ export const router = t.router;
 export const publicProcedure = t.procedure;
 
 // Fallback hardcoded keys (will be overridden by env if present)
-const FALLBACK_URL = "https://vraafuuipvxfxygkuvau.supabase.co";
-const FALLBACK_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyYWFmdXVpcHZ4Znh5Z2t1dmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1MjY3MTAsImV4cCI6MjA1NjEwMjcxMH0.R_H2p59Njk1Njk2RnN0.dwvK-IA-zHOJRx78bSDbTmYky6l3YOfQgKVasmFLOHg";
+// Points to recyclish-directory project (ejtigzzdeblbwdpodgih)
+const FALLBACK_URL = "https://ejtigzzdeblbwdpodgih.supabase.co";
+const FALLBACK_KEY = ""; // Must be set via SUPABASE_ANON_KEY env var
 
 const getSupabaseConfig = (ctx: EdgeContext) => ({
     url: ctx.env?.SUPABASE_URL || FALLBACK_URL,
@@ -108,6 +109,12 @@ export const edgeRouter = router({
     }),
     auth: router({
         me: publicProcedure.query(() => null),
+        // Login is handled by the Express server (sets an HttpOnly cookie).
+        // This stub exists so the client TypeScript types compile correctly.
+        login: publicProcedure
+            .input(z.object({ email: z.string(), password: z.string() }))
+            .mutation(() => ({ success: false as boolean })),
+        logout: publicProcedure.mutation(() => ({ success: true as boolean })),
     })
 });
 

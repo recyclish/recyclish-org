@@ -6,7 +6,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Loader2, Heart, MapPin, Search, ArrowLeft, Recycle } from "lucide-react";
 import { Link } from "wouter";
-import { getLoginUrl } from "@/const";
 import { motion } from "framer-motion";
 
 export default function Favorites() {
@@ -71,9 +70,11 @@ export default function Favorites() {
             <p className="text-ocean/40 font-medium text-xl mb-12 leading-relaxed">
               Log in to access your saved recycling centers and keep your personal directory up to date.
             </p>
-            <Button asChild className="bg-ocean hover:bg-ocean-light text-cream rounded-2xl px-12 h-16 font-bold text-lg shadow-xl shadow-ocean/20 transition-all">
-              <a href={getLoginUrl()}>Log In to View Saved Centers</a>
-            </Button>
+            <Link href="/admin">
+              <Button className="bg-ocean hover:bg-ocean-light text-cream rounded-2xl px-12 h-16 font-bold text-lg shadow-xl shadow-ocean/20 transition-all">
+                Log In to View Saved Centers
+              </Button>
+            </Link>
           </div>
         </main>
         <Footer />

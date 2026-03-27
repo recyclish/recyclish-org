@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { MessageSquare, ThumbsUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { StarRating, RatingBreakdown } from "@/components/StarRating";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -159,12 +159,11 @@ export function ReviewButton({
                 <p className="text-sm text-muted-foreground mb-2">
                   Log in to write a review
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.href = getLoginUrl()}
-                >
-                  Log In
-                </Button>
+                <Link href="/admin">
+                  <Button variant="outline">
+                    Log In
+                  </Button>
+                </Link>
               </div>
             ) : hasReviewedData?.hasReviewed ? (
               <p className="text-sm text-muted-foreground text-center py-2">

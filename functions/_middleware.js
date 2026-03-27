@@ -17,26 +17,38 @@
 
 const SITE_CONFIG = {
   default: {
-    title: "Animal Rescue Directory | Recyclish",
+    title: "National Recycling Directory | Recyclish",
     description:
-      "Find animal shelters and rescues near you. Every life deserves a second chance.",
-    image: "https://www.recyclish.pet/og-image.jpg",
-    url: "https://www.recyclish.pet",
+      "Find recycling centers, drop-off locations, and e-waste facilities near you. The definitive national recycling directory.",
+    image: "https://www.recyclish.info/og-image.jpg",
+    url: "https://www.recyclish.info",
     siteName: "Recyclish",
     type: "website",
   },
   paths: {
-    "/tags": {
-      title: "Mobi Tags\u2122 | Recyclish",
+    "/directory": {
+      title: "Recycling Center Directory | Recyclish",
       description:
-        "Turn any bag into a recycling tote. Hang it. Carry the mission. Collectible tags that support animal rescue.",
-      image: "https://www.recyclish.pet/og-tags.png",
+        "Search thousands of recycling centers, drop-off locations, and hazardous waste facilities across the United States.",
+      image: "https://www.recyclish.info/og-directory.jpg",
     },
-    "/mobi": {
-      title: "Meet Mobi | Recyclish",
+    "/map": {
+      title: "Recycling Map | Recyclish",
       description:
-        "Mobi believes every life deserves a second chance. Explore rescue stories, recycling tips, and the Mobi collection.",
-      image: "https://www.recyclish.pet/og-mobi.jpg",
+        "Interactive map of recycling centers and drop-off locations near you. Find where to recycle anything.",
+      image: "https://www.recyclish.info/og-map.jpg",
+    },
+    "/submit": {
+      title: "Add a Recycling Location | Recyclish",
+      description:
+        "Help grow the national recycling directory by submitting a recycling center, drop-off location, or e-waste facility.",
+      image: "https://www.recyclish.info/og-image.jpg",
+    },
+    "/blog": {
+      title: "Recycling Tips & Guides | Recyclish Blog",
+      description:
+        "Practical recycling guides, e-waste disposal tips, composting advice, and sustainability resources.",
+      image: "https://www.recyclish.info/og-blog.jpg",
     },
   },
 };

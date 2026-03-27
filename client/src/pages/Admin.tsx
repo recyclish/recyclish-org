@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
-import { getLoginUrl } from "@/const";
 import { StarRating } from "@/components/StarRating";
 import { Input } from "@/components/ui/input";
 import {
@@ -89,8 +88,20 @@ function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
 }
 
 export default function Admin() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refresh: refreshAuth } = useAuth();
   const [adminView, setAdminView] = useState<AdminView>("submissions");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: () => {
+      setLoginError("");
+      refreshAuth();
+    },
+    onError: (err) => {
+      setLoginError(err.message || "Invalid email or password");
+    },
+  });
   const [activeTab, setActiveTab] = useState<SubmissionStatus | "all">("pending");
   const [reportTab, setReportTab] = useState<ReportStatus | "all">("pending");
   const [reviewTab, setReviewTab] = useState<ReviewStatus | "all">("pending");
@@ -372,22 +383,58 @@ export default function Admin() {
     );
   }
 
-  // Not logged in
+  // Not logged in — show inline login form
   if (!user) {
+    const handleLogin = (e: React.FormEvent) => {
+      e.preventDefault();
+      loginMutation.mutate({ email: loginEmail, password: loginPassword });
+    };
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="text-center">
-            <CardTitle>Admin Access Required</CardTitle>
-            <CardDescription>Please sign in to access the admin dashboard</CardDescription>
+            <CardTitle>Admin Login</CardTitle>
+            <CardDescription>Sign in to access the Recyclish admin dashboard</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button
-              className="w-full"
-              onClick={() => window.location.href = getLoginUrl()}
-            >
-              Sign In
-            </Button>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">Email</Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  placeholder="admin@example.com"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin-password">Password</Label>
+                <Input
+                  id="admin-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
+              {loginError && (
+                <p className="text-sm text-destructive">{loginError}</p>
+              )}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Signing in...</>
+                ) : "Sign In"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

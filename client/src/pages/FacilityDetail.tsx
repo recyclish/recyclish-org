@@ -15,7 +15,6 @@ import { PrintButton } from "@/components/PrintButton";
 import { MapView } from "@/components/Map";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -625,11 +624,11 @@ export default function FacilityDetail() {
                         </Button>
                       )}
                       {!isAuthenticated && (
-                        <a href={getLoginUrl()}>
+                        <Link href="/admin">
                           <Button variant="outline" size="sm">
                             Log in to Review
                           </Button>
-                        </a>
+                        </Link>
                       )}
                     </div>
                   </CardHeader>
