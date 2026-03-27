@@ -4,6 +4,10 @@ import superjson from "superjson";
 
 export interface EdgeContext {
     env?: Record<string, string>;
+    // The raw Request object is needed so we can read cookies
+    req?: Request;
+    // A way to set response headers (cookies) from mutations
+    resHeaders?: Headers;
 }
 
 const t = initTRPC.context<EdgeContext>().create({
@@ -21,6 +25,79 @@ const getSupabaseConfig = (ctx: EdgeContext) => ({
     url: ctx.env?.SUPABASE_URL || FALLBACK_URL,
     key: ctx.env?.SUPABASE_ANON_KEY || FALLBACK_KEY,
 });
+
+// ---------------------------------------------------------------------------
+// Auth helpers (Web Crypto API — available in Cloudflare Workers)
+// ---------------------------------------------------------------------------
+
+async function sha256Hex(text: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function createJwt(payload: Record<string, unknown>, secret: string): Promise<string> {
+    const header = { alg: "HS256", typ: "JWT" };
+    const encode = (obj: unknown) =>
+        btoa(JSON.stringify(obj)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    const headerB64 = encode(header);
+    const payloadB64 = encode(payload);
+    const signingInput = `${headerB64}.${payloadB64}`;
+    const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signingInput));
+    const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
+    return `${signingInput}.${sigB64}`;
+}
+
+async function verifyJwt(token: string, secret: string): Promise<Record<string, unknown> | null> {
+    try {
+        const parts = token.split(".");
+        if (parts.length !== 3) return null;
+        const [headerB64, payloadB64, sigB64] = parts;
+        const signingInput = `${headerB64}.${payloadB64}`;
+        const key = await crypto.subtle.importKey(
+            "raw",
+            new TextEncoder().encode(secret),
+            { name: "HMAC", hash: "SHA-256" },
+            false,
+            ["verify"]
+        );
+        // Restore base64 padding
+        const pad = (s: string) => s + "=".repeat((4 - (s.length % 4)) % 4);
+        const sigBytes = Uint8Array.from(atob(pad(sigB64.replace(/-/g, "+").replace(/_/g, "/"))), (c) =>
+            c.charCodeAt(0)
+        );
+        const valid = await crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(signingInput));
+        if (!valid) return null;
+        const payload = JSON.parse(atob(pad(payloadB64.replace(/-/g, "+").replace(/_/g, "/"))));
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+        return payload;
+    } catch {
+        return null;
+    }
+}
+
+function parseCookies(cookieHeader: string): Record<string, string> {
+    const cookies: Record<string, string> = {};
+    for (const part of cookieHeader.split(";")) {
+        const [k, ...v] = part.trim().split("=");
+        if (k) cookies[k.trim()] = decodeURIComponent(v.join("="));
+    }
+    return cookies;
+}
+
+const COOKIE_NAME = "session";
 
 export const edgeRouter = router({
     directory: router({
@@ -80,17 +157,15 @@ export const edgeRouter = router({
         stats: publicProcedure
             .query(async ({ ctx }) => {
                 const { url, key } = getSupabaseConfig(ctx);
-                // Execute multiple count queries via a single batch or separate fetches
                 const totalResp = await fetch(`${url}/rest/v1/shelters?active=eq.true&select=count`, {
                     headers: { "apikey": key, "Authorization": `Bearer ${key}`, "Prefer": "count=exact" }
                 });
 
-                // Simplified stats for edge performance
                 const total = parseInt(totalResp.headers.get("content-range")?.split("/")?.[1] || "0");
 
                 return {
                     total,
-                    byState: [], // Hydrate these as needed or use a custom RPC
+                    byState: [],
                     byCategory: []
                 };
             }),
@@ -107,14 +182,65 @@ export const edgeRouter = router({
                 return data[0];
             }),
     }),
+
     auth: router({
-        me: publicProcedure.query(() => null),
-        // Login is handled by the Express server (sets an HttpOnly cookie).
-        // This stub exists so the client TypeScript types compile correctly.
+        me: publicProcedure.query(async ({ ctx }) => {
+            const jwtSecret = ctx.env?.JWT_SECRET;
+            if (!jwtSecret) return null;
+            const cookieHeader = ctx.req?.headers.get("cookie") || "";
+            const cookies = parseCookies(cookieHeader);
+            const token = cookies[COOKIE_NAME];
+            if (!token) return null;
+            const payload = await verifyJwt(token, jwtSecret);
+            if (!payload) return null;
+            return { id: payload.sub as string, role: payload.role as string, name: payload.name as string };
+        }),
+
         login: publicProcedure
             .input(z.object({ email: z.string(), password: z.string() }))
-            .mutation(() => ({ success: false as boolean })),
-        logout: publicProcedure.mutation(() => ({ success: true as boolean })),
+            .mutation(async ({ input, ctx }) => {
+                const adminEmail = ctx.env?.ADMIN_EMAIL;
+                const adminPasswordHash = ctx.env?.ADMIN_PASSWORD_HASH;
+                const jwtSecret = ctx.env?.JWT_SECRET;
+
+                if (!adminEmail || !adminPasswordHash || !jwtSecret) {
+                    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Auth not configured" });
+                }
+
+                // Verify email
+                if (input.email.toLowerCase() !== adminEmail.toLowerCase()) {
+                    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid credentials" });
+                }
+
+                // Verify password via SHA-256 hash
+                const inputHash = await sha256Hex(input.password);
+                if (inputHash !== adminPasswordHash.toLowerCase()) {
+                    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid credentials" });
+                }
+
+                // Issue JWT (7-day expiry)
+                const exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+                const token = await createJwt(
+                    { sub: "admin", role: "admin", name: "Admin", exp },
+                    jwtSecret
+                );
+
+                // Set HttpOnly cookie via response headers
+                const cookieValue = `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
+                if (ctx.resHeaders) {
+                    ctx.resHeaders.append("Set-Cookie", cookieValue);
+                }
+
+                return { success: true as boolean };
+            }),
+
+        logout: publicProcedure.mutation(async ({ ctx }) => {
+            const cookieValue = `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+            if (ctx.resHeaders) {
+                ctx.resHeaders.append("Set-Cookie", cookieValue);
+            }
+            return { success: true as boolean };
+        }),
     })
 });
 
