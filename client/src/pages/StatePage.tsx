@@ -90,6 +90,8 @@ export default function StatePage() {
     setSelectedSpecies,
     isNoKill,
     setIsNoKill,
+    selectedType,
+    setSelectedType,
     userLocation,
     setUserLocation,
     radius,
@@ -242,6 +244,8 @@ export default function StatePage() {
               setSelectedSpecies={setSelectedSpecies}
               isNoKill={isNoKill}
               setIsNoKill={setIsNoKill}
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
               userLocation={userLocation}
               setUserLocation={setUserLocation}
               radius={radius}

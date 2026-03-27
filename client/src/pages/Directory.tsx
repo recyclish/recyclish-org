@@ -26,6 +26,8 @@ export default function Directory() {
     setSelectedSpecies,
     isNoKill,
     setIsNoKill,
+    selectedType,
+    setSelectedType,
     userLocation,
     setUserLocation,
     radius,
@@ -111,6 +113,8 @@ export default function Directory() {
               setSelectedSpecies={setSelectedSpecies}
               isNoKill={isNoKill}
               setIsNoKill={setIsNoKill}
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
               userLocation={userLocation}
               setUserLocation={setUserLocation}
               radius={radius}

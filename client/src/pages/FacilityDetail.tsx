@@ -313,7 +313,9 @@ export default function FacilityDetail() {
     <div className="min-h-screen flex flex-col bg-topo-pattern">
       <SEOHead
         title={`${facility.name} | Recycling Center | ${facility.city}, ${facility.state}`}
-        description={`Find recycling information for ${facility.name} in ${facility.city}, ${facility.state}. View hours, materials accepted, contact info, and directions.`}
+        description={`Find recycling information for ${facility.name} in ${facility.city}, ${facility.state}. View hours, materials accepted, contact info, and directions.${
+          materials.length > 0 ? ` Accepts: ${materials.slice(0, 3).join(", ")}${materials.length > 3 ? ", and more" : ""}.` : ""
+        }`}
         ogType="place"
         canonicalUrl={`https://recyclish.info/facility/${facilityId}`}
         businessName={facility.name}
@@ -329,6 +331,45 @@ export default function FacilityDetail() {
           street: facility.addressLine1,
           city: facility.city,
           state: facility.state,
+          zip: facility.zip || undefined,
+          country: "US",
+        }}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "RecyclingCenter",
+          name: facility.name,
+          description: `Recycling facility in ${facility.city}, ${facility.state}. ${displayCategory}.`,
+          url: `https://recyclish.info/facility/${facilityId}`,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: facility.addressLine1,
+            addressLocality: facility.city,
+            addressRegion: facility.state,
+            postalCode: facility.zip || "",
+            addressCountry: "US",
+          },
+          ...(facility.phone && { telephone: facility.phone }),
+          ...(facility.website && { sameAs: facility.website }),
+          ...(facility.latitude && facility.longitude && {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: facility.latitude,
+              longitude: facility.longitude,
+            },
+          }),
+          ...(materials.length > 0 && {
+            knowsAbout: materials,
+          }),
+          ...(stats && stats.totalReviews > 0 && {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: stats.avgRating?.toFixed(1),
+              reviewCount: stats.totalReviews,
+              bestRating: "5",
+              worstRating: "1",
+            },
+          }),
+          ...(facility.verified && { isVerified: true }),
         }}
       />
       <Header />
