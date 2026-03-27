@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useShelterData } from "@/hooks/useShelterData";
+import { trpc } from "@/lib/trpc";
 import type { Shelter } from "@/components/ShelterCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
@@ -51,9 +52,6 @@ const facilityTypeColors: Record<string, string> = {
 
 export default function MapViewPage() {
   const {
-    shelters,
-    isLoading,
-    error,
     searchTerm,
     setSearchTerm,
     selectedState,
@@ -68,7 +66,51 @@ export default function MapViewPage() {
     setRadius,
     clearFilters,
     activeFilterCount,
+    selectedType,
+    setSelectedType,
   } = useShelterData();
+
+  // Use the uncapped mapData endpoint to load all facilities for the map
+  const { data: mapFacilities, isLoading, error } = trpc.directory.mapData.useQuery(
+    {
+      state: selectedState || undefined,
+      type: selectedType || undefined,
+    },
+    { staleTime: 5 * 60 * 1000 }
+  );
+
+  // Client-side filter by search term and user location radius
+  const shelters = useMemo(() => {
+    if (!mapFacilities) return [];
+    let results = mapFacilities as unknown as Shelter[];
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      results = results.filter(
+        (f) =>
+          f.name?.toLowerCase().includes(q) ||
+          f.city?.toLowerCase().includes(q) ||
+          f.state?.toLowerCase().includes(q) ||
+          f.zip?.toLowerCase().includes(q)
+      );
+    }
+    if (userLocation && radius) {
+      results = results.filter((f) => {
+        if (!f.latitude || !f.longitude) return false;
+        const R = 3958.8;
+        const dLat = ((f.latitude - userLocation.lat) * Math.PI) / 180;
+        const dLon = ((f.longitude - userLocation.lng) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((userLocation.lat * Math.PI) / 180) *
+            Math.cos((f.latitude * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+        const distMiles = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return distMiles <= radius;
+      });
+    }
+    return results;
+  }, [mapFacilities, searchTerm, userLocation, radius]);
 
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);

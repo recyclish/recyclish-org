@@ -76,8 +76,20 @@ const facilitySubmissionSchema = z.object({
   phone: z.string().max(50).optional(),
   email: z.string().email().max(320).optional().or(z.literal("")),
   website: z.string().url().max(500).optional().or(z.literal("")),
-  category: z.enum(['shelter', 'rescue', 'sanctuary', 'foster_network', 'community_resource']),
-  materialsAccepted: z.string().max(1000).optional(), // Used for Species Served in submission
+  category: z.enum([
+    'Drop-off Center',
+    'Curbside Pickup',
+    'Retail Take-Back',
+    'Hazardous Waste',
+    'E-Waste',
+    'Composting',
+    'Scrap Metal',
+    'Transfer Station',
+    'Material Recovery Facility',
+    'Municipal Recycling',
+    'Other',
+  ]),
+  materialsAccepted: z.string().max(1000).optional(), // Materials accepted at this facility
   additionalNotes: z.string().max(2000).optional(),
   submitterName: z.string().max(255).optional(),
   submitterEmail: z.string().email().max(320).optional().or(z.literal("")),
@@ -178,8 +190,8 @@ export const appRouter = router({
 
         // Notify owner about new submission
         await notifyOwner({
-          title: "New Shelter Submission",
-          content: `A new shelter/rescue has been submitted for review:\n\n**${input.name}**\n${input.address}, ${input.city}, ${input.state}\nCategory: ${input.category}\n\nPlease review in the admin panel.`,
+          title: "New Facility Submission",
+          content: `A new recycling facility has been submitted for review:\n\n**${input.name}**\n${input.address}, ${input.city}, ${input.state}\nCategory: ${input.category}\n\nPlease review in the admin panel.`,
         });
 
         return { success: true, message: "Thank you! Your submission has been received and will be reviewed by our community team." };
@@ -743,7 +755,9 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().min(1).max(255),
         address: z.string().min(1).max(500),
+        city: z.string().min(1).max(150),
         state: z.string().min(1).max(100),
+        zip: z.string().max(20).optional(),
         county: z.string().max(100).optional(),
         phone: z.string().max(100).optional(),
         email: z.string().max(320).optional(),
@@ -765,9 +779,8 @@ export const appRouter = router({
         const result = await addShelter({
           ...input,
           addressLine1: input.address,
-          city: "Unknown", // Added missing required field
-          state: "US", // Added missing required field
-          zip: "00000", // Default or map if available
+          city: input.city,
+          zip: input.zip || "00000",
           shelterType: input.category as any,
           speciesServed: input.feedstock ? input.feedstock.split(',') : [],
           phone: input.phone || null,
@@ -779,6 +792,28 @@ export const appRouter = router({
           slug: input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         });
         return { success: true, id: result.id };
+      }),
+
+    // Public endpoint - get all facilities for map view (no pagination cap)
+    mapData: publicProcedure
+      .input(z.object({
+        state: z.string().optional(),
+        type: z.string().optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+        radius: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        // Use getAllFacilities for full dataset, then apply optional filters in-memory
+        const all = await getAllFacilities(true);
+        if (!input || (!input.state && !input.type && !input.lat)) {
+          return all;
+        }
+        return all.filter(f => {
+          if (input.state && f.state !== input.state) return false;
+          if (input.type && f.shelterType !== input.type) return false;
+          return true;
+        });
       }),
 
     // Admin endpoint - deactivate a facility
