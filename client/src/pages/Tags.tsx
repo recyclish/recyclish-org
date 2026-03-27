@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
 
 export default function Tags() {
   const [email, setEmail] = useState("");
@@ -21,9 +22,8 @@ export default function Tags() {
   const bg = "#FFFCF8";
   const openSans = "'Open Sans', sans-serif";
 
-  const ZAPIER_WEBHOOK = "https://hooks.zapier.com/hooks/catch/YOUR_HOOK_ID/YOUR_HOOK_KEY/";
-  const PAGE_URL = "https://recyclish.pet/tags";
-  const SHARE_TEXT = "Just got my Mobi Tag™ 🐾 One of the first 1,000 ever made. Tag your tote. Carry the mission. #Recyclish #MobiTag #RecycleMore";
+  const PAGE_URL = "https://recyclish.info/tags";
+  const SHARE_TEXT = "Just got my Mobi Tag™ ♻️ One of the first 1,000 ever made. Tag your tote. Carry the mission. #Recyclish #MobiTag #RecycleMore";
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -39,17 +39,15 @@ export default function Tags() {
     }
   };
 
+  const subscribeMutation = trpc.newsletter.subscribe.useMutation();
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await fetch(ZAPIER_WEBHOOK, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "mobi-tag-qr-scan" }),
-      });
+      await subscribeMutation.mutateAsync({ email, zipCode: "00000" });
     } catch {
-      // silent fail
+      // Silent fail — still show success to avoid frustrating the user
     } finally {
       setSubmitted(true);
       setSubmitting(false);

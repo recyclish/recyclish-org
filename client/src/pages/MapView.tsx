@@ -25,21 +25,28 @@ import {
   Filter,
   Navigation,
   ArrowLeft,
-  Heart,
   ShieldCheck,
-  Compass
+  Compass,
+  Recycle
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useShelterData } from "@/hooks/useShelterData";
 import type { Shelter } from "@/components/ShelterCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 
-const shelterTypeColors: Record<string, string> = {
-  "Public Shelter": "#1e4a7a",
-  "Private Rescue": "#c4652a",
-  "Sanctuary": "#2a8a8a",
-  "Humane Society": "#3a7a9a",
-  "Rescue": "#c4652a",
+// Color map for recycling facility types
+const facilityTypeColors: Record<string, string> = {
+  "Drop-off Center": "#1e4a7a",
+  "E-Waste": "#c4652a",
+  "Hazardous Waste": "#8a2a2a",
+  "Composting": "#2a8a4a",
+  "Scrap Metal": "#3a7a9a",
+  "Material Recovery Facility": "#1e4a7a",
+  "Municipal Recycling": "#2a5a9a",
+  "Retail Take-Back": "#6a4a9a",
+  "Transfer Station": "#4a6a2a",
+  "Curbside Pickup": "#2a7a8a",
 };
 
 export default function MapViewPage() {
@@ -66,6 +73,7 @@ export default function MapViewPage() {
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const clustererRef = useRef<MarkerClusterer | null>(null);
   const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const [selectedShelter, setSelectedShelter] = useState<Shelter | null>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -86,12 +94,15 @@ export default function MapViewPage() {
     if (sheltersWithCoords.length === 0) {
       return { lat: 39.8283, lng: -98.5795 }; // Center of US
     }
-    // Optimization: if many shelters, just center on the first few or a known good center
     return { lat: sheltersWithCoords[0].latitude, lng: sheltersWithCoords[0].longitude };
   }, [sheltersWithCoords, userLocation]);
 
-  // Clear existing markers
+  // Clear existing markers and clusterer
   const clearMarkers = useCallback(() => {
+    if (clustererRef.current) {
+      clustererRef.current.clearMarkers();
+      clustererRef.current = null;
+    }
     markersRef.current.forEach((marker) => {
       marker.map = null;
     });
@@ -131,20 +142,22 @@ export default function MapViewPage() {
     userMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
       map,
       position: location,
-      title: "Your Sanctuary",
+      title: "Your Location",
       content: markerContent,
     });
   }, []);
 
-  // Create markers for shelters
+  // Create markers with clustering
   const createMarkers = useCallback(
-    (map: google.maps.Map, shelters: Shelter[]) => {
+    (map: google.maps.Map, facilities: Shelter[]) => {
       clearMarkers();
 
-      shelters.forEach((shelter) => {
-        if (!shelter.latitude || !shelter.longitude) return;
+      const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
 
-        const color = shelterTypeColors[shelter.shelterType] || "#1e4a7a";
+      facilities.forEach((facility) => {
+        if (!facility.latitude || !facility.longitude) return;
+
+        const color = facilityTypeColors[facility.shelterType] || "#1e4a7a";
 
         const markerContent = document.createElement("div");
         markerContent.innerHTML = `
@@ -172,22 +185,30 @@ export default function MapViewPage() {
         `;
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: { lat: shelter.latitude, lng: shelter.longitude },
-          title: shelter.name,
+          position: { lat: facility.latitude, lng: facility.longitude },
+          title: facility.name,
           content: markerContent,
         });
 
         marker.addListener("click", () => {
-          setSelectedShelter(shelter);
-          map.panTo({ lat: shelter.latitude, lng: shelter.longitude });
+          setSelectedShelter(facility);
+          map.panTo({ lat: facility.latitude, lng: facility.longitude });
           const currentZoom = map.getZoom();
           if (currentZoom !== undefined && currentZoom < 12) {
             map.setZoom(12);
           }
         });
 
-        markersRef.current.push(marker);
+        newMarkers.push(marker);
+      });
+
+      markersRef.current = newMarkers;
+
+      // Use MarkerClusterer to group nearby markers — prevents DOM overload on mobile
+      clustererRef.current = new MarkerClusterer({
+        map,
+        markers: newMarkers,
+        algorithmOptions: { maxZoom: 12, radius: 80 },
       });
     },
     [clearMarkers]
@@ -225,8 +246,8 @@ export default function MapViewPage() {
     }
   }, [mapReady, userLocation, createUserMarker]);
 
-  const openMaps = (shelter: Shelter) => {
-    const address = `${shelter.addressLine1}, ${shelter.city}, ${shelter.state}`;
+  const openMaps = (facility: Shelter) => {
+    const address = `${facility.addressLine1}, ${facility.city}, ${facility.state}`;
     const query = encodeURIComponent(address);
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
   };
@@ -246,12 +267,12 @@ export default function MapViewPage() {
                 className={`bg-ocean text-cream rounded-[1.5rem] lg:rounded-[2rem] ${isMobile ? 'p-3' : 'p-6'} shadow-2xl flex items-center gap-3 lg:gap-6 border border-white/10`}
               >
                 <div className={`${isMobile ? 'p-2' : 'p-3'} bg-terracotta rounded-xl shadow-lg`}>
-                  <Compass className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
+                  <Recycle className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
                 </div>
                 <div>
-                  <h1 className={`${isMobile ? 'text-sm' : 'text-2xl'} font-display font-bold leading-none mb-1`}>Rescue Atlas</h1>
+                  <h1 className={`${isMobile ? 'text-sm' : 'text-2xl'} font-display font-bold leading-none mb-1`}>Recycling Map</h1>
                   <p className="text-[8px] lg:text-[10px] font-label uppercase tracking-widest text-cream/40 font-black">
-                    {sheltersWithCoords.length} Node{isMobile ? '' : 's Synced'}
+                    {sheltersWithCoords.length} Location{sheltersWithCoords.length !== 1 ? 's' : ''}{isMobile ? '' : ' Found'}
                   </p>
                 </div>
               </motion.div>
@@ -285,7 +306,7 @@ export default function MapViewPage() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className={`bg-white/90 backdrop-blur-2xl ${isMobile ? 'p-4 rounded-[1.5rem]' : 'p-8 rounded-[2.5rem]'} shadow-2xl border border-ocean/5 pointer-events-auto max-h-[60vh] overflow-y-auto`}
+                  className="bg-white/90 backdrop-blur-2xl rounded-[2rem] p-6 shadow-2xl border border-ocean/5 pointer-events-auto"
                 >
                   <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 lg:grid-cols-4 gap-6'}`}>
                     <div className="space-y-2">
@@ -294,14 +315,14 @@ export default function MapViewPage() {
                         <input
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          placeholder="Search by name..."
+                          placeholder="Search by name or ZIP..."
                           className="w-full bg-cream/50 border-none rounded-2xl px-5 h-12 text-ocean placeholder:text-ocean/20 focus:ring-2 focus:ring-terracotta/20 font-medium"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Universal Search Radius</label>
+                      <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Search Radius</label>
                       <Select value={radius.toString()} onValueChange={(v) => setRadius(parseInt(v))}>
                         <SelectTrigger className="bg-cream/50 border-none rounded-2xl h-12 font-medium">
                           <SelectValue />
@@ -316,15 +337,14 @@ export default function MapViewPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Sanctuary Type</label>
+                      <label className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black ml-1">Facility Type</label>
                       <Select value={isNoKill === undefined ? "all" : isNoKill.toString()} onValueChange={(v) => setIsNoKill(v === "all" ? undefined : v === "true")}>
                         <SelectTrigger className="bg-cream/50 border-none rounded-2xl h-12 font-medium">
-                          <SelectValue placeholder="All Ethics" />
+                          <SelectValue placeholder="All Types" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-ocean/5 shadow-2xl">
-                          <SelectItem value="all">All Ethics</SelectItem>
-                          <SelectItem value="true">No-Kill Only</SelectItem>
-                          <SelectItem value="false">Standard Shelters</SelectItem>
+                          <SelectItem value="all">All Types</SelectItem>
+                          <SelectItem value="true">Verified Only</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -336,7 +356,7 @@ export default function MapViewPage() {
                         className="w-full h-12 text-ocean/40 hover:text-terracotta font-label uppercase tracking-widest text-[10px] font-black"
                       >
                         <X className="h-4 w-4 mr-2" />
-                        Reset Atlas
+                        Reset Filters
                       </Button>
                     </div>
                   </div>
@@ -353,7 +373,7 @@ export default function MapViewPage() {
               <div className="flex flex-col items-center gap-6">
                 <Loader2 className="h-12 w-12 animate-spin text-terracotta" />
                 <span className="text-ocean/30 font-label uppercase tracking-widest text-xs font-black">
-                  Synchronizing Mobi Geodata...
+                  Loading Recycling Centers...
                 </span>
               </div>
             </div>
@@ -361,7 +381,7 @@ export default function MapViewPage() {
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center z-30">
               <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-terracotta/20 text-center max-w-sm">
                 <p className="text-terracotta font-bold text-lg mb-4">{error?.message || "An unexpected error occurred"}</p>
-                <Button onClick={() => window.location.reload()} variant="outline" className="rounded-xl">Retry Connection</Button>
+                <Button onClick={() => window.location.reload()} variant="outline" className="rounded-xl">Retry</Button>
               </div>
             </div>
           ) : null}
@@ -377,9 +397,9 @@ export default function MapViewPage() {
           {!isMobile && (
             <div className="absolute bottom-10 left-10 z-20">
               <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-ocean/5 w-64">
-                <h4 className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/30 mb-4">Atlas Legend</h4>
+                <h4 className="text-[10px] font-label uppercase tracking-widest font-black text-ocean/30 mb-4">Facility Types</h4>
                 <div className="space-y-3">
-                  {Object.entries(shelterTypeColors).map(([type, color]) => (
+                  {Object.entries(facilityTypeColors).slice(0, 6).map(([type, color]) => (
                     <div key={type} className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }} />
                       <span className="text-xs font-bold text-ocean/60">{type}</span>
@@ -388,7 +408,7 @@ export default function MapViewPage() {
                   {userLocation && (
                     <div className="flex items-center gap-3 pt-2 border-t border-ocean/5">
                       <div className="w-3 h-3 rounded-full bg-terracotta border-2 border-white shadow-sm" />
-                      <span className="text-xs font-bold text-ocean/60">Your Sanctuary</span>
+                      <span className="text-xs font-bold text-ocean/60">Your Location</span>
                     </div>
                   )}
                 </div>
@@ -411,7 +431,7 @@ export default function MapViewPage() {
                   <div className={`${isMobile ? 'p-6' : 'p-10'} flex-1 overflow-y-auto custom-scrollbar`}>
                     <div className={`flex justify-between items-start ${isMobile ? 'mb-4' : 'mb-8'}`}>
                       <Badge className="bg-ocean/5 text-ocean/40 border-none px-4 py-1.5 rounded-full text-[9px] font-label font-black uppercase tracking-widest">
-                        {selectedShelter.shelterType}
+                        {selectedShelter.shelterType || "Recycling Center"}
                       </Badge>
                       <Button
                         variant="ghost"
@@ -434,9 +454,9 @@ export default function MapViewPage() {
                             <MapPin className="h-5 w-5 text-terracotta" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-1">Mapping Node</p>
+                            <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-1">Address</p>
                             <p className="text-sm font-bold text-ocean leading-relaxed">{selectedShelter.addressLine1}</p>
-                            <p className="text-xs text-ocean/40 font-medium">{selectedShelter.city}, {selectedShelter.state}</p>
+                            <p className="text-xs text-ocean/40 font-medium">{selectedShelter.city}, {selectedShelter.state} {selectedShelter.zip}</p>
                           </div>
                         </div>
 
@@ -446,7 +466,7 @@ export default function MapViewPage() {
                               <Phone className="h-4 w-4 text-ocean" />
                             </div>
                             <div>
-                              <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-0.5">Primary Line</p>
+                              <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-0.5">Phone</p>
                               <p className="text-sm font-bold text-ocean">{selectedShelter.phone}</p>
                             </div>
                           </div>
@@ -463,7 +483,7 @@ export default function MapViewPage() {
                               <Globe className="h-4 w-4" />
                             </div>
                             <div className="flex-1 truncate">
-                              <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-0.5">Registry Link</p>
+                              <p className="text-[10px] font-label uppercase tracking-widest text-ocean/30 font-black mb-0.5">Website</p>
                               <p className="text-sm font-bold text-ocean flex items-center gap-2">
                                 Open Website <ExternalLink className="h-3 w-3" />
                               </p>
@@ -472,16 +492,14 @@ export default function MapViewPage() {
                         )}
                       </div>
 
-                      <div className="pt-8 border-t border-ocean/5">
-                        <div className="flex items-center gap-3 mb-6">
-                          <div className="w-1 h-5 bg-terracotta rounded-full" />
-                          <h4 className="text-[10px] font-label uppercase tracking-widest text-ocean/40 font-black font-bold">Verification Standard</h4>
+                      {selectedShelter.verified && (
+                        <div className="pt-8 border-t border-ocean/5">
+                          <div className="flex items-center gap-3 p-4 bg-ocean text-cream rounded-2xl shadow-xl shadow-ocean/20">
+                            <ShieldCheck className="h-5 w-5 text-terracotta" />
+                            <span className="text-[10px] font-label uppercase tracking-widest font-black">Verified Recycling Facility</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3 p-4 bg-ocean text-cream rounded-2xl shadow-xl shadow-ocean/20">
-                          <ShieldCheck className="h-5 w-5 text-terracotta" />
-                          <span className="text-[10px] font-label uppercase tracking-widest font-black">Mobi Certified Sync</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
@@ -494,9 +512,9 @@ export default function MapViewPage() {
                         <Navigation className="h-4 w-4 mr-2" />
                         Directions
                       </Button>
-                      <Link href={`/shelter/${selectedShelter.id}`} className="flex-1">
+                      <Link href={`/facility/${selectedShelter.id}`} className="flex-1">
                         <Button variant="outline" className="w-full h-14 rounded-2xl border-ocean/10 text-ocean hover:bg-white font-bold transition-all">
-                          Full Profile
+                          Full Details
                         </Button>
                       </Link>
                     </div>

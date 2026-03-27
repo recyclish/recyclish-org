@@ -967,7 +967,8 @@ export async function getShelters(params: {
     query = query.orderBy(desc(shelters.updatedAt));
   }
 
-  return await query.limit(params.limit || 50).offset(params.offset || 0);
+  const safeLimit = Math.min(params.limit || 25, 100);
+  return await query.limit(safeLimit).offset(params.offset || 0);
 }
 
 export async function getFacilityStats() {
