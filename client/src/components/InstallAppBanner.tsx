@@ -115,10 +115,10 @@ export function InstallAppBanner() {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-                  Install Rescue Directory
+                  Install Recycling Directory
                 </h3>
                 <p className="text-sm text-muted-foreground font-body leading-relaxed">
-                  Add to your home screen for quick access to 8,500+ verified rescue locations,
+                  Add to your home screen for quick access to thousands of verified recycling locations,
                   even when offline.
                 </p>
               </div>

@@ -4,182 +4,165 @@ export interface BlogArticleContent {
 }
 
 export const blogArticles: Record<string, BlogArticleContent> = {
-  "preparing-for-your-first-adoption": {
+  "safe-sharps-disposal-guide": {
     keywords: [
-      "animal adoption",
-      "rescue pet guide",
-      "first time pet owner",
-      "shelter dog adoption",
-      "cat adoption tips",
-      "rescue preparation",
-      "adopt don't shop",
-      "pet home proofing"
+      "sharps disposal",
+      "needle disposal",
+      "medical waste",
+      "ozempic needles",
+      "syringe recycling",
+      "safe disposal",
+      "hazardous waste"
     ],
     content: `
-      <h2>The Sanctuary Journey: Preparing for Your First Rescue</h2>
+      <h2>The Complete Guide to Safe Sharps Disposal</h2>
       <p>
-        Adopting a rescue animal is one of the most rewarding experiences a person can have. 
-        Unlike purchasing from a breeder, rescue adoption is an act of community service—you are 
-        providing a second chance to a life that may have known hardship or neglect.
+        If you use injectable medications like insulin, Ozempic, Wegovy, or Mounjaro, you know that managing the resulting medical waste is a daily responsibility. Proper disposal of needles, syringes, and lancets (collectively known as "sharps") is critical for community safety.
       </p>
       <p>
-        However, the transition from a shelter environment to a domestic sanctuary requires 
-        patience, preparation, and empathy. This guide outlines the essential steps to ensure 
-        your new companion feels safe and loved from day one.
+        Unfortunately, many people mistakenly throw loose sharps into the regular trash or recycling bin. This poses a severe risk to sanitation workers and the environment. This guide outlines the essential steps to ensure your medical waste is handled safely.
       </p>
 
-      <h2>The "Rule of Three"</h2>
-      <p>Rescue coordinators often speak of the "Rule of Three" when bringing a new pet home:</p>
+      <h2>The Golden Rules of Sharps Disposal</h2>
       <ul>
-        <li><strong>3 Days</strong> - Feeling overwhelmed and nervous. They may not eat or hide under furniture.</li>
-        <li><strong>3 Weeks</strong> - Starting to feel settled and showing their true personality.</li>
-        <li><strong>3 Months</strong> - Full integration into the family and a solid sense of security.</li>
+        <li><strong>Never throw loose sharps in the trash.</strong> They can puncture bags and injure workers.</li>
+        <li><strong>Never put sharps in the recycling bin.</strong> They are not recyclable and contaminate the recycling stream.</li>
+        <li><strong>Never flush sharps down the toilet.</strong></li>
       </ul>
 
-      <h2>Sanctuary-Proofing Your Home</h2>
-      <p>Before the arrival, audit your living space for potential hazards:</p>
-      <ul>
-        <li><strong>Secure the Perimeter</strong> - Check for gaps in fences or loose window screens.</li>
-        <li><strong>Toxic Checklist</strong> - Ensure plants like Lilies (cats) or Sago Palms (dogs) are removed.</li>
-        <li><strong>Safe Haven</strong> - Prepare a quiet "decompression zone" with a bed and water where they won't be disturbed.</li>
-      </ul>
+      <h2>Using a Sharps Container</h2>
+      <p>The safest way to store used needles is in an FDA-cleared sharps container. These are made of rigid plastic and have puncture-resistant walls. If you don't have one, you can use a heavy-duty plastic household container, such as a laundry detergent bottle. Ensure the lid is tightly secured and taped shut, and label it clearly as "DO NOT RECYCLE - SHARPS."</p>
 
-      <h2>The Community Registry</h2>
+      <h2>Finding a Drop-Off Location</h2>
       <div style="background: #fdfaf6; border: 1px solid #c4652a20; border-radius: 2rem; padding: 2rem; margin: 3rem 0;">
         <p style="margin: 0; font-weight: 700; color: #1e4a7a;">
-          🔍 Use our <a href="/directory" style="color: #c4652a; text-decoration: underline;">Animal Rescue Atlas</a> to find 
-          verified sanctuaries in your region. Look for the Mobi-Certified badge for organizations that meet our high-fidelity standards.
+          🔍 Use our <a href="/directory" style="color: #c4652a; text-decoration: underline;">National Recycling Directory</a> to find 
+          verified sharps disposal locations in your region. Filter by "Sharps Disposal" to see pharmacies, hospitals, and municipal centers near you.
         </p>
       </div>
 
       <h2>Conclusion</h2>
       <p>
-        The journey of adoption is a marathon, not a sprint. By preparing your home and 
-        understanding the psychological state of a rescue animal, you are building the 
-        foundation for a lifetime of companionship.
+        Safe sharps disposal is a vital part of community health. By using proper containers and verified drop-off locations, you protect sanitation workers and keep our environment clean.
       </p>
     `
   },
 
-  "understanding-no-kill-sanctuaries": {
+  "e-waste-recycling-explained": {
     keywords: [
-      "no-kill shelter",
-      "animal sanctuary",
-      "humane society",
-      "rescue mission",
-      "pet safety",
-      "animal welfare standards",
-      "no-kill movement",
-      "shelter save rate"
+      "e-waste",
+      "electronics recycling",
+      "computer disposal",
+      "phone recycling",
+      "battery recycling",
+      "tech waste",
+      "sustainable tech"
     ],
     content: `
-      <h2>Safe Haven: The Philosophy of No-Kill</h2>
+      <h2>Don't Trash Your Tech: The Importance of E-Waste Recycling</h2>
       <p>
-        The "No-Kill" movement has transformed the landscape of American animal welfare. 
-        But what does it actually mean for a sanctuary to be "No-Kill"? Contrary to 
-        popular belief, it doesn't mean a facility never euthanizes—it means they 
-        maintain a <strong>90% save rate</strong> or higher.
+        Electronic waste, or e-waste, is the fastest-growing waste stream in the world. From old smartphones and laptops to broken televisions and dead batteries, our reliance on technology creates a massive environmental challenge when these items reach the end of their life.
       </p>
 
-      <h2>The 90% Standard</h2>
+      <h2>Why E-Waste is Dangerous</h2>
       <p>
-        A 90% save rate is the gold standard for no-kill communities. The remaining 10% 
-        accounts for animals with terminal illnesses or severe behavioral issues that 
-        pose a genuine threat to public safety, where euthanasia is considered a 
-        humane final act.
+        Electronics contain toxic substances like lead, mercury, and cadmium. When e-waste is dumped in landfills, these chemicals can leach into the soil and groundwater, posing severe risks to human health and local ecosystems. Furthermore, electronics contain valuable precious metals like gold, silver, and copper that can be recovered and reused, reducing the need for destructive mining.
       </p>
 
-      <h2>How Communities Achieve No-Kill Status</h2>
-      <p>Successful no-kill regions rely on a "Warm Community" model:</p>
+      <h2>How to Recycle Electronics</h2>
+      <p>Recycling e-waste is easier than ever, but it requires a specific process:</p>
       <ul>
-        <li><strong>Aggressive TNR</strong> - Trap-Neuter-Return programs for community cats.</li>
-        <li><strong>Comprehensive Fostering</strong> - Moving animals out of cages and into homes.</li>
-        <li><strong>Medical Rehabilitation</strong> - Treating curable conditions like heartworm or parvovirus.</li>
-        <li><strong>Behavioral Training</strong> - Investing in trainers to help "difficult" pets find homes.</li>
+        <li><strong>Retail Take-Back Programs</strong> - Many major retailers, such as Best Buy and Staples, offer free recycling for old electronics.</li>
+        <li><strong>Municipal Drop-Off Centers</strong> - Most cities have dedicated e-waste collection days or permanent drop-off facilities.</li>
+        <li><strong>Battery Bins</strong> - Never throw rechargeable batteries in the trash. Look for battery recycling bins at hardware stores and supermarkets.</li>
       </ul>
 
-      <h2>Verification is Everything</h2>
+      <h2>Data Security</h2>
       <p>
-        In an era of digital misinformation, knowing which organizations are truly 
-        adhering to these standards is vital. Our atlas utilizes the Mobi data engine 
-        to verify the status and licensing of every listed organization.
+        Before recycling any device with a hard drive or memory, ensure you have backed up your data and performed a factory reset to wipe all personal information.
       </p>
 
       <div style="background: #1e4a7a10; border-radius: 2rem; padding: 2rem; margin: 3rem 0;">
-          <h3 style="color: #1e4a7a; font-family: 'Playfair Display', serif; margin-bottom: 1rem;">Support Your Local Sanctuary</h3>
+          <h3 style="color: #1e4a7a; font-family: 'Playfair Display', serif; margin-bottom: 1rem;">Find an E-Waste Recycler</h3>
           <p style="color: #1e4a7a80; font-size: 0.9rem; line-height: 1.6;">
-            Every rescue listed in our directory undergoes a manual verification process. 
-            When you see the rescue on our map, you know they are part of the verified welfare community.
+            Use our directory to locate certified e-waste recycling centers near you. Filter by "E-Waste" to ensure your old tech is handled responsibly.
           </p>
       </div>
     `
   },
 
-  "volunteering-at-local-rescues": {
+  "composting-basics-for-beginners": {
     keywords: [
-      "volunteer animal shelter",
-      "pet fostering",
-      "animal rescue help",
-      "community service pet",
-      "shelter volunteer guide",
-      "helping animals",
-      "rescue support"
+      "composting",
+      "food waste",
+      "organic recycling",
+      "soil health",
+      "kitchen scraps",
+      "sustainable living",
+      "reduce waste"
     ],
     content: `
-      <h2>Community Action: How to Help Beyond Adoption</h2>
+      <h2>Turning Scraps into Soil: Composting Basics</h2>
       <p>
-        Not everyone is in a position to adopt, but everyone has the capacity to help. 
-        Local animal rescues are the backbone of the community, and they rely heavily 
-        on volunteer labor to maintain their high-fidelity care standards.
+        Did you know that food scraps and yard waste make up more than 30% of what we throw away? When organic matter goes to a landfill, it decomposes anaerobically (without oxygen) and releases methane, a potent greenhouse gas. Composting is nature's way of recycling, turning organic waste into nutrient-rich soil.
       </p>
 
-      <h2>Ways to Contribute</h2>
+      <h2>What Can You Compost?</h2>
+      <p>A healthy compost pile needs a balance of "Greens" (nitrogen-rich) and "Browns" (carbon-rich):</p>
       <ul>
-        <li><strong>Fostering</strong> - The single most impactful way to help. Providing a temporary home saves lives by freeing up shelter space.</li>
-        <li><strong>Socialization</strong> - Spending time walking dogs or playing with cats to keep them "adoption-ready."</li>
-        <li><strong>Administrative Support</strong> - Helping with data entry, social media, or website maintenance.</li>
-        <li><strong>Transport</strong> - Driving animals to vet appointments or transport hubs.</li>
+        <li><strong>Greens:</strong> Fruit and vegetable scraps, coffee grounds, tea bags, and grass clippings.</li>
+        <li><strong>Browns:</strong> Dry leaves, twigs, uncoated paper, cardboard, and eggshells.</li>
       </ul>
+      <p><strong>What to Avoid:</strong> Meat, dairy, oils, and pet waste should generally be kept out of home compost bins as they can attract pests and create odors.</p>
 
-      <h2>Finding Your Place in the Atlas</h2>
+      <h2>Getting Started</h2>
       <p>
-        Use our map view to identify the closest sanctuaries to your location. Most 
-        organizations have a "Volunteer" link on their verified profile page.
+        You don't need a large backyard to compost. Options range from outdoor bins and tumblers to indoor worm composters (vermicomposting) and countertop electric composters. 
+      </p>
+
+      <h2>Community Composting</h2>
+      <p>
+        If home composting isn't feasible, many cities now offer curbside organics collection or community drop-off points at farmers' markets and community gardens. Check our directory under the "Composting" category to find local organic waste drop-off locations.
       </p>
     `
   },
 
-  "mobi-verification-and-data-fidelity": {
+  "understanding-plastic-recycling-symbols": {
     keywords: [
-      "Mobi verification",
-      "data fidelity",
-      "rescue licensing",
-      "animal welfare data",
-      "verified sanctuaries",
-      "trustworthy rescues"
+      "plastic recycling",
+      "recycling symbols",
+      "resin codes",
+      "what can i recycle",
+      "single use plastics",
+      "recycling guide"
     ],
     content: `
-      <h2>High Fidelity: The Mobi Verification Standard</h2>
+      <h2>Cracking the Code: Understanding Plastic Recycling Symbols</h2>
       <p>
-        In the digital age, information is plentiful but accuracy is rare. This is 
-        especially true in the animal rescue world, where "scam" rescues can 
-        unfortunately exist.
-      </p>
-      <p>
-        That's why we built the <strong>Mobi Verification Engine</strong>.
+        We've all seen the "chasing arrows" symbol on plastic containers, but did you know that the presence of this symbol doesn't automatically mean the item is recyclable in your local curbside bin? The number inside the triangle is a Resin Identification Code, which tells you what type of plastic the item is made from.
       </p>
 
-      <h2>Our Process</h2>
+      <h2>The Most Common Plastics</h2>
       <ol>
-        <li><strong>License Verification</strong> - We check 501(c)(3) status and state-specific rescue licenses.</li>
-        <li><strong>Coordinate Accuracy</strong> - Every location is geocoded and manually placed on our map.</li>
-        <li><strong>Communication Audit</strong> - We verify working phone numbers and email addresses.</li>
-        <li><strong>Ethics Review</strong> - We monitor community feedback to ensure humane standards are met.</li>
+        <li><strong>#1 PET (Polyethylene Terephthalate):</strong> Found in water bottles and soda bottles. Widely accepted in most curbside programs.</li>
+        <li><strong>#2 HDPE (High-Density Polyethylene):</strong> Found in milk jugs, detergent bottles, and shampoo bottles. Also widely accepted.</li>
+        <li><strong>#5 PP (Polypropylene):</strong> Found in yogurt containers and syrup bottles. Increasingly accepted, but check local guidelines.</li>
       </ol>
 
+      <h2>The Hard-to-Recycle Plastics</h2>
       <p>
-        When you use our directory, you aren't just looking at a list of names—you 
-        are looking at a verified community atlas.
+        Plastics labeled #3 (PVC), #4 (LDPE - like plastic bags), #6 (PS - Styrofoam), and #7 (Other) are generally NOT accepted in standard curbside recycling. Plastic bags, in particular, are a major problem as they tangle in the sorting machinery at recycling facilities.
+      </p>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li><strong>When in doubt, throw it out.</strong> "Wishcycling" (putting questionable items in the bin hoping they get recycled) contaminates the recycling stream.</li>
+        <li><strong>Clean and dry.</strong> Rinse out food residue before recycling to prevent contamination.</li>
+        <li><strong>Return plastic bags to the store.</strong> Many grocery stores have dedicated bins for recycling plastic bags and film.</li>
+      </ul>
+      
+      <p>
+        For specific hard-to-recycle items, use our directory to find specialized drop-off centers in your community.
       </p>
     `
   }
