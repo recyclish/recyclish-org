@@ -14,7 +14,7 @@ export function Footer() {
           </Link>
           <p className="text-ocean/40 text-[10px] font-label uppercase tracking-[0.2em] text-center max-w-lg leading-loose font-bold">
             CONNECTING PEOPLE TO THE CAUSES THEY CARE ABOUT. <br />
-            &copy; {new Date().getFullYear()} ANIMAL SHELTER DIRECTORY. A RECYCLISH INITIATIVE.
+            &copy; 2025 RECYCLISH LLC. ALL RIGHTS RESERVED.
           </p>
         </div>
 
