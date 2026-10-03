@@ -96,7 +96,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "add": "^2.0.6",
     "autoprefixer": "^10.4.20",
-    "csv-parse": "^6.1.0",
+    "csv-parse": "^7.0.3",
     "drizzle-kit": "^0.31.10",
     "esbuild": "^0.28.1",
     "pnpm": "^10.15.1",
